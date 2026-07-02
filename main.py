@@ -3,7 +3,7 @@ import requests
 
 app = Flask(__name__)
 
-BOT_TOKEN = "PUT_YOUR_BALE_TOKEN_HERE"
+BOT_TOKEN = "556379301:NglRetfSzjd1xWGqgyA4De3IzlNHheJB98s"
 BASE_URL = f"https://tapi.bale.ai/bot{BOT_TOKEN}"
 
 def send_message(chat_id, text):
