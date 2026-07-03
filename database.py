@@ -37,6 +37,8 @@ def init_database():
 
         last_activity TEXT
 
+        current_request TEXT
+
     )
     """)
 
@@ -60,15 +62,33 @@ def init_database():
 
         status TEXT,
 
-        answer TEXT,
+        priority TEXT DEFAULT 'NORMAL',
 
         expert_id INTEGER,
 
         created_at TEXT,
 
-        answered_at TEXT,
+        updated_at TEXT,
 
         closed_at TEXT
+
+        CREATE TABLE IF NOT EXISTS request_messages(
+
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+    request_id INTEGER,
+
+    sender_type TEXT,
+
+    sender_id INTEGER,
+
+    message TEXT,
+
+    attachment TEXT,
+
+    created_at TEXT
+
+)
 
     )
     """)
@@ -79,9 +99,13 @@ def init_database():
 
         id INTEGER PRIMARY KEY AUTOINCREMENT,
 
+        chat_id INTEGER,
+
         name TEXT,
 
         username TEXT,
+
+        department TEXT,
 
         active INTEGER DEFAULT 1
 
