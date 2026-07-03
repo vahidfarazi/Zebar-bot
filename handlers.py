@@ -52,4 +52,48 @@ def send_message(chat_id, text, keyboard=None):
 
     requests.post(
         BASE_URL + "/sendMessage",
-        json=data
+        json=data)
+    @app.route("/")
+def home():
+    return "Azarakhsh is running"
+
+
+@app.route("/webhook", methods=["POST"])
+def webhook():
+
+    data = request.json
+
+    message = data.get("message", {})
+
+    if not message:
+        return "ok"
+
+    chat = message.get("chat", {})
+
+    chat_id = chat.get("id")
+
+    if not chat_id:
+        return "ok"
+
+    text = message.get("text", "").strip()
+
+    first_name = message.get("from", {}).get("first_name", "")
+
+    last_name = message.get("from", {}).get("last_name", "")
+
+    username = message.get("from", {}).get("username", "")
+
+    user = get_user(chat_id)
+
+    if user is None:
+
+        create_user(
+            chat_id,
+            first_name,
+            last_name,
+            username
+        )
+
+        user = get_user(chat_id)
+
+    write_log(chat_id, f"MSG : {text}")
