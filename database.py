@@ -288,3 +288,136 @@ def write_log(chat_id, action):
 
 
 init_database()
+# ---------------- REQUESTS ----------------
+
+def request_exists(service, identifier_value):
+
+    conn = get_connection()
+
+    cur = conn.cursor()
+
+    cur.execute("""
+
+    SELECT *
+
+    FROM requests
+
+    WHERE
+
+        service=?
+
+        AND identifier_value=?
+
+        AND status<>'CLOSED'
+
+    ORDER BY id DESC
+
+    LIMIT 1
+
+    """, (
+
+        service,
+
+        identifier_value
+
+    ))
+
+    row = cur.fetchone()
+
+    conn.close()
+
+    return row
+
+
+def create_request(
+
+    tracking_code,
+
+    chat_id,
+
+    service,
+
+    sub_service,
+
+    identifier_type,
+
+    identifier_value
+
+):
+
+    conn = get_connection()
+
+    cur = conn.cursor()
+
+    cur.execute("""
+
+    INSERT INTO requests(
+
+        tracking_code,
+
+        chat_id,
+
+        service,
+
+        sub_service,
+
+        identifier_type,
+
+        identifier_value,
+
+        status,
+
+        created_at
+
+    )
+
+    VALUES(?,?,?,?,?,?,?,?)
+
+    """, (
+
+        tracking_code,
+
+        chat_id,
+
+        service,
+
+        sub_service,
+
+        identifier_type,
+
+        identifier_value,
+
+        "NEW",
+
+        datetime.now().isoformat()
+
+    ))
+
+    conn.commit()
+
+    conn.close()
+
+
+def get_last_request():
+
+    conn = get_connection()
+
+    cur = conn.cursor()
+
+    cur.execute("""
+
+    SELECT tracking_code
+
+    FROM requests
+
+    ORDER BY id DESC
+
+    LIMIT 1
+
+    """)
+
+    row = cur.fetchone()
+
+    conn.close()
+
+    return row
