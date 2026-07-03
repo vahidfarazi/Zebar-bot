@@ -236,3 +236,48 @@ def handle_message(chat_id, text, users, send_message):
 اگر در یکی از بخش‌ها هستید، فقط شماره یا شناسه خواسته‌شده را وارد کنید.""",
         main_keyboard()
     )
+کاربر
+
+↓
+
+9351234567
+
+↓
+
+validator.py
+
+↓
+
+شماره موبایل
+
+↓
+
+services.py
+
+↓
+
+مجاز است؟
+
+↓
+
+بله
+
+↓
+
+request_manager.py
+
+↓
+
+ثبت در دیتابیس
+
+↓
+
+tracking.py
+
+↓
+
+SR-1405-0000001
+
+↓
+
+ارسال پاسخ به مشترک
