@@ -115,3 +115,88 @@ def is_valid_for_service(service, identifier_type):
         return False
 
     return identifier_type in rules[service]
+    def validate_identifier(value):
+
+    value = value.strip()
+
+    if not value.isdigit():
+
+        return {
+            "valid": False,
+            "message": "فقط اعداد مجاز هستند."
+        }
+
+    if len(value) == 7:
+
+        if validate_computer_code(value):
+            return {
+                "valid": True,
+                "type": COMPUTER_CODE
+            }
+
+        return {
+            "valid": False,
+            "message": "رمز رایانه معتبر نیست."
+        }
+
+    if len(value) == 10:
+
+        if value.startswith("9"):
+
+            if validate_mobile(value):
+                return {
+                    "valid": True,
+                    "type": MOBILE
+                }
+
+            return {
+                "valid": False,
+                "message": "شماره موبایل معتبر نیست."
+            }
+
+        if validate_national_code(value):
+
+            return {
+                "valid": True,
+                "type": NATIONAL_CODE
+            }
+
+        return {
+            "valid": False,
+            "message": "کد ملی معتبر نیست."
+        }
+
+    if len(value) == 11:
+
+        if validate_request_number(value):
+
+            return {
+                "valid": True,
+                "type": REQUEST_NUMBER
+            }
+
+        return {
+            "valid": False,
+            "message": "شماره تقاضا معتبر نیست."
+        }
+
+    if len(value) == 13:
+
+        if validate_bill_id(value):
+
+            return {
+                "valid": True,
+                "type": BILL_ID
+            }
+
+        return {
+            "valid": False,
+            "message": "شناسه قبض معتبر نیست."
+        }
+
+    return {
+
+        "valid": False,
+
+        "message": "شناسه وارد شده معتبر نیست."
+    }
