@@ -2,7 +2,7 @@ from flask import Flask, request
 import requests
 
 from config import WELCOME_MESSAGE
-from keyboards import main_keyboard, back_keyboard
+from keyboards import main_keyboard, back_keyboard, after_sale_keyboard
 from database import users
 import states
 
@@ -95,7 +95,19 @@ def webhook():
 
         return "ok"
 
-    if text == "🔧 اصلاح سرویس":
+    if text == "🔧 خدمات پس از فروش":
+
+    send_message(
+
+        chat_id,
+
+        """لطفاً نوع خدمت را انتخاب نمایید.""",
+
+        after_sale_keyboard()
+
+    )
+
+    return "ok"
 
         users[chat_id]["state"] = states.SERVICE_EDIT
 
@@ -141,7 +153,28 @@ def webhook():
 
         return "ok"
 
-    if text == "🧾 بررسی صورتحساب برق":
+    if text == "🧾 بررسی قبض برق":
+
+    users[chat_id]["state"] = states.BILL
+
+    send_message(
+
+        chat_id,
+
+        """لطفاً یکی از موارد زیر را ارسال نمایید.
+
+• شماره موبایل
+
+• رمز رایانه
+
+• شناسه قبض
+""",
+
+        back_keyboard()
+
+    )
+
+    return "ok"
 
         users[chat_id]["state"] = states.BILL
 
