@@ -17,12 +17,14 @@ def detect_identifier(service, value):
     if len(value) == 7:
         return "COMPUTER_CODE"
 
-    # موبایل یا کد ملی
+    # شماره موبایل یا کد ملی
     if len(value) == 10:
 
-        if value.startswith("0"):
-            return "NATIONAL_CODE"
+        # شماره موبایل ایران بدون صفر
+        if value.startswith("9"):
+            return "MOBILE"
 
-        return "MOBILE"
+        # سایر اعداد 10 رقمی = کد ملی
+        return "NATIONAL_CODE"
 
     return None
