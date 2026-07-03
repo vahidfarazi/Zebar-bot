@@ -1,15 +1,16 @@
 import sqlite3
-from datetime import datetime
+import jdatetime
 
 DB_NAME = "azarakhsh.db"
+
+PREFIX = "SR"
 
 
 def get_persian_year():
     """
-    فعلاً سال را ثابت گذاشته‌ایم.
-    بعداً به صورت خودکار از تاریخ شمسی محاسبه می‌شود.
+    سال شمسی جاری
     """
-    return "1405"
+    return str(jdatetime.date.today().year)
 
 
 def generate_tracking_code():
@@ -22,17 +23,31 @@ def generate_tracking_code():
 
     cur.execute(
         """
-        SELECT COUNT(*)
+        SELECT tracking_code
         FROM requests
         WHERE tracking_code LIKE ?
+        ORDER BY id DESC
+        LIMIT 1
         """,
-        (f"SR-{year}-%",)
+        (f"{PREFIX}-{year}-%",)
     )
 
-    count = cur.fetchone()[0] + 1
+    row = cur.fetchone()
 
-    tracking_code = f"SR-{year}-{count:07d}"
+    if row is None:
+
+        number = 1
+
+    else:
+
+        try:
+
+            number = int(row[0].split("-")[-1]) + 1
+
+        except:
+
+            number = 1
 
     conn.close()
 
-    return tracking_code
+    return f"{PREFIX}-{year}-{number:07d}"
