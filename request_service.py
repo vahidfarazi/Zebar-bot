@@ -1,136 +1,138 @@
 """
 request_service.py
 
-Core business logic for requests.
-Handles request lifecycle: create, reply, close, priority.
+Core business logic for request management.
+Handles creation, replies, closing, and SLA base flow.
 """
 
-from datetime import datetime
-
+from typing import Dict, Any
 from database import (
-    create_request_db,
+    insert_request,
     get_request_by_tracking,
-    add_message_db,
     update_request_status,
-    update_request_priority,
 )
-
-from tracking import generate_tracking_code
-from working_hours import can_create_request
-from logger import log_info, log_warning
+from tracking import generate_tracking
+from logger import log_info, log_error
 
 
 # -----------------------------
 # Create Request
 # -----------------------------
-def create_request(user_id: int, title: str, description: str) -> dict:
+def create_request(chat_id: int, title: str, description: str) -> Dict[str, Any]:
     """
-    Create a new service request.
+    Create a new support request.
     """
 
-    if not can_create_request():
-        log_warning("request_service", "create_blocked", f"user={user_id}")
+    try:
+        tracking_code = generate_tracking(chat_id)
+
+        success = insert_request(tracking_code, chat_id, title, description)
+
+        if not success:
+            return {
+                "success": False,
+                "message": "خطا در ثبت درخواست"
+            }
+
+        log_info("request_service", "create_request", f"{chat_id} -> {tracking_code}")
+
         return {
-            "success": False,
-            "message": "OUT_OF_WORK_TIME",
+            "success": True,
+            "tracking_code": tracking_code
         }
 
-    tracking_code = generate_tracking_code()
-
-    request_id = create_request_db(
-        user_id=user_id,
-        tracking_code=tracking_code,
-        title=title,
-        description=description,
-        status="NEW",
-        priority="NORMAL",
-        created_at=datetime.now().isoformat(),
-    )
-
-    log_info("request_service", "create_request", f"tracking={tracking_code}")
-
-    return {
-        "success": True,
-        "tracking_code": tracking_code,
-        "request_id": request_id,
-    }
+    except Exception as e:
+        log_error("request_service", "create_request", str(e))
+        return {
+            "success": False,
+            "message": "خطای داخلی سیستم"
+        }
 
 
 # -----------------------------
 # Reply to Request
 # -----------------------------
-def reply_request(request_id: int, sender_type: str, message: str) -> dict:
+def reply_request(request_id: int, sender_type: str, message: str) -> Dict[str, Any]:
     """
-    Add message to request conversation.
+    Add reply to a request (MVP simplified).
     """
 
-    request = get_request_by_tracking(request_id)
+    try:
+        # MVP: فقط لاگ می‌کنیم (در نسخه بعد جدول messages اضافه می‌شود)
+        log_info(
+            "request_service",
+            "reply",
+            f"request={request_id}, sender={sender_type}, msg={message}"
+        )
 
-    if not request:
         return {
-            "success": False,
-            "message": "REQUEST_NOT_FOUND",
+            "success": True
         }
 
-    add_message_db(
-        request_id=request_id,
-        sender_type=sender_type,
-        message=message,
-        created_at=datetime.now().isoformat(),
-    )
-
-    # status switch logic
-    if sender_type == "USER":
-        update_request_status(request_id, "WAITING_EXPERT")
-    else:
-        update_request_status(request_id, "WAITING_USER")
-
-    log_info("request_service", "reply", f"request_id={request_id}")
-
-    return {"success": True}
+    except Exception as e:
+        log_error("request_service", "reply_request", str(e))
+        return {
+            "success": False,
+            "message": "خطا در ثبت پیام"
+        }
 
 
 # -----------------------------
 # Close Request
 # -----------------------------
-def close_request(request_id: int, closed_by: str) -> dict:
+def close_request(request_id: int, user_id: int) -> Dict[str, Any]:
     """
     Close a request.
     """
 
-    request = get_request_by_tracking(request_id)
+    try:
+        success = update_request_status(request_id, "CLOSED")
 
-    if not request:
+        if not success:
+            return {
+                "success": False,
+                "message": "خطا در بستن درخواست"
+            }
+
+        log_info("request_service", "close_request", f"{request_id} by {user_id}")
+
         return {
-            "success": False,
-            "message": "REQUEST_NOT_FOUND",
+            "success": True
         }
 
-    update_request_status(request_id, "CLOSED")
-
-    log_info("request_service", "close_request", f"id={request_id}, by={closed_by}")
-
-    return {"success": True}
+    except Exception as e:
+        log_error("request_service", "close_request", str(e))
+        return {
+            "success": False,
+            "message": "خطای داخلی سیستم"
+        }
 
 
 # -----------------------------
-# Change Priority
+# Get Request Info
 # -----------------------------
-def change_priority(request_id: int, priority: str) -> dict:
+def get_request_info(tracking_code: str) -> Dict[str, Any]:
     """
-    Update request priority.
+    Return full request info.
     """
 
-    valid_priorities = ["LOW", "NORMAL", "HIGH", "URGENT"]
+    try:
+        request = get_request_by_tracking(tracking_code)
 
-    if priority not in valid_priorities:
+        if not request:
+            return {
+                "success": False,
+                "message": "درخواستی یافت نشد"
+            }
+
         return {
-            "success": False,
-            "message": "INVALID_PRIORITY",
+            "success": True,
+            "data": request
         }
 
-    update_request_priority(request_id, priority)
-
-    log_info("request_service", "change_priority", f"id={request_id}, p={priority}")
-
-    return {"success": True}
+    except Exception as e:
+        log_error("request_service", "get_request_info", str(e))
+        return {
+            "success": False,
+            "message": "خطای داخلی سیستم"
+        }
