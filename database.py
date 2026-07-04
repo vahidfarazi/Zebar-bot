@@ -2,21 +2,26 @@
 database.py
 
 Core database layer for Azarakhsh system.
+
 Responsible for:
-- connection
-- schema creation
-- basic CRUD operations
+- database connection
+- schema initialization
+- generic SQL helpers
+- request operations
 """
 
+import os
 import sqlite3
 from typing import Any, Optional
+
 from logger import log_system, log_error
 
 
 # -----------------------------
 # Database Path
 # -----------------------------
-DB_PATH = "database/azarakhsh.db"
+DB_DIRECTORY = "database"
+DB_PATH = os.path.join(DB_DIRECTORY, "azarakhsh.db")
 
 
 # -----------------------------
@@ -24,11 +29,83 @@ DB_PATH = "database/azarakhsh.db"
 # -----------------------------
 def get_connection() -> sqlite3.Connection:
     """
-    Create and return DB connection.
+    Create database connection.
     """
+
+    os.makedirs(DB_DIRECTORY, exist_ok=True)
+
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
+
     return conn
+
+
+# -----------------------------
+# Generic Execute
+# -----------------------------
+def execute(query: str, params: tuple = ()) -> None:
+    """
+    Execute INSERT / UPDATE / DELETE.
+    """
+
+    conn = get_connection()
+
+    try:
+
+        conn.execute(query, params)
+        conn.commit()
+
+    finally:
+
+        conn.close()
+
+
+# -----------------------------
+# Generic Fetch One
+# -----------------------------
+def fetch_one(
+    query: str,
+    params: tuple = (),
+) -> Optional[sqlite3.Row]:
+    """
+    Fetch one row.
+    """
+
+    conn = get_connection()
+
+    try:
+
+        cursor = conn.execute(query, params)
+
+        return cursor.fetchone()
+
+    finally:
+
+        conn.close()
+
+
+# -----------------------------
+# Generic Fetch All
+# -----------------------------
+def fetch_all(
+    query: str,
+    params: tuple = (),
+) -> list[sqlite3.Row]:
+    """
+    Fetch all rows.
+    """
+
+    conn = get_connection()
+
+    try:
+
+        cursor = conn.execute(query, params)
+
+        return cursor.fetchall()
+
+    finally:
+
+        conn.close()
 
 
 # -----------------------------
@@ -40,30 +117,29 @@ def init_database() -> None:
     """
 
     try:
+
         conn = get_connection()
         cursor = conn.cursor()
 
-        # -------------------------
-        # USERS TABLE
-        # -------------------------
+        # Users
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
             chat_id INTEGER PRIMARY KEY,
             username TEXT,
+            full_name TEXT,
+            role TEXT DEFAULT 'USER',
             created_at TEXT DEFAULT CURRENT_TIMESTAMP
         )
         """)
 
-        # -------------------------
-        # REQUESTS TABLE
-        # -------------------------
+        # Requests
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS requests (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            tracking_code TEXT UNIQUE,
-            chat_id INTEGER,
-            title TEXT,
-            description TEXT,
+            tracking_code TEXT UNIQUE NOT NULL,
+            chat_id INTEGER NOT NULL,
+            title TEXT NOT NULL,
+            description TEXT NOT NULL,
             status TEXT DEFAULT 'OPEN',
             priority TEXT DEFAULT 'NORMAL',
             expert_id INTEGER,
@@ -72,9 +148,7 @@ def init_database() -> None:
         )
         """)
 
-        # -------------------------
-        # EXPERTS TABLE
-        # -------------------------
+        # Experts
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS experts (
             chat_id INTEGER PRIMARY KEY,
@@ -85,18 +159,14 @@ def init_database() -> None:
         )
         """)
 
-        # -------------------------
-        # ADMINS TABLE
-        # -------------------------
+        # Admins
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS admins (
             chat_id INTEGER PRIMARY KEY
         )
         """)
 
-        # -------------------------
-        # HOLIDAYS TABLE
-        # -------------------------
+        # Holidays
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS holidays (
             holiday_date TEXT PRIMARY KEY,
@@ -104,9 +174,7 @@ def init_database() -> None:
         )
         """)
 
-        # -------------------------
-        # SETTINGS TABLE
-        # -------------------------
+        # Settings
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS settings (
             key TEXT PRIMARY KEY,
@@ -114,17 +182,14 @@ def init_database() -> None:
         )
         """)
 
-        # -------------------------
-        # LOGS TABLE
-        # -------------------------
+        # Logs
         cursor.execute("""
-        CREATE TABLE IF NOT EXISTS logs (
+        CREATE TABLE IF NOT EXISTS system_logs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            timestamp TEXT DEFAULT CURRENT_TIMESTAMP,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
             level TEXT,
             module TEXT,
             action TEXT,
-            user_id TEXT,
             description TEXT
         )
         """)
@@ -132,107 +197,143 @@ def init_database() -> None:
         conn.commit()
         conn.close()
 
-        log_system("database", "init", "Database initialized successfully")
+        log_system(
+            "database",
+            "init",
+            "Database initialized successfully",
+        )
 
-    except Exception as e:
-        log_error("database", "init_failed", str(e))
+    except Exception as exc:
+
+        log_error(
+            "database",
+            "init_database",
+            str(exc),
+        )
+
         raise
 
 
 # -----------------------------
-# Get Request by Tracking
+# Request Helpers
 # -----------------------------
-def get_request_by_tracking(tracking_code: str) -> Optional[dict]:
+def get_request_by_tracking(
+    tracking_code: str,
+) -> Optional[dict]:
     """
-    Fetch request using tracking code.
+    Get request by tracking code.
     """
 
-    conn = get_connection()
-    cursor = conn.cursor()
-
-    cursor.execute(
-        "SELECT * FROM requests WHERE tracking_code = ?",
-        (tracking_code,)
+    row = fetch_one(
+        """
+        SELECT *
+        FROM requests
+        WHERE tracking_code = ?
+        """,
+        (tracking_code,),
     )
-
-    row = cursor.fetchone()
-    conn.close()
 
     return dict(row) if row else None
 
 
-# -----------------------------
-# Insert Request
-# -----------------------------
-def insert_request(tracking_code: str, chat_id: int, title: str, description: str) -> bool:
+def insert_request(
+    tracking_code: str,
+    chat_id: int,
+    title: str,
+    description: str,
+) -> bool:
     """
-    Create new request.
+    Insert new request.
     """
 
     try:
-        conn = get_connection()
-        cursor = conn.cursor()
 
-        cursor.execute("""
-        INSERT INTO requests (tracking_code, chat_id, title, description)
-        VALUES (?, ?, ?, ?)
-        """, (tracking_code, chat_id, title, description))
-
-        conn.commit()
-        conn.close()
+        execute(
+            """
+            INSERT INTO requests
+            (
+                tracking_code,
+                chat_id,
+                title,
+                description
+            )
+            VALUES (?, ?, ?, ?)
+            """,
+            (
+                tracking_code,
+                chat_id,
+                title,
+                description,
+            ),
+        )
 
         return True
 
-    except Exception as e:
-        log_error("database", "insert_request", str(e))
+    except Exception as exc:
+
+        log_error(
+            "database",
+            "insert_request",
+            str(exc),
+        )
+
         return False
 
 
-# -----------------------------
-# Update Request Status
-# -----------------------------
-def update_request_status(request_id: int, status: str) -> bool:
+def update_request_status(
+    request_id: int,
+    status: str,
+) -> bool:
     """
     Update request status.
     """
 
     try:
-        conn = get_connection()
-        cursor = conn.cursor()
 
-        cursor.execute("""
-        UPDATE requests
-        SET status = ?, updated_at = CURRENT_TIMESTAMP
-        WHERE id = ?
-        """, (status, request_id))
-
-        conn.commit()
-        conn.close()
+        execute(
+            """
+            UPDATE requests
+            SET
+                status = ?,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+            """,
+            (
+                status,
+                request_id,
+            ),
+        )
 
         return True
 
-    except Exception as e:
-        log_error("database", "update_status", str(e))
+    except Exception as exc:
+
+        log_error(
+            "database",
+            "update_request_status",
+            str(exc),
+        )
+
         return False
 
 
 # -----------------------------
-# Get Setting
+# Settings
 # -----------------------------
-def get_setting(key: str) -> Optional[str]:
+def get_setting(
+    key: str,
+) -> Optional[str]:
     """
-    Get system setting value.
+    Get setting value.
     """
 
-    conn = get_connection()
-    cursor = conn.cursor()
-
-    cursor.execute(
-        "SELECT value FROM settings WHERE key = ?",
-        (key,)
+    row = fetch_one(
+        """
+        SELECT value
+        FROM settings
+        WHERE key = ?
+        """,
+        (key,),
     )
-
-    row = cursor.fetchone()
-    conn.close()
 
     return row["value"] if row else None
