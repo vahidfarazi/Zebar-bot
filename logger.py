@@ -5,112 +5,177 @@ Central logging system for Azarakhsh.
 
 Supports:
 - system logs
+- info logs
+- warning logs
 - error logs
 - security logs
 - admin logs
+- critical logs
 """
 
-from datetime import datetime, timezone
 from database import execute
 from config import Config
 
 
 # -----------------------------
-# Time Helper
-# -----------------------------
-def _now() -> str:
-    """
-    Return ISO8601 timestamp.
-    """
-    return datetime.now(timezone.utc).isoformat()
-
-
-# -----------------------------
 # Base Logger
 # -----------------------------
-def _write_log(level: str, module: str, action: str, description: str) -> None:
+def _write_log(
+    level: str,
+    module: str,
+    action: str,
+    description: str,
+) -> None:
     """
-    Write log to database.
+    Write log entry into database.
     """
 
     try:
-        execute("""
-            INSERT INTO system_logs (level, module, action, description)
+
+        execute(
+            """
+            INSERT INTO system_logs
+            (
+                level,
+                module,
+                action,
+                description
+            )
             VALUES (?, ?, ?, ?)
-        """, (level, module, action, description))
+            """,
+            (
+                level,
+                module,
+                action,
+                description,
+            ),
+        )
 
     except Exception:
-        # Prevent logging loop crash
+        # Never allow logging failures
+        # to interrupt the application.
         pass
 
 
 # -----------------------------
 # System Logs
 # -----------------------------
-def log_system(module: str, action: str, description: str) -> None:
-    """
-    System-level logs (startup, shutdown, init)
-    """
-    _write_log("SYSTEM", module, action, description)
+def log_system(
+    module: str,
+    action: str,
+    description: str,
+) -> None:
+    _write_log(
+        "SYSTEM",
+        module,
+        action,
+        description,
+    )
 
 
-def log_info(module: str, action: str, description: str) -> None:
-    """
-    Info logs
-    """
-    _write_log("INFO", module, action, description)
+# -----------------------------
+# Info Logs
+# -----------------------------
+def log_info(
+    module: str,
+    action: str,
+    description: str,
+) -> None:
+    _write_log(
+        "INFO",
+        module,
+        action,
+        description,
+    )
 
 
-def log_warning(module: str, action: str, description: str) -> None:
-    """
-    Warning logs
-    """
-    _write_log("WARNING", module, action, description)
+# -----------------------------
+# Warning Logs
+# -----------------------------
+def log_warning(
+    module: str,
+    action: str,
+    description: str,
+) -> None:
+    _write_log(
+        "WARNING",
+        module,
+        action,
+        description,
+    )
 
 
-def log_error(module: str, action: str, description: str) -> None:
-    """
-    Error logs
-    """
-    _write_log("ERROR", module, action, description)
+# -----------------------------
+# Error Logs
+# -----------------------------
+def log_error(
+    module: str,
+    action: str,
+    description: str,
+) -> None:
+    _write_log(
+        "ERROR",
+        module,
+        action,
+        description,
+    )
 
 
 # -----------------------------
 # Security Logs
 # -----------------------------
-def log_security(module: str, action: str, description: str) -> None:
-    """
-    Security-related events
-    """
-    _write_log("SECURITY", module, action, description)
+def log_security(
+    module: str,
+    action: str,
+    description: str,
+) -> None:
+    _write_log(
+        "SECURITY",
+        module,
+        action,
+        description,
+    )
 
 
 # -----------------------------
 # Admin Logs
 # -----------------------------
-def log_admin(module: str, action: str, description: str) -> None:
-    """
-    Admin operations
-    """
-    _write_log("ADMIN", module, action, description)
+def log_admin(
+    module: str,
+    action: str,
+    description: str,
+) -> None:
+    _write_log(
+        "ADMIN",
+        module,
+        action,
+        description,
+    )
 
 
 # -----------------------------
-# System Critical Wrapper
+# Critical Logs
 # -----------------------------
-def log_critical(module: str, action: str, description: str) -> None:
-    """
-    Critical failures (system risk)
-    """
-    _write_log("CRITICAL", module, action, description)
+def log_critical(
+    module: str,
+    action: str,
+    description: str,
+) -> None:
+    _write_log(
+        "CRITICAL",
+        module,
+        action,
+        description,
+    )
 
 
 # -----------------------------
-# Console Debug (optional dev mode)
+# Debug Output
 # -----------------------------
 def debug(message: str) -> None:
     """
-    Print only in development mode.
+    Print debug message only when DEBUG_MODE is enabled.
     """
+
     if Config.get_bool("DEBUG_MODE", False):
         print(f"[DEBUG] {message}")
