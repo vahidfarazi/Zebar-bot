@@ -1,44 +1,20 @@
 """
 main_runner.py
 
-Runtime entry for Azarakhsh system.
-Responsible for:
-- initializing the system
-- processing incoming updates
-- sending responses to Bale
+Core runtime processor for Azarakhsh system.
+Handles incoming updates from Bale and routes responses.
 """
 
 from router import route_message
+from logger import log_error, log_info
+from database import create_user
+from working_hours import can_create_request
+
 from bale_client import send_message
 
-from logger import (
-    log_system,
-    log_error,
-)
-
-from database import init_database
-from messages import GENERAL_ERROR
-
 
 # -----------------------------
-# System Initialization
-# -----------------------------
-def initialize_system() -> None:
-    """
-    Initialize all required system components.
-    """
-
-    init_database()
-
-    log_system(
-        "main_runner",
-        "startup",
-        "System initialized successfully."
-    )
-
-
-# -----------------------------
-# Process Incoming Update
+# Process Update
 # -----------------------------
 def process_update(
     chat_id: int,
@@ -46,87 +22,88 @@ def process_update(
     role: str = "USER",
 ) -> str:
     """
-    Process one incoming message and send response.
+    Process incoming message and send response to Bale.
     """
 
     try:
 
+        # Ensure user exists
+        create_user(chat_id)
+
+        # Route message
         response = route_message(
-            chat_id=chat_id,
-            message=message,
-            role=role,
+            chat_id,
+            message,
+            role,
         )
 
+        # Send response to Bale
         send_message(
-            chat_id=chat_id,
-            text=response,
+            chat_id,
+            response,
+        )
+
+        log_info(
+            "runner",
+            "process_update",
+            f"{chat_id}",
         )
 
         return response
 
-    except Exception as exc:
+    except Exception as e:
 
         log_error(
-            "main_runner",
+            "runner",
             "process_update",
-            str(exc),
+            str(e),
         )
+
+        error_msg = "خطایی رخ داد"
 
         send_message(
-            chat_id=chat_id,
-            text=GENERAL_ERROR,
+            chat_id,
+            error_msg,
         )
 
-        return GENERAL_ERROR
+        return error_msg
 
 
 # -----------------------------
-# Mock CLI Runner
+# Incoming Update Handler (entry point)
 # -----------------------------
-def run_mock() -> None:
+def handle_update(update: dict) -> None:
     """
-    Simple CLI runner for local testing.
+    Entry point for webhook / polling updates.
     """
 
-    initialize_system()
+    try:
 
-    print("Azarakhsh Mock Runner Started")
-    print("Press Ctrl+C to exit.\n")
+        message = update.get("message", {})
 
-    while True:
+        chat_id = message.get("chat_id")
+        text = message.get("text", "")
 
-        try:
+        role = message.get("role", "USER")
 
-            chat_id = int(input("Chat ID: "))
-            role = input("Role (USER/ADMIN/EXPERT): ").strip().upper()
-            message = input("Message: ")
+        if not chat_id or not text:
+            return
 
-            response = process_update(
-                chat_id=chat_id,
-                message=message,
-                role=role,
-            )
+        # Optional: block if system not allowed
+        if not can_create_request():
+            send_message(chat_id, "سیستم در حال حاضر در دسترس نیست")
+            return
 
-            print(f"Response: {response}\n")
+        process_update(
+            chat_id,
+            text,
+            role,
+        )
 
-        except KeyboardInterrupt:
+    except Exception as e:
 
-            print("\nStopping...")
-
-            break
-
-        except Exception as exc:
-
-            log_error(
-                "main_runner",
-                "mock_runner",
-                str(exc),
-            )
-
-
-# -----------------------------
-# Entry Point
-# -----------------------------
-if __name__ == "__main__":
-
-    run_mock()
+        log_error(
+            "runner",
+            "handle_update",
+            str(e),
+        )
