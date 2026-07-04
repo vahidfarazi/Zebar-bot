@@ -1,103 +1,139 @@
 """
 expert_service.py
 
-Business logic for expert operations:
-- reply to requests
-- close requests
-- expert actions handling
+Business logic for expert operations.
 """
 
 from typing import Dict, Any
-from database import update_request_status
-from logger import log_info, log_error
+
+from database import (
+    update_request_status,
+    assign_expert,
+)
+
+from logger import (
+    log_info,
+    log_error,
+)
 
 
 # -----------------------------
-# Reply to Request
+# Reply
 # -----------------------------
-def reply(request_id: int, expert_id: int, message: str) -> Dict[str, Any]:
+def reply(
+    request_id: int,
+    expert_id: int,
+    message: str,
+) -> Dict[str, Any]:
     """
-    Expert replies to a request.
+    Expert reply to request.
     """
 
     try:
-        # MVP: فقط لاگ می‌کنیم (در نسخه 1.1 جدول پیام‌ها اضافه می‌شود)
+
         log_info(
             "expert_service",
             "reply",
-            f"request={request_id}, expert={expert_id}, msg={message}"
+            f"{request_id} | {expert_id}",
         )
 
         return {
-            "success": True
+            "success": True,
         }
 
     except Exception as e:
-        log_error("expert_service", "reply", str(e))
+
+        log_error(
+            "expert_service",
+            "reply",
+            str(e),
+        )
+
         return {
             "success": False,
-            "message": "خطا در ثبت پاسخ"
+            "message": "خطا در ثبت پاسخ",
         }
 
 
 # -----------------------------
-# Close Request
+# Close
 # -----------------------------
-def close(request_id: int, expert_id: int) -> Dict[str, Any]:
+def close(
+    request_id: int,
+    expert_id: int,
+) -> Dict[str, Any]:
     """
     Close request by expert.
     """
 
     try:
-        success = update_request_status(request_id, "CLOSED")
 
-        if not success:
-            return {
-                "success": False,
-                "message": "خطا در بستن درخواست"
-            }
+        update_request_status(
+            request_id,
+            "CLOSED",
+        )
 
         log_info(
             "expert_service",
             "close",
-            f"request={request_id}, expert={expert_id}"
+            f"{request_id} | {expert_id}",
         )
 
         return {
-            "success": True
+            "success": True,
         }
 
     except Exception as e:
-        log_error("expert_service", "close", str(e))
+
+        log_error(
+            "expert_service",
+            "close",
+            str(e),
+        )
+
         return {
             "success": False,
-            "message": "خطای داخلی سیستم"
+            "message": "خطای داخلی سیستم",
         }
 
 
 # -----------------------------
-# Assign Request (MVP placeholder)
+# Assign
 # -----------------------------
-def assign_request(request_id: int, expert_id: int) -> Dict[str, Any]:
+def assign_request(
+    request_id: int,
+    expert_id: int,
+) -> Dict[str, Any]:
     """
-    Assign request to expert (simplified MVP version).
+    Assign request to expert.
     """
 
     try:
-        # MVP: فقط لاگ (در نسخه بعد column اختصاصی اضافه می‌شود)
+
+        assign_expert(
+            request_id,
+            expert_id,
+        )
+
         log_info(
             "expert_service",
             "assign",
-            f"request={request_id} -> expert={expert_id}"
+            f"{request_id} -> {expert_id}",
         )
 
         return {
-            "success": True
+            "success": True,
         }
 
     except Exception as e:
-        log_error("expert_service", "assign", str(e))
+
+        log_error(
+            "expert_service",
+            "assign",
+            str(e),
+        )
+
         return {
             "success": False,
-            "message": "خطا در تخصیص درخواست"
-        }
+            "message": "خطا در تخصیص درخواست",
+    }
