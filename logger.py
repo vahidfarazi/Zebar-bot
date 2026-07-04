@@ -1,140 +1,116 @@
 """
 logger.py
 
-Central logging system for Azarakhsh Project.
+Central logging system for Azarakhsh.
 
 Supports:
-- INFO
-- WARNING
-- ERROR
-- CRITICAL
-- SECURITY
-- SYSTEM
-- ADMIN
+- system logs
+- error logs
+- security logs
+- admin logs
 """
 
-from __future__ import annotations
-
-import logging
-import os
-from datetime import datetime
-
+from datetime import datetime, timezone
+from database import execute
 from config import Config
 
 
-class Logger:
+# -----------------------------
+# Time Helper
+# -----------------------------
+def _now() -> str:
     """
-    Central application logger.
+    Return ISO8601 timestamp.
+    """
+    return datetime.now(timezone.utc).isoformat()
+
+
+# -----------------------------
+# Base Logger
+# -----------------------------
+def _write_log(level: str, module: str, action: str, description: str) -> None:
+    """
+    Write log to database.
     """
 
-    _logger: logging.Logger | None = None
+    try:
+        execute("""
+            INSERT INTO system_logs (level, module, action, description)
+            VALUES (?, ?, ?, ?)
+        """, (level, module, action, description))
 
-    @classmethod
-    def _init_logger(cls) -> logging.Logger:
-        """
-        Initialize logging configuration.
-        """
-
-        logger = logging.getLogger("azarakhsh")
-        logger.setLevel(logging.DEBUG)
-
-        if logger.handlers:
-            return logger
-
-        log_path = Config.get("LOG_PATH", "logs/app.log")
-
-        os.makedirs(os.path.dirname(log_path), exist_ok=True)
-
-        formatter = logging.Formatter(
-            fmt="%(asctime)s | %(levelname)s | %(message)s",
-            datefmt="%Y-%m-%dT%H:%M:%S",
-        )
-
-        # File handler
-        file_handler = logging.FileHandler(log_path, encoding="utf-8")
-        file_handler.setLevel(logging.DEBUG)
-        file_handler.setFormatter(formatter)
-
-        # Console handler (optional)
-        console_handler = logging.StreamHandler()
-        console_handler.setLevel(logging.INFO)
-        console_handler.setFormatter(formatter)
-
-        logger.addHandler(file_handler)
-        logger.addHandler(console_handler)
-
-        return logger
-
-    @classmethod
-    def get_logger(cls) -> logging.Logger:
-        """
-        Return singleton logger instance.
-        """
-        if cls._logger is None:
-            cls._logger = cls._init_logger()
-        return cls._logger
-
-    # ---------------- CORE LOG METHODS ---------------- #
-
-    @classmethod
-    def info(cls, module: str, message: str) -> None:
-        cls.get_logger().info(f"{module} | {message}")
-
-    @classmethod
-    def warning(cls, module: str, message: str) -> None:
-        cls.get_logger().warning(f"{module} | {message}")
-
-    @classmethod
-    def error(cls, module: str, message: str) -> None:
-        cls.get_logger().error(f"{module} | {message}")
-
-    @classmethod
-    def critical(cls, module: str, message: str) -> None:
-        cls.get_logger().critical(f"{module} | {message}")
-
-    # ---------------- SPECIAL LOG TYPES ---------------- #
-
-    @classmethod
-    def security(cls, module: str, message: str) -> None:
-        cls.get_logger().warning(f"SECURITY | {module} | {message}")
-
-    @classmethod
-    def system(cls, module: str, message: str) -> None:
-        cls.get_logger().info(f"SYSTEM | {module} | {message}")
-
-    @classmethod
-    def admin(cls, module: str, message: str) -> None:
-        cls.get_logger().info(f"ADMIN | {module} | {message}")
-
-    # ---------------- EXCEPTION HANDLING ---------------- #
-
-    @classmethod
-    def exception(cls, module: str, error: Exception) -> None:
-        cls.get_logger().error(
-            f"{module} | EXCEPTION | {type(error).__name__}: {str(error)}"
-        )
+    except Exception:
+        # Prevent logging loop crash
+        pass
 
 
-# Convenience functions (طبق استاندارد پروژه)
-def log_info(module: str, message: str) -> None:
-    Logger.info(module, message)
+# -----------------------------
+# System Logs
+# -----------------------------
+def log_system(module: str, action: str, description: str) -> None:
+    """
+    System-level logs (startup, shutdown, init)
+    """
+    _write_log("SYSTEM", module, action, description)
 
 
-def log_warning(module: str, message: str) -> None:
-    Logger.warning(module, message)
+def log_info(module: str, action: str, description: str) -> None:
+    """
+    Info logs
+    """
+    _write_log("INFO", module, action, description)
 
 
-def log_error(module: str, message: str) -> None:
-    Logger.error(module, message)
+def log_warning(module: str, action: str, description: str) -> None:
+    """
+    Warning logs
+    """
+    _write_log("WARNING", module, action, description)
 
 
-def log_security(module: str, message: str) -> None:
-    Logger.security(module, message)
+def log_error(module: str, action: str, description: str) -> None:
+    """
+    Error logs
+    """
+    _write_log("ERROR", module, action, description)
 
 
-def log_system(module: str, message: str) -> None:
-    Logger.system(module, message)
+# -----------------------------
+# Security Logs
+# -----------------------------
+def log_security(module: str, action: str, description: str) -> None:
+    """
+    Security-related events
+    """
+    _write_log("SECURITY", module, action, description)
 
 
-def log_admin(module: str, message: str) -> None:
-    Logger.admin(module, message)
+# -----------------------------
+# Admin Logs
+# -----------------------------
+def log_admin(module: str, action: str, description: str) -> None:
+    """
+    Admin operations
+    """
+    _write_log("ADMIN", module, action, description)
+
+
+# -----------------------------
+# System Critical Wrapper
+# -----------------------------
+def log_critical(module: str, action: str, description: str) -> None:
+    """
+    Critical failures (system risk)
+    """
+    _write_log("CRITICAL", module, action, description)
+
+
+# -----------------------------
+# Console Debug (optional dev mode)
+# -----------------------------
+def debug(message: str) -> None:
+    """
+    Print only in development mode.
+    """
+    if Config.get_bool("DEBUG_MODE", False):
+        print(f"[DEBUG] {message}")
