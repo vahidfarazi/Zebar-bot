@@ -862,5 +862,10 @@ def write_system_log(admin_id, action):
 
     ))
 
-    conn.commit()
-    conn.close()
+        request_id = cur.lastrowid
+ 
+        conn.commit()
+
+        conn.close()
+
+        return request_id
