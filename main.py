@@ -11,7 +11,7 @@ Responsible for:
 
 from logger import log_system, log_error
 from database import init_database
-from working_hours import get_current_time
+from working_hours import get_current_time, is_working_time
 from config import Config
 
 
@@ -43,6 +43,7 @@ def health_check() -> dict:
     return {
         "status": "ok",
         "time": str(get_current_time()),
+        "working_time": is_working_time(),
         "version": Config.get("BOT_VERSION", "1.0"),
     }
 
@@ -57,16 +58,20 @@ def run_app() -> None:
 
     log_system("main", "startup", "System starting...")
 
-    initialize_system()
+    try:
+        initialize_system()
+        log_system("main", "ready", "System is ready")
 
-    log_system("main", "ready", "System is ready")
+        # NOTE:
+        # In real implementation, webhook server or bot polling starts here.
+        # Example:
+        # app.run(host="0.0.0.0", port=5000)
 
-    # NOTE:
-    # In real implementation, webhook server or bot polling starts here.
-    # Example:
-    # app.run(host="0.0.0.0", port=5000)
+        log_system("main", "runtime", "Azarakhsh system is running")
 
-    print("Azarakhsh system is running...")
+    except Exception as e:
+        log_error("main", "fatal", str(e))
+        raise
 
 
 # -----------------------------
