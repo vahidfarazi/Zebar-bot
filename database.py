@@ -228,6 +228,7 @@ def init_database():
     conn.commit()
 
     conn.close()
+    
     # ==========================
 # DEFAULT SETTINGS
 # ==========================
