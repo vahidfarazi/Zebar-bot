@@ -1,29 +1,18 @@
 """
 utils.py
 
-General utility functions used across the project.
-Must NOT contain business logic.
+Common utility functions for Azarakhsh system.
+Must not contain business logic.
 """
 
 import uuid
 import os
 import re
 from datetime import datetime
-from typing import Optional
 
 
 # -----------------------------
-# Date & Time
-# -----------------------------
-def format_date(dt: datetime) -> str:
-    """
-    Format datetime to readable string.
-    """
-    return dt.strftime("%Y-%m-%d %H:%M:%S")
-
-
-# -----------------------------
-# UUID
+# UUID Generator
 # -----------------------------
 def generate_uuid() -> str:
     """
@@ -33,35 +22,44 @@ def generate_uuid() -> str:
 
 
 # -----------------------------
-# File Safety
+# Safe Filename
 # -----------------------------
 def safe_filename(filename: str) -> str:
     """
-    Convert unsafe filename to safe format.
+    Sanitize filename to prevent path injection.
     """
-    filename = filename.strip().replace(" ", "_")
-    filename = re.sub(r"[^a-zA-Z0-9_.-]", "", filename)
+
+    if not filename:
+        return "file"
+
+    # remove path traversal
+    filename = os.path.basename(filename)
+
+    # remove unsafe chars
+    filename = re.sub(r"[^a-zA-Z0-9._-]", "_", filename)
+
     return filename
 
 
 # -----------------------------
-# Path Helpers
+# Date Formatter
 # -----------------------------
-def ensure_directory(path: str) -> None:
+def format_date(dt: datetime, fmt: str = "%Y-%m-%d %H:%M:%S") -> str:
     """
-    Ensure directory exists.
+    Format datetime object to string.
     """
-    if not os.path.exists(path):
-        os.makedirs(path, exist_ok=True)
+    return dt.strftime(fmt)
 
 
 # -----------------------------
-# Text Helpers
+# Chunk Text (for messaging limits)
 # -----------------------------
-def truncate_text(text: str, max_length: int) -> str:
+def chunk_text(text: str, size: int = 3000) -> list[str]:
     """
-    Truncate long text safely.
+    Split long text into chunks for messaging limits.
     """
-    if len(text) <= max_length:
-        return text
-    return text[:max_length].rstrip() + "..."
+
+    if not text:
+        return []
+
+    return [text[i:i + size] for i in range(0, len(text), size)]
