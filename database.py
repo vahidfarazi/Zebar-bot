@@ -1,30 +1,32 @@
 """
 database.py
 
-Responsible for all database operations:
+Core database layer for Azarakhsh system.
+Responsible for:
 - connection
 - schema creation
-- CRUD operations
-- transactions
+- basic CRUD operations
 """
 
 import sqlite3
 from typing import Any, Optional
 from logger import log_system, log_error
-from config import Config
 
 
 # -----------------------------
-# Database Connection
+# Database Path
 # -----------------------------
-_DB_PATH = Config.get("DB_PATH", "azarakhsh.db")
+DB_PATH = "database/azarakhsh.db"
 
 
+# -----------------------------
+# Connection
+# -----------------------------
 def get_connection() -> sqlite3.Connection:
     """
-    Create and return a database connection.
+    Create and return DB connection.
     """
-    conn = sqlite3.connect(_DB_PATH, check_same_thread=False)
+    conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -41,73 +43,70 @@ def init_database() -> None:
         conn = get_connection()
         cursor = conn.cursor()
 
-        # ---------------- USERS ----------------
+        # -------------------------
+        # USERS TABLE
+        # -------------------------
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            chat_id INTEGER UNIQUE,
+            chat_id INTEGER PRIMARY KEY,
             username TEXT,
-            full_name TEXT,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP
         )
         """)
 
-        # ---------------- REQUESTS ----------------
+        # -------------------------
+        # REQUESTS TABLE
+        # -------------------------
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS requests (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             tracking_code TEXT UNIQUE,
-            user_chat_id INTEGER,
-            service TEXT,
-            sub_service TEXT,
-            status TEXT,
+            chat_id INTEGER,
+            title TEXT,
+            description TEXT,
+            status TEXT DEFAULT 'OPEN',
             priority TEXT DEFAULT 'NORMAL',
             expert_id INTEGER,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-            updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
-            closed_at TEXT
+            updated_at TEXT DEFAULT CURRENT_TIMESTAMP
         )
         """)
 
-        cursor.execute("""
-        CREATE UNIQUE INDEX IF NOT EXISTS idx_requests_tracking
-        ON requests(tracking_code)
-        """)
-
-        # ---------------- REQUEST MESSAGES ----------------
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS request_messages (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            tracking_code TEXT,
-            sender_type TEXT,
-            message TEXT,
-            file_path TEXT,
-            created_at TEXT DEFAULT CURRENT_TIMESTAMP
-        )
-        """)
-
-        # ---------------- EXPERTS ----------------
+        # -------------------------
+        # EXPERTS TABLE
+        # -------------------------
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS experts (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            chat_id INTEGER UNIQUE,
+            chat_id INTEGER PRIMARY KEY,
             name TEXT,
             username TEXT,
             department TEXT,
-            active INTEGER DEFAULT 1
+            is_active INTEGER DEFAULT 1
         )
         """)
 
-        # ---------------- ADMINS ----------------
+        # -------------------------
+        # ADMINS TABLE
+        # -------------------------
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS admins (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            chat_id INTEGER UNIQUE,
-            role TEXT DEFAULT 'ADMIN'
+            chat_id INTEGER PRIMARY KEY
         )
         """)
 
-        # ---------------- SETTINGS ----------------
+        # -------------------------
+        # HOLIDAYS TABLE
+        # -------------------------
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS holidays (
+            holiday_date TEXT PRIMARY KEY,
+            enabled INTEGER DEFAULT 1
+        )
+        """)
+
+        # -------------------------
+        # SETTINGS TABLE
+        # -------------------------
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS settings (
             key TEXT PRIMARY KEY,
@@ -115,15 +114,18 @@ def init_database() -> None:
         )
         """)
 
-        # ---------------- LOGS ----------------
+        # -------------------------
+        # LOGS TABLE
+        # -------------------------
         cursor.execute("""
-        CREATE TABLE IF NOT EXISTS system_logs (
+        CREATE TABLE IF NOT EXISTS logs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT DEFAULT CURRENT_TIMESTAMP,
             level TEXT,
             module TEXT,
             action TEXT,
-            description TEXT,
-            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            user_id TEXT,
+            description TEXT
         )
         """)
 
@@ -138,54 +140,99 @@ def init_database() -> None:
 
 
 # -----------------------------
-# Generic Query Executor
+# Get Request by Tracking
 # -----------------------------
-def execute(query: str, params: tuple = ()) -> None:
+def get_request_by_tracking(tracking_code: str) -> Optional[dict]:
     """
-    Execute INSERT/UPDATE/DELETE queries.
+    Fetch request using tracking code.
     """
+
     conn = get_connection()
     cursor = conn.cursor()
 
+    cursor.execute(
+        "SELECT * FROM requests WHERE tracking_code = ?",
+        (tracking_code,)
+    )
+
+    row = cursor.fetchone()
+    conn.close()
+
+    return dict(row) if row else None
+
+
+# -----------------------------
+# Insert Request
+# -----------------------------
+def insert_request(tracking_code: str, chat_id: int, title: str, description: str) -> bool:
+    """
+    Create new request.
+    """
+
     try:
-        cursor.execute(query, params)
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+        INSERT INTO requests (tracking_code, chat_id, title, description)
+        VALUES (?, ?, ?, ?)
+        """, (tracking_code, chat_id, title, description))
+
         conn.commit()
-    except Exception as e:
-        log_error("database", "execute_error", str(e))
-        raise
-    finally:
         conn.close()
 
+        return True
 
-def fetch_one(query: str, params: tuple = ()) -> Optional[sqlite3.Row]:
+    except Exception as e:
+        log_error("database", "insert_request", str(e))
+        return False
+
+
+# -----------------------------
+# Update Request Status
+# -----------------------------
+def update_request_status(request_id: int, status: str) -> bool:
     """
-    Fetch single record.
+    Update request status.
     """
+
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+        UPDATE requests
+        SET status = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+        """, (status, request_id))
+
+        conn.commit()
+        conn.close()
+
+        return True
+
+    except Exception as e:
+        log_error("database", "update_status", str(e))
+        return False
+
+
+# -----------------------------
+# Get Setting
+# -----------------------------
+def get_setting(key: str) -> Optional[str]:
+    """
+    Get system setting value.
+    """
+
     conn = get_connection()
     cursor = conn.cursor()
 
-    try:
-        cursor.execute(query, params)
-        return cursor.fetchone()
-    except Exception as e:
-        log_error("database", "fetch_one_error", str(e))
-        return None
-    finally:
-        conn.close()
+    cursor.execute(
+        "SELECT value FROM settings WHERE key = ?",
+        (key,)
+    )
 
+    row = cursor.fetchone()
+    conn.close()
 
-def fetch_all(query: str, params: tuple = ()) -> list:
-    """
-    Fetch all records.
-    """
-    conn = get_connection()
-    cursor = conn.cursor()
-
-    try:
-        cursor.execute(query, params)
-        return cursor.fetchall()
-    except Exception as e:
-        log_error("database", "fetch_all_error", str(e))
-        return []
-    finally:
-        conn.close()
+    return row["value"] if row else None
