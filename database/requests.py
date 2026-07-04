@@ -1,0 +1,188 @@
+"""
+database/requests.py
+
+Request repository.
+"""
+
+from typing import Optional
+
+from .crud import execute, fetch_one, fetch_all
+
+
+# -----------------------------
+# Create Request
+# -----------------------------
+def insert_request(
+    tracking_code: str,
+    chat_id: int,
+    title: str,
+    description: str,
+) -> int:
+    """
+    Create new request.
+
+    Returns:
+        Request ID
+    """
+
+    return execute(
+        """
+        INSERT INTO requests
+        (
+            tracking_code,
+            chat_id,
+            title,
+            description
+        )
+        VALUES (?, ?, ?, ?)
+        """,
+        (
+            tracking_code,
+            chat_id,
+            title,
+            description,
+        ),
+    )
+
+
+# -----------------------------
+# Get By ID
+# -----------------------------
+def get_request(
+    request_id: int,
+) -> Optional[dict]:
+
+    row = fetch_one(
+        """
+        SELECT *
+        FROM requests
+        WHERE id = ?
+        """,
+        (request_id,),
+    )
+
+    return dict(row) if row else None
+
+
+# -----------------------------
+# Get By Tracking
+# -----------------------------
+def get_request_by_tracking(
+    tracking_code: str,
+) -> Optional[dict]:
+
+    row = fetch_one(
+        """
+        SELECT *
+        FROM requests
+        WHERE tracking_code = ?
+        """,
+        (tracking_code,),
+    )
+
+    return dict(row) if row else None
+
+
+# -----------------------------
+# Get User Requests
+# -----------------------------
+def get_user_requests(
+    chat_id: int,
+) -> list[dict]:
+
+    rows = fetch_all(
+        """
+        SELECT *
+        FROM requests
+        WHERE chat_id = ?
+        ORDER BY created_at DESC
+        """,
+        (chat_id,),
+    )
+
+    return [dict(row) for row in rows]
+
+
+# -----------------------------
+# Update Status
+# -----------------------------
+def update_request_status(
+    request_id: int,
+    status: str,
+) -> None:
+
+    execute(
+        """
+        UPDATE requests
+        SET
+            status = ?,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+        """,
+        (
+            status,
+            request_id,
+        ),
+    )
+
+
+# -----------------------------
+# Assign Expert
+# -----------------------------
+def assign_expert(
+    request_id: int,
+    expert_id: int,
+) -> None:
+
+    execute(
+        """
+        UPDATE requests
+        SET
+            expert_id = ?,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+        """,
+        (
+            expert_id,
+            request_id,
+        ),
+    )
+
+
+# -----------------------------
+# Change Priority
+# -----------------------------
+def update_priority(
+    request_id: int,
+    priority: str,
+) -> None:
+
+    execute(
+        """
+        UPDATE requests
+        SET
+            priority = ?,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+        """,
+        (
+            priority,
+            request_id,
+        ),
+    )
+
+
+# -----------------------------
+# Delete Request
+# -----------------------------
+def delete_request(
+    request_id: int,
+) -> None:
+
+    execute(
+        """
+        DELETE FROM requests
+        WHERE id = ?
+        """,
+        (request_id,),
+    )
