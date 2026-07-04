@@ -1,183 +1,125 @@
 """
 expert_service.py
 
-Business logic for experts:
-- assign requests
-- reply to requests
-- close requests
-- manage expert workflow
-
-NO SQL outside database.py
-NO UI logic
+Business logic for expert operations.
+Handles request assignment, replies, and closing by experts.
 """
 
 from datetime import datetime
-from typing import Optional
 
-from database import execute, fetch_one
-from logger import log_info, log_error
-from working_hours import get_current_time
+from database import (
+    get_request_by_tracking,
+    add_message_db,
+    update_request_status,
+    assign_request_to_expert,
+)
+
+from logger import log_info, log_warning
 
 
 # -----------------------------
-# Assign Request
+# Assign Request to Expert
 # -----------------------------
-def assign_request(tracking_code: str, expert_id: int) -> bool:
+def assign_request(request_id: int, expert_id: int) -> dict:
     """
-    Assign a request to an expert.
+    Assign request to an expert.
     """
 
-    try:
-        request = fetch_one(
-            "SELECT * FROM requests WHERE tracking_code = ?",
-            (tracking_code,),
-        )
+    request = get_request_by_tracking(request_id)
 
-        if not request:
-            return False
+    if not request:
+        return {
+            "success": False,
+            "message": "REQUEST_NOT_FOUND",
+        }
 
-        execute(
-            """
-            UPDATE requests
-            SET expert_id = ?, status = ?, updated_at = ?
-            WHERE tracking_code = ?
-            """,
-            (
-                expert_id,
-                "ASSIGNED",
-                datetime.now().isoformat(),
-                tracking_code,
-            ),
-        )
+    assign_request_to_expert(request_id, expert_id)
 
-        log_info(
-            "expert_service",
-            "assign_request",
-            f"tracking={tracking_code}, expert={expert_id}",
-            user_id=expert_id,
-        )
+    update_request_status(request_id, "ASSIGNED")
 
-        return True
+    log_info(
+        "expert_service",
+        "assign_request",
+        f"request_id={request_id}, expert_id={expert_id}",
+    )
 
-    except Exception as e:
-        log_error("expert_service", "assign_failed", str(e))
-        return False
+    return {"success": True}
 
 
 # -----------------------------
 # Expert Reply
 # -----------------------------
-def reply_to_request(tracking_code: str, expert_id: int, message: str) -> bool:
+def reply(request_id: int, expert_id: int, message: str) -> dict:
     """
-    Save expert reply (message system placeholder).
+    Expert replies to a request.
     """
 
-    try:
-        request = fetch_one(
-            "SELECT * FROM requests WHERE tracking_code = ?",
-            (tracking_code,),
-        )
+    request = get_request_by_tracking(request_id)
 
-        if not request:
-            return False
+    if not request:
+        return {
+            "success": False,
+            "message": "REQUEST_NOT_FOUND",
+        }
 
-        # In real system, we would have request_messages table
-        execute(
-            """
-            INSERT INTO logs (
-                timestamp,
-                level,
-                module,
-                user_id,
-                action,
-                description,
-                log_type
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)
-            """,
-            (
-                datetime.now().isoformat(),
-                "INFO",
-                "expert_service",
-                expert_id,
-                "reply",
-                f"tracking={tracking_code}, msg={message}",
-                "EXPERT",
-            ),
-        )
+    add_message_db(
+        request_id=request_id,
+        sender_type="EXPERT",
+        message=message,
+        created_at=datetime.now().isoformat(),
+    )
 
-        log_info(
-            "expert_service",
-            "reply_to_request",
-            f"tracking={tracking_code}",
-            user_id=expert_id,
-        )
+    update_request_status(request_id, "WAITING_USER")
 
-        return True
+    log_info(
+        "expert_service",
+        "reply",
+        f"request_id={request_id}, expert_id={expert_id}",
+    )
 
-    except Exception as e:
-        log_error("expert_service", "reply_failed", str(e))
-        return False
+    return {"success": True}
 
 
 # -----------------------------
-# Close Request (Expert)
+# Close Request by Expert
 # -----------------------------
-def close_request_by_expert(tracking_code: str, expert_id: int) -> bool:
+def close(request_id: int, expert_id: int) -> dict:
     """
-    Expert closes a request.
+    Close request by expert.
     """
 
-    try:
-        request = fetch_one(
-            "SELECT * FROM requests WHERE tracking_code = ?",
-            (tracking_code,),
-        )
+    request = get_request_by_tracking(request_id)
 
-        if not request:
-            return False
+    if not request:
+        return {
+            "success": False,
+            "message": "REQUEST_NOT_FOUND",
+        }
 
-        execute(
-            """
-            UPDATE requests
-            SET status = ?, closed_at = ?, updated_at = ?
-            WHERE tracking_code = ?
-            """,
-            (
-                "CLOSED",
-                datetime.now().isoformat(),
-                datetime.now().isoformat(),
-                tracking_code,
-            ),
-        )
+    update_request_status(request_id, "CLOSED")
 
-        log_info(
-            "expert_service",
-            "close_by_expert",
-            f"tracking={tracking_code}",
-            user_id=expert_id,
-        )
+    log_info(
+        "expert_service",
+        "close_request",
+        f"request_id={request_id}, expert_id={expert_id}",
+    )
 
-        return True
-
-    except Exception as e:
-        log_error("expert_service", "close_failed", str(e))
-        return False
+    return {"success": True}
 
 
 # -----------------------------
-# Get Expert Requests
+# Expert Warning Helper (future SLA logic)
 # -----------------------------
-def get_expert_requests(expert_id: int):
+def warn_if_unassigned(request_id: int) -> None:
     """
-    Get all requests assigned to an expert.
+    Placeholder for SLA monitoring.
     """
 
-    try:
-        return fetch_one(
-            "SELECT * FROM requests WHERE expert_id = ?",
-            (expert_id,),
-        )
+    request = get_request_by_tracking(request_id)
 
-    except Exception as e:
-        log_error("expert_service", "get_expert_requests_failed", str(e))
-        return None
+    if not request:
+        log_warning("expert_service", "sla_check_failed", f"id={request_id}")
+        return
+
+    if request.get("status") == "NEW":
+        log_warning("expert_service", "unassigned_request", f"id={request_id}")
