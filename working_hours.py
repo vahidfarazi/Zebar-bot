@@ -1,43 +1,36 @@
 """
 working_hours.py
 
-Responsible for all time-based rules:
-- working hours check
-- holiday check
-- SLA calculation
-- request creation permission
+Handles all time-based logic:
+- working hours
+- holidays
+- system availability
+- SLA calculation (future)
 """
 
 from datetime import datetime, time
 from typing import Optional
 
 from config import Config
-from database import fetch_all
+from database import fetch_one, fetch_all
 from logger import log_warning
 
 
 # -----------------------------
-# Timezone (fixed)
-# -----------------------------
-TIMEZONE = "Asia/Tehran"
-
-
-# -----------------------------
-# Helpers
+# Time Helpers
 # -----------------------------
 def get_current_time() -> datetime:
     """
-    Return current server time.
-    (Timezone handling can be improved in future versions)
+    Return current system time.
     """
     return datetime.now()
 
 
 def get_current_date() -> str:
     """
-    Return current date in YYYY-MM-DD format.
+    Return current date in YYYY-MM-DD.
     """
-    return get_current_time().strftime("%Y-%m-%d")
+    return datetime.now().strftime("%Y-%m-%d")
 
 
 # -----------------------------
@@ -47,66 +40,80 @@ def _parse_time(value: str) -> time:
     """
     Convert HH:MM string to time object.
     """
-    hour, minute = value.split(":")
-    return time(int(hour), int(minute))
+    try:
+        hour, minute = map(int, value.split(":"))
+        return time(hour=hour, minute=minute)
+    except Exception:
+        log_warning("working_hours", "parse_error", "Invalid time format")
+        return time(0, 0)
 
 
 def get_working_hours() -> tuple[time, time]:
     """
-    Read working hours from config.
+    Get working hours from config.
     """
     start = Config.get("WORK_START", "07:00")
     end = Config.get("WORK_END", "13:00")
+
     return _parse_time(start), _parse_time(end)
 
 
 def is_working_time() -> bool:
     """
-    Check if current time is inside working hours.
+    Check if current time is within working hours.
     """
-    now = get_current_time().time()
-    start, end = get_working_hours()
-    return start <= now <= end
+
+    start_time, end_time = get_working_hours()
+    now = datetime.now().time()
+
+    # Handle normal range
+    if start_time <= end_time:
+        return start_time <= now <= end_time
+
+    # Handle overnight range (future support)
+    return now >= start_time or now <= end_time
 
 
 # -----------------------------
-# Holidays
+# Holiday Check
 # -----------------------------
 def is_holiday() -> bool:
     """
-    Check if today is a holiday.
+    Check if today is holiday.
     """
+
     today = get_current_date()
 
-    holidays = fetch_all(
-        "SELECT holiday_date FROM holidays WHERE enabled = 1"
-    )
+    row = fetch_one("""
+        SELECT holiday_date
+        FROM holidays
+        WHERE holiday_date = ? AND enabled = 1
+    """, (today,))
 
-    holiday_dates = {h["holiday_date"] for h in holidays}
-    return today in holiday_dates
+    return row is not None
 
 
 # -----------------------------
 # System Mode Check
 # -----------------------------
-def _get_system_mode() -> str:
+def get_system_mode() -> str:
+    """
+    Get system mode from config.
+    """
     return Config.get("SYSTEM_MODE", "NORMAL")
 
 
-# -----------------------------
-# Request Permission
-# -----------------------------
 def can_create_request() -> bool:
     """
-    Determine if request creation is allowed.
+    Check if user can create request.
     """
 
-    system_mode = _get_system_mode()
+    mode = get_system_mode()
 
-    if system_mode == "DISABLED":
+    if mode == "DISABLED":
         return False
 
-    if system_mode == "MAINTENANCE":
+    if mode == "MAINTENANCE":
         return False
 
     if is_holiday():
@@ -119,23 +126,44 @@ def can_create_request() -> bool:
 
 
 # -----------------------------
-# SLA Calculation (simple version)
+# SLA Calculation (Basic)
 # -----------------------------
-def calculate_sla(created_at: datetime, closed_at: Optional[datetime]) -> Optional[int]:
+def calculate_sla(start_time: datetime, end_time: Optional[datetime] = None) -> int:
     """
-    Return SLA in minutes (simple implementation).
+    Calculate SLA in minutes (working hours only - simplified).
     """
 
-    if not closed_at:
-        return None
+    end_time = end_time or datetime.now()
 
-    try:
-        delta = closed_at - created_at
-        return int(delta.total_seconds() / 60)
-    except Exception as e:
-        log_warning(
-            "working_hours",
-            "sla_error",
-            str(e),
-        )
-        return None
+    if end_time < start_time:
+        return 0
+
+    delta = end_time - start_time
+
+    # Simple SLA (future: exclude non-working hours)
+    return int(delta.total_seconds() / 60)
+
+
+# -----------------------------
+# Status Message Helpers (optional)
+# -----------------------------
+def get_working_status_message() -> Optional[str]:
+    """
+    Return system status message if not available.
+    """
+
+    mode = get_system_mode()
+
+    if mode == "MAINTENANCE":
+        return "MAINTENANCE_MODE"
+
+    if mode == "DISABLED":
+        return "OUT_OF_WORK_TIME"
+
+    if is_holiday():
+        return "HOLIDAY_MESSAGE"
+
+    if not is_working_time():
+        return "OUT_OF_WORK_TIME"
+
+    return None
