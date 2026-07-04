@@ -1,105 +1,78 @@
 """
 messages.py
 
-Central message repository for Azarakhsh system.
-
-Rule:
-- NO text should exist inside handlers or services.
-- All user-facing messages must be defined here.
+Centralized user/system messages for Azarakhsh.
+No hard-coded text should exist in handlers or services.
 """
-
 
 # -----------------------------
 # General Messages
 # -----------------------------
-WELCOME_MESSAGE = "به سامانه آذرخش خوش آمدید."
-
-SYSTEM_BUSY = "سامانه در حال حاضر در دسترس نیست."
-
-UNAUTHORIZED_ACCESS = "شما مجاز به انجام این عملیات نیستید."
-
-INVALID_INPUT = "ورودی وارد شده معتبر نیست."
-
-UNKNOWN_ERROR = "خطایی در سامانه رخ داده است."
+GENERAL_ERROR = "خطایی در سامانه رخ داده است. لطفاً دوباره تلاش کنید."
+INVALID_INPUT = "ورودی نامعتبر است."
+ACCESS_DENIED = "شما مجاز به انجام این عملیات نیستید."
 
 
 # -----------------------------
 # Request Messages
 # -----------------------------
-REQUEST_CREATED = "درخواست شما ثبت شد."
-
-REQUEST_NOT_FOUND = "درخواستی یافت نشد."
-
-DUPLICATE_REQUEST = "درخواست مشابه قبلاً ثبت شده است."
-
-REQUEST_CLOSED = "درخواست با موفقیت بسته شد."
-
-REQUEST_UPDATED = "وضعیت درخواست بروزرسانی شد."
+REQUEST_CREATED = "درخواست شما با موفقیت ثبت شد."
+REQUEST_NOT_FOUND = "درخواستی با این مشخصات یافت نشد."
+DUPLICATE_REQUEST = "این درخواست قبلاً ثبت شده است."
 
 
 # -----------------------------
 # Tracking Messages
 # -----------------------------
 INVALID_TRACKING = "شماره رهگیری معتبر نیست."
-
 TRACKING_NOT_FOUND = "درخواستی با این شماره رهگیری یافت نشد."
-
-TRACKING_FORMAT_ERROR = "فرمت شماره رهگیری صحیح نیست."
 
 
 # -----------------------------
-# Working Hours
+# Working Hours Messages
 # -----------------------------
 OUT_OF_WORK_TIME = "سامانه در حال حاضر خارج از ساعات کاری است.\nساعات پاسخگویی: 07:00 تا 13:00"
 
 HOLIDAY_MESSAGE = "امروز سامانه تعطیل است."
 
-MAINTENANCE_MODE = "سامانه در حال بروزرسانی است."
+MAINTENANCE_MODE = "سامانه در حال بروزرسانی است. لطفاً بعداً مراجعه کنید."
 
 
 # -----------------------------
-# File Messages
+# User Messages
 # -----------------------------
-FILE_TOO_LARGE = "حجم فایل بیشتر از حد مجاز است."
-
-INVALID_FILE_TYPE = "فرمت فایل مجاز نیست."
-
-FILE_UPLOAD_FAILED = "ارسال فایل با مشکل مواجه شد."
+WELCOME_MESSAGE = "به سامانه آذرخش خوش آمدید."
+USER_MESSAGE_RECEIVED = "پیام شما دریافت شد."
 
 
 # -----------------------------
-# Permission Messages
+# Expert Messages
 # -----------------------------
-PERMISSION_DENIED = "دسترسی غیرمجاز."
-
-ADMIN_ONLY = "این بخش فقط برای مدیران قابل دسترسی است."
-
-EXPERT_ONLY = "این بخش فقط برای کارشناسان قابل دسترسی است."
+EXPERT_REPLY_SAVED = "پاسخ شما ثبت شد."
+REQUEST_CLOSED = "درخواست با موفقیت بسته شد."
 
 
 # -----------------------------
-# Chat Messages
+# Admin Messages
 # -----------------------------
-CHAT_ENDED = "گفتگو به پایان رسید."
-
-MESSAGE_SENT = "پیام ارسال شد."
-
-FILE_SENT = "فایل ارسال شد."
+EXPERT_CREATED = "کارشناس با موفقیت اضافه شد."
+EXPERT_REMOVED = "کارشناس غیرفعال شد."
+SETTINGS_UPDATED = "تنظیمات با موفقیت بروزرسانی شد."
+HOLIDAY_ADDED = "تعطیلی ثبت شد."
+HOLIDAY_REMOVED = "تعطیلی حذف شد."
+REQUEST_TRANSFERRED = "درخواست با موفقیت منتقل شد."
 
 
 # -----------------------------
 # Validation Messages
 # -----------------------------
-INVALID_MOBILE = "شماره موبایل معتبر نیست."
-
-INVALID_NATIONAL_CODE = "کد ملی وارد شده معتبر نیست."
+INVALID_FILE = "فایل ارسالی معتبر نیست."
+FILE_TOO_LARGE = "حجم فایل بیشتر از حد مجاز است."
+INVALID_FILE_TYPE = "فرمت فایل مجاز نیست."
+INVALID_TRACKING = "شماره رهگیری اشتباه است."
 
 
 # -----------------------------
-# System Messages
+# Security Messages
 # -----------------------------
-SUCCESS = "عملیات با موفقیت انجام شد."
-
-FAILED = "عملیات ناموفق بود."
-
-TRY_AGAIN = "لطفاً دوباره تلاش کنید."
+RATE_LIMIT_EXCEEDED = "تعداد درخواست‌های شما بیش از حد مجاز است. لطفاً کمی صبر کنید."
