@@ -1,16 +1,12 @@
 """
 expert_handlers.py
-
-Handles expert interactions:
-- view requests
-- reply to requests
-- close requests
 """
 
-from expert_service import reply, close
-from database import get_request_by_tracking
-from logger import log_info
-from messages import GENERAL_ERROR, REQUEST_NOT_FOUND
+from expert_service import (
+    reply,
+    close,
+    assign_request,
+)
 
 
 # -----------------------------
@@ -18,67 +14,49 @@ from messages import GENERAL_ERROR, REQUEST_NOT_FOUND
 # -----------------------------
 def handle_expert_message(chat_id: int, message: str) -> str:
     """
-    Process expert commands and messages.
+    Expert command handler (MVP keyword-based).
     """
 
-    try:
-        message = message.strip()
+    if not message:
+        return "پیام نامعتبر است"
 
-        # -------------------------
-        # Close Request Command
-        # /close SR-2026-0000001
-        # -------------------------
-        if message.startswith("/close"):
-            tracking = message.replace("/close", "").strip()
+    parts = message.split()
+    cmd = parts[0].lower()
 
-            request = get_request_by_tracking(tracking)
+    # -------------------------
+    # Reply
+    # -------------------------
+    if cmd == "reply":
+        if len(parts) < 3:
+            return "فرمت: reply request_id message"
 
-            if not request:
-                return REQUEST_NOT_FOUND
+        request_id = int(parts[1])
+        msg = " ".join(parts[2:])
 
-            result = close(request["id"], chat_id)
+        result = reply(request_id, chat_id, msg)
 
-            if result["success"]:
-                log_info("expert_handlers", "close", f"expert={chat_id}, req={tracking}")
-                return "درخواست با موفقیت بسته شد."
+        return "ارسال شد" if result["success"] else result["message"]
 
-            return GENERAL_ERROR
+    # -------------------------
+    # Close
+    # -------------------------
+    if cmd == "close":
+        if len(parts) < 2:
+            return "فرمت: close request_id"
 
-        # -------------------------
-        # Reply to Request
-        # /reply SR-2026-0000001|message text
-        # -------------------------
-        if message.startswith("/reply"):
-            content = message.replace("/reply", "").strip().split("|")
+        result = close(int(parts[1]), chat_id)
 
-            if len(content) < 2:
-                return "فرمت پیام اشتباه است."
+        return "بسته شد" if result["success"] else result["message"]
 
-            tracking = content[0].strip()
-            text = content[1].strip()
+    # -------------------------
+    # Assign (optional)
+    # -------------------------
+    if cmd == "assign":
+        if len(parts) < 3:
+            return "فرمت: assign request_id expert_id"
 
-            request = get_request_by_tracking(tracking)
+        result = assign_request(int(parts[1]), int(parts[2]))
 
-            if not request:
-                return REQUEST_NOT_FOUND
+        return "انجام شد" if result["success"] else result["message"]
 
-            result = reply(
-                request_id=request["id"],
-                expert_id=chat_id,
-                message=text,
-            )
-
-            if result["success"]:
-                log_info("expert_handlers", "reply", f"expert={chat_id}")
-                return "پاسخ شما ثبت شد."
-
-            return GENERAL_ERROR
-
-        # -------------------------
-        # Default fallback
-        # -------------------------
-        return "دستور نامعتبر است."
-
-    except Exception as e:
-        log_info("expert_handlers", "error", str(e))
-        return GENERAL_ERROR
+    return "دستور نامعتبر است"
