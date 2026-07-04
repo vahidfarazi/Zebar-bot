@@ -1,13 +1,19 @@
 """
 bale_client.py
 
-Client for sending messages to Bale messenger API.
-Separates external communication from business logic.
+Simple Bale bot client (HTTP API wrapper).
 """
 
 import requests
-from logger import log_info, log_error
 from config import Config
+from logger import log_error
+
+
+# -----------------------------
+# Base Config
+# -----------------------------
+BASE_URL = Config.get_str("BALE_API_URL", "")
+BOT_TOKEN = Config.get_str("BALE_BOT_TOKEN", "")
 
 
 # -----------------------------
@@ -15,34 +21,44 @@ from config import Config
 # -----------------------------
 def send_message(chat_id: int, text: str) -> bool:
     """
-    Send message to Bale user.
+    Send message to Bale chat.
     """
 
     try:
-        base_url = Config.get("BALE_API_URL")
-        token = Config.get("BALE_BOT_TOKEN")
 
-        url = f"{base_url}/bot{token}/sendMessage"
+        if not BASE_URL or not BOT_TOKEN:
+            log_error(
+                "bale_client",
+                "config_missing",
+                "BALE_API_URL or BALE_BOT_TOKEN not set",
+            )
+            return False
+
+        url = f"{BASE_URL}/bot{BOT_TOKEN}/sendMessage"
 
         payload = {
             "chat_id": chat_id,
-            "text": text
+            "text": text,
         }
 
         response = requests.post(url, json=payload, timeout=10)
 
-        if response.status_code == 200:
-            log_info("bale_client", "send_message", f"sent to {chat_id}")
-            return True
+        if response.status_code != 200:
+            log_error(
+                "bale_client",
+                "send_failed",
+                response.text,
+            )
+            return False
+
+        return True
+
+    except Exception as e:
 
         log_error(
             "bale_client",
-            "send_failed",
-            f"{response.status_code} - {response.text}"
+            "exception",
+            str(e),
         )
 
-        return False
-
-    except Exception as e:
-        log_error("bale_client", "exception", str(e))
         return False
