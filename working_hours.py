@@ -1,80 +1,92 @@
 """
 working_hours.py
 
-All time-based rules for Azarakhsh system.
-No handler should use datetime directly.
+Central time & SLA management for Azarakhsh system.
+All time-based decisions must go through this module.
 """
 
 from datetime import datetime, time
 from config import Config
-from database import is_holiday as db_is_holiday
 
 
 # -----------------------------
-# Current Time (Central Source)
+# Get current time (Asia/Tehran)
 # -----------------------------
 def get_current_time() -> datetime:
+    """
+    Return current system time.
+    MVP: system time (later: timezone-safe version)
+    """
     return datetime.now()
 
 
+# -----------------------------
+# Get current date
+# -----------------------------
 def get_current_date() -> str:
+    """
+    Return current date as ISO string.
+    """
     return datetime.now().date().isoformat()
 
 
 # -----------------------------
-# Working Hours Config
-# -----------------------------
-def _parse_time(value: str) -> time:
-    """
-    Convert HH:MM string to time object.
-    """
-    hour, minute = map(int, value.split(":"))
-    return time(hour=hour, minute=minute)
-
-
-# -----------------------------
-# Check Working Time
+# Working hours check
 # -----------------------------
 def is_working_time() -> bool:
     """
     Check if current time is within working hours.
     """
 
-    current = get_current_time().time()
+    current = datetime.now().time()
 
-    start = _parse_time(Config.get("WORK_START", "07:00"))
-    end = _parse_time(Config.get("WORK_END", "13:00"))
+    start_str = Config.get("WORK_START", "07:00")
+    end_str = Config.get("WORK_END", "13:00")
 
-    return start <= current <= end
+    start_hour, start_min = map(int, start_str.split(":"))
+    end_hour, end_min = map(int, end_str.split(":"))
+
+    start_time = time(start_hour, start_min)
+    end_time = time(end_hour, end_min)
+
+    return start_time <= current <= end_time
 
 
 # -----------------------------
-# Check Holiday
+# Holiday check
 # -----------------------------
-def is_holiday() -> bool:
+def is_holiday(date_str: str = None) -> bool:
     """
     Check if today is holiday.
+    MVP: simple static check (DB version later)
     """
-    today = get_current_date()
-    return db_is_holiday(today)
+
+    if date_str is None:
+        date_str = get_current_date()
+
+    # MVP: placeholder (real version will query DB)
+    # Example logic: Config-based or cached holidays
+    holidays = Config.get("HOLIDAYS", "")
+
+    if not holidays:
+        return False
+
+    holiday_list = [h.strip() for h in holidays.split(",")]
+
+    return date_str in holiday_list
 
 
 # -----------------------------
-# System Mode Check
-# -----------------------------
-def _system_mode() -> str:
-    return Config.get("SYSTEM_MODE", "NORMAL")
-
-
-# -----------------------------
-# Can Create Request
+# Can create request
 # -----------------------------
 def can_create_request() -> bool:
     """
-    Determine if user can create request.
+    Determine if request creation is allowed.
     """
 
-    if _system_mode() == "DISABLED":
+    system_mode = Config.get("SYSTEM_MODE", "NORMAL")
+
+    if system_mode != "NORMAL":
         return False
 
     if is_holiday():
@@ -87,22 +99,12 @@ def can_create_request() -> bool:
 
 
 # -----------------------------
-# SLA Calculation (basic MVP)
+# SLA calculation (MVP simple version)
 # -----------------------------
 def calculate_sla(start_time: datetime, end_time: datetime) -> int:
     """
-    SLA in minutes (basic version).
+    Calculate SLA in minutes.
     """
 
     delta = end_time - start_time
     return int(delta.total_seconds() / 60)
-
-
-# -----------------------------
-# Working Hours Info
-# -----------------------------
-def get_working_hours() -> dict:
-    return {
-        "start": Config.get("WORK_START", "07:00"),
-        "end": Config.get("WORK_END", "13:00"),
-    }
