@@ -1,144 +1,136 @@
 """
 request_service.py
 
-Core business logic for service request lifecycle.
-Handles creation, update, closure, and tracking.
+Core business logic for requests.
+Handles request lifecycle: create, reply, close, priority.
 """
 
-from database import get_connection
+from datetime import datetime
+
+from database import (
+    create_request_db,
+    get_request_by_tracking,
+    add_message_db,
+    update_request_status,
+    update_request_priority,
+)
+
 from tracking import generate_tracking_code
-from logger import log_info, log_error
+from working_hours import can_create_request
+from logger import log_info, log_warning
 
 
 # -----------------------------
 # Create Request
 # -----------------------------
-def create_request(chat_id: int, service: str, sub_service: str = None, priority: str = "NORMAL") -> str:
+def create_request(user_id: int, title: str, description: str) -> dict:
     """
-    Create a new service request and return tracking code.
-    """
-
-    try:
-        conn = get_connection()
-        cursor = conn.cursor()
-
-        tracking_code = generate_tracking_code()
-
-        cursor.execute(
-            """
-            INSERT INTO requests (
-                tracking_code,
-                chat_id,
-                service,
-                sub_service,
-                status,
-                priority
-            )
-            VALUES (?, ?, ?, ?, 'NEW', ?)
-            """,
-            (tracking_code, chat_id, service, sub_service, priority)
-        )
-
-        conn.commit()
-        conn.close()
-
-        log_info("request_service", f"REQUEST_CREATED: {tracking_code}")
-
-        return tracking_code
-
-    except Exception as e:
-        log_error("request_service", f"CREATE_REQUEST_FAILED: {e}")
-        return None
-
-
-# -----------------------------
-# Get Request by Tracking
-# -----------------------------
-def get_request(tracking_code: str):
-    """
-    Retrieve request details by tracking code.
+    Create a new service request.
     """
 
-    conn = get_connection()
-    cursor = conn.cursor()
+    if not can_create_request():
+        log_warning("request_service", "create_blocked", f"user={user_id}")
+        return {
+            "success": False,
+            "message": "OUT_OF_WORK_TIME",
+        }
 
-    cursor.execute(
-        "SELECT * FROM requests WHERE tracking_code = ?",
-        (tracking_code,)
+    tracking_code = generate_tracking_code()
+
+    request_id = create_request_db(
+        user_id=user_id,
+        tracking_code=tracking_code,
+        title=title,
+        description=description,
+        status="NEW",
+        priority="NORMAL",
+        created_at=datetime.now().isoformat(),
     )
 
-    row = cursor.fetchone()
-    conn.close()
+    log_info("request_service", "create_request", f"tracking={tracking_code}")
 
-    if not row:
-        return None
+    return {
+        "success": True,
+        "tracking_code": tracking_code,
+        "request_id": request_id,
+    }
 
-    return dict(row)
+
+# -----------------------------
+# Reply to Request
+# -----------------------------
+def reply_request(request_id: int, sender_type: str, message: str) -> dict:
+    """
+    Add message to request conversation.
+    """
+
+    request = get_request_by_tracking(request_id)
+
+    if not request:
+        return {
+            "success": False,
+            "message": "REQUEST_NOT_FOUND",
+        }
+
+    add_message_db(
+        request_id=request_id,
+        sender_type=sender_type,
+        message=message,
+        created_at=datetime.now().isoformat(),
+    )
+
+    # status switch logic
+    if sender_type == "USER":
+        update_request_status(request_id, "WAITING_EXPERT")
+    else:
+        update_request_status(request_id, "WAITING_USER")
+
+    log_info("request_service", "reply", f"request_id={request_id}")
+
+    return {"success": True}
 
 
 # -----------------------------
 # Close Request
 # -----------------------------
-def close_request(tracking_code: str) -> bool:
+def close_request(request_id: int, closed_by: str) -> dict:
     """
-    Close a service request.
+    Close a request.
     """
 
-    try:
-        conn = get_connection()
-        cursor = conn.cursor()
+    request = get_request_by_tracking(request_id)
 
-        cursor.execute(
-            """
-            UPDATE requests
-            SET status = 'CLOSED',
-                updated_at = CURRENT_TIMESTAMP
-            WHERE tracking_code = ?
-            """,
-            (tracking_code,)
-        )
+    if not request:
+        return {
+            "success": False,
+            "message": "REQUEST_NOT_FOUND",
+        }
 
-        conn.commit()
-        conn.close()
+    update_request_status(request_id, "CLOSED")
 
-        log_info("request_service", f"REQUEST_CLOSED: {tracking_code}")
+    log_info("request_service", "close_request", f"id={request_id}, by={closed_by}")
 
-        return True
-
-    except Exception as e:
-        log_error("request_service", f"CLOSE_REQUEST_FAILED: {e}")
-        return False
+    return {"success": True}
 
 
 # -----------------------------
-# Update Status
+# Change Priority
 # -----------------------------
-def update_request_status(tracking_code: str, status: str) -> bool:
+def change_priority(request_id: int, priority: str) -> dict:
     """
-    Update request status.
+    Update request priority.
     """
 
-    try:
-        conn = get_connection()
-        cursor = conn.cursor()
+    valid_priorities = ["LOW", "NORMAL", "HIGH", "URGENT"]
 
-        cursor.execute(
-            """
-            UPDATE requests
-            SET status = ?,
-                updated_at = CURRENT_TIMESTAMP
-            WHERE tracking_code = ?
-            """,
-            (status, tracking_code)
-        )
+    if priority not in valid_priorities:
+        return {
+            "success": False,
+            "message": "INVALID_PRIORITY",
+        }
 
-        conn.commit()
-        conn.close()
+    update_request_priority(request_id, priority)
 
-        log_info("request_service", f"STATUS_UPDATED: {tracking_code} -> {status}")
+    log_info("request_service", "change_priority", f"id={request_id}, p={priority}")
 
-        return True
-
-    except Exception as e:
-        log_error("request_service", f"UPDATE_STATUS_FAILED: {e}")
-        return False
+    return {"success": True}
