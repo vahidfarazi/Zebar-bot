@@ -1,18 +1,18 @@
 """
 bale_client.py
 
-Simple Bale bot client (HTTP API wrapper).
+Official Bale Bot API client (HTTP-based).
 """
 
 import requests
 from config import Config
-from logger import log_error
+from logger import log_error, log_info
 
 
 # -----------------------------
-# Base Config
+# Config
 # -----------------------------
-BASE_URL = Config.get_str("BALE_API_URL", "")
+BASE_URL = Config.get_str("BALE_API_URL", "https://tapi.bale.ai")
 BOT_TOKEN = Config.get_str("BALE_BOT_TOKEN", "")
 
 
@@ -21,18 +21,18 @@ BOT_TOKEN = Config.get_str("BALE_BOT_TOKEN", "")
 # -----------------------------
 def send_message(chat_id: int, text: str) -> bool:
     """
-    Send message to Bale chat.
+    Send message via Bale Bot API.
     """
 
-    try:
+    if not BOT_TOKEN:
+        log_error(
+            "bale_client",
+            "missing_token",
+            "BALE_BOT_TOKEN is not set",
+        )
+        return False
 
-        if not BASE_URL or not BOT_TOKEN:
-            log_error(
-                "bale_client",
-                "config_missing",
-                "BALE_API_URL or BALE_BOT_TOKEN not set",
-            )
-            return False
+    try:
 
         url = f"{BASE_URL}/bot{BOT_TOKEN}/sendMessage"
 
@@ -50,6 +50,12 @@ def send_message(chat_id: int, text: str) -> bool:
                 response.text,
             )
             return False
+
+        log_info(
+            "bale_client",
+            "send_message",
+            str(chat_id),
+        )
 
         return True
 
