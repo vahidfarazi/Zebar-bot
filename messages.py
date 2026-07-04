@@ -1,113 +1,105 @@
 """
 messages.py
 
-All system messages for Azarakhsh Project.
+Central message repository for Azarakhsh system.
 
 Rule:
-- No UI text is allowed outside this file.
+- NO text should exist inside handlers or services.
+- All user-facing messages must be defined here.
 """
 
-from __future__ import annotations
+
+# -----------------------------
+# General Messages
+# -----------------------------
+WELCOME_MESSAGE = "به سامانه آذرخش خوش آمدید."
+
+SYSTEM_BUSY = "سامانه در حال حاضر در دسترس نیست."
+
+UNAUTHORIZED_ACCESS = "شما مجاز به انجام این عملیات نیستید."
+
+INVALID_INPUT = "ورودی وارد شده معتبر نیست."
+
+UNKNOWN_ERROR = "خطایی در سامانه رخ داده است."
 
 
-# ---------------- GENERAL ---------------- #
+# -----------------------------
+# Request Messages
+# -----------------------------
+REQUEST_CREATED = "درخواست شما ثبت شد."
 
-WELCOME_MESSAGE = """
-به سامانه آذرخش خوش آمدید.
+REQUEST_NOT_FOUND = "درخواستی یافت نشد."
 
-لطفاً یکی از گزینه‌های زیر را انتخاب کنید.
-"""
+DUPLICATE_REQUEST = "درخواست مشابه قبلاً ثبت شده است."
 
-GOODBYE_MESSAGE = """
-از استفاده شما از سامانه متشکریم.
-"""
+REQUEST_CLOSED = "درخواست با موفقیت بسته شد."
 
-# ---------------- REQUEST ---------------- #
+REQUEST_UPDATED = "وضعیت درخواست بروزرسانی شد."
 
-REQUEST_CREATED = """
-درخواست شما با موفقیت ثبت شد.
 
-شماره رهگیری:
-{tracking_code}
-"""
+# -----------------------------
+# Tracking Messages
+# -----------------------------
+INVALID_TRACKING = "شماره رهگیری معتبر نیست."
 
-REQUEST_NOT_FOUND = """
-درخواستی با این شماره رهگیری یافت نشد.
-"""
+TRACKING_NOT_FOUND = "درخواستی با این شماره رهگیری یافت نشد."
 
-REQUEST_CLOSED = """
-درخواست با موفقیت بسته شد.
-"""
+TRACKING_FORMAT_ERROR = "فرمت شماره رهگیری صحیح نیست."
 
-DUPLICATE_REQUEST = """
-درخواست مشابه قبلاً ثبت شده است.
-"""
 
-# ---------------- TRACKING ---------------- #
+# -----------------------------
+# Working Hours
+# -----------------------------
+OUT_OF_WORK_TIME = "سامانه در حال حاضر خارج از ساعات کاری است.\nساعات پاسخگویی: 07:00 تا 13:00"
 
-INVALID_TRACKING = """
-شماره رهگیری معتبر نیست.
-"""
+HOLIDAY_MESSAGE = "امروز سامانه تعطیل است."
 
-TRACKING_NOT_FOUND = """
-درخواستی با این شماره رهگیری یافت نشد.
-"""
+MAINTENANCE_MODE = "سامانه در حال بروزرسانی است."
 
-# ---------------- WORKING HOURS ---------------- #
 
-OUT_OF_WORK_TIME = """
-سامانه در حال حاضر خارج از ساعات کاری است.
+# -----------------------------
+# File Messages
+# -----------------------------
+FILE_TOO_LARGE = "حجم فایل بیشتر از حد مجاز است."
 
-ساعات پاسخگویی:
-07:00 الی 13:00
-"""
+INVALID_FILE_TYPE = "فرمت فایل مجاز نیست."
 
-HOLIDAY_MESSAGE = """
-امروز سامانه تعطیل است.
-"""
+FILE_UPLOAD_FAILED = "ارسال فایل با مشکل مواجه شد."
 
-MAINTENANCE_MODE = """
-سامانه در حال بروزرسانی است.
-"""
 
-# ---------------- SECURITY ---------------- #
+# -----------------------------
+# Permission Messages
+# -----------------------------
+PERMISSION_DENIED = "دسترسی غیرمجاز."
 
-PERMISSION_DENIED = """
-شما مجاز به انجام این عملیات نیستید.
-"""
+ADMIN_ONLY = "این بخش فقط برای مدیران قابل دسترسی است."
 
-EXPERT_ACCESS_DENIED = """
-دسترسی غیرمجاز.
-"""
+EXPERT_ONLY = "این بخش فقط برای کارشناسان قابل دسترسی است."
 
-RATE_LIMIT_MESSAGE = """
-تعداد درخواست‌های شما بیش از حد مجاز است.
-"""
 
-# ---------------- FILE ---------------- #
+# -----------------------------
+# Chat Messages
+# -----------------------------
+CHAT_ENDED = "گفتگو به پایان رسید."
 
-FILE_TOO_LARGE = """
-حجم فایل بیشتر از حد مجاز است.
-"""
+MESSAGE_SENT = "پیام ارسال شد."
 
-INVALID_FILE_TYPE = """
-فرمت فایل مجاز نیست.
-"""
+FILE_SENT = "فایل ارسال شد."
 
-FILE_DOWNLOAD_ERROR = """
-دریافت فایل با مشکل مواجه شد.
-"""
 
-# ---------------- SYSTEM ---------------- #
+# -----------------------------
+# Validation Messages
+# -----------------------------
+INVALID_MOBILE = "شماره موبایل معتبر نیست."
 
-GENERAL_ERROR = """
-خطایی در سامانه رخ داده است.
-"""
+INVALID_NATIONAL_CODE = "کد ملی وارد شده معتبر نیست."
 
-NETWORK_ERROR = """
-مشکلی در ارتباط با سرویس رخ داده است.
-"""
 
-TIMEOUT_ERROR = """
-پاسخی از سرور دریافت نشد. لطفاً دوباره تلاش کنید.
-"""
+# -----------------------------
+# System Messages
+# -----------------------------
+SUCCESS = "عملیات با موفقیت انجام شد."
+
+FAILED = "عملیات ناموفق بود."
+
+TRY_AGAIN = "لطفاً دوباره تلاش کنید."
