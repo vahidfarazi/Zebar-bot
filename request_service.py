@@ -1,44 +1,30 @@
 """
 request_service.py
 
-Business logic for service requests.
-Responsible for creating, updating, closing and managing requests.
-
-NO SQL outside database.py.
-NO user message formatting here.
+Core business logic for service request lifecycle.
+Handles creation, update, closure, and tracking.
 """
 
-from datetime import datetime
-from typing import Optional, Dict, Any
-
-from database import execute, fetch_one
+from database import get_connection
 from tracking import generate_tracking_code
 from logger import log_info, log_error
-from working_hours import can_create_request
 
 
 # -----------------------------
 # Create Request
 # -----------------------------
-def create_request(
-    chat_id: int,
-    service: str,
-    sub_service: str,
-    priority: str = "NORMAL",
-) -> Optional[str]:
+def create_request(chat_id: int, service: str, sub_service: str = None, priority: str = "NORMAL") -> str:
     """
     Create a new service request and return tracking code.
     """
 
     try:
-        if not can_create_request():
-            return None
+        conn = get_connection()
+        cursor = conn.cursor()
 
         tracking_code = generate_tracking_code()
 
-        now = datetime.now().isoformat()
-
-        execute(
+        cursor.execute(
             """
             INSERT INTO requests (
                 tracking_code,
@@ -46,131 +32,113 @@ def create_request(
                 service,
                 sub_service,
                 status,
-                priority,
-                created_at,
-                updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                priority
+            )
+            VALUES (?, ?, ?, ?, 'NEW', ?)
             """,
-            (
-                tracking_code,
-                chat_id,
-                service,
-                sub_service,
-                "NEW",
-                priority,
-                now,
-                now,
-            ),
+            (tracking_code, chat_id, service, sub_service, priority)
         )
 
-        log_info(
-            "request_service",
-            "create_request",
-            f"tracking={tracking_code}",
-            user_id=chat_id,
-        )
+        conn.commit()
+        conn.close()
+
+        log_info("request_service", f"REQUEST_CREATED: {tracking_code}")
 
         return tracking_code
 
     except Exception as e:
-        log_error("request_service", "create_request_failed", str(e), user_id=chat_id)
+        log_error("request_service", f"CREATE_REQUEST_FAILED: {e}")
         return None
+
+
+# -----------------------------
+# Get Request by Tracking
+# -----------------------------
+def get_request(tracking_code: str):
+    """
+    Retrieve request details by tracking code.
+    """
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "SELECT * FROM requests WHERE tracking_code = ?",
+        (tracking_code,)
+    )
+
+    row = cursor.fetchone()
+    conn.close()
+
+    if not row:
+        return None
+
+    return dict(row)
 
 
 # -----------------------------
 # Close Request
 # -----------------------------
-def close_request(tracking_code: str, closed_by: str = "SYSTEM") -> bool:
+def close_request(tracking_code: str) -> bool:
     """
-    Close a request.
+    Close a service request.
     """
 
     try:
-        request = fetch_one(
-            "SELECT * FROM requests WHERE tracking_code = ?",
-            (tracking_code,),
-        )
+        conn = get_connection()
+        cursor = conn.cursor()
 
-        if not request:
-            return False
-
-        execute(
+        cursor.execute(
             """
             UPDATE requests
-            SET status = ?, closed_at = ?, updated_at = ?
+            SET status = 'CLOSED',
+                updated_at = CURRENT_TIMESTAMP
             WHERE tracking_code = ?
             """,
-            (
-                "CLOSED",
-                datetime.now().isoformat(),
-                datetime.now().isoformat(),
-                tracking_code,
-            ),
+            (tracking_code,)
         )
 
-        log_info(
-            "request_service",
-            "close_request",
-            f"tracking={tracking_code}, by={closed_by}",
-            user_id=request["chat_id"],
-        )
+        conn.commit()
+        conn.close()
+
+        log_info("request_service", f"REQUEST_CLOSED: {tracking_code}")
 
         return True
 
     except Exception as e:
-        log_error("request_service", "close_request_failed", str(e))
+        log_error("request_service", f"CLOSE_REQUEST_FAILED: {e}")
         return False
-
-
-# -----------------------------
-# Get Request
-# -----------------------------
-def get_request(tracking_code: str) -> Optional[Dict[str, Any]]:
-    """
-    Fetch request details.
-    """
-
-    try:
-        return fetch_one(
-            "SELECT * FROM requests WHERE tracking_code = ?",
-            (tracking_code,),
-        )
-
-    except Exception as e:
-        log_error("request_service", "get_request_failed", str(e))
-        return None
 
 
 # -----------------------------
 # Update Status
 # -----------------------------
-def update_status(tracking_code: str, status: str) -> bool:
+def update_request_status(tracking_code: str, status: str) -> bool:
     """
     Update request status.
     """
 
     try:
-        execute(
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
             """
             UPDATE requests
-            SET status = ?, updated_at = ?
+            SET status = ?,
+                updated_at = CURRENT_TIMESTAMP
             WHERE tracking_code = ?
             """,
-            (
-                status,
-                datetime.now().isoformat(),
-                tracking_code,
-            ),
+            (status, tracking_code)
         )
 
-        log_info(
-            "request_service",
-            "update_status",
-            f"tracking={tracking_code}, status={status}",
-        )
+        conn.commit()
+        conn.close()
+
+        log_info("request_service", f"STATUS_UPDATED: {tracking_code} -> {status}")
 
         return True
 
     except Exception as e:
-        log_error("request_service", "update_status_failed", str(e))
+        log_error("request_service", f"UPDATE_STATUS_FAILED: {e}")
         return False
