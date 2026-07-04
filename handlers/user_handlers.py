@@ -1,13 +1,10 @@
 """
 user_handlers.py
-
-Handles all USER role interactions.
-Acts as bridge between router and services.
 """
 
-from request_service import create_request, reply_request
-from logger import log_info
-from messages import REQUEST_CREATED, INVALID_INPUT, GENERAL_ERROR
+from database import create_user
+from request_service import create_request, get_request_info
+from working_hours import can_create_request
 
 
 # -----------------------------
@@ -15,47 +12,34 @@ from messages import REQUEST_CREATED, INVALID_INPUT, GENERAL_ERROR
 # -----------------------------
 def handle_user_message(chat_id: int, message: str) -> str:
     """
-    Process user messages.
+    Default user flow.
     """
 
-    try:
-        message = message.strip()
+    create_user(chat_id)
 
-        # -------------------------
-        # Create Request Command
-        # Example: /new title|description
-        # -------------------------
-        if message.startswith("/new"):
-            parts = message.replace("/new", "").strip().split("|")
+    if not message:
+        return "پیام نامعتبر است"
 
-            if len(parts) < 2:
-                return INVALID_INPUT
+    # Tracking request
+    if message.startswith("SR-"):
+        result = get_request_info(message)
 
-            title = parts[0].strip()
-            description = parts[1].strip()
+        if not result["success"]:
+            return result["message"]
 
-            result = create_request(chat_id, title, description)
+        return str(result["data"])
 
-            if result["success"]:
-                log_info("user_handlers", "create_request", f"user={chat_id}")
-                return f"{REQUEST_CREATED}\n\nTracking:\n{result['tracking_code']}"
+    # Create request
+    if not can_create_request():
+        return "در حال حاضر امکان ثبت درخواست وجود ندارد"
 
-            return result.get("message", GENERAL_ERROR)
+    result = create_request(
+        chat_id,
+        "درخواست کاربر",
+        message,
+    )
 
-        # -------------------------
-        # Default fallback (chat message)
-        # -------------------------
-        result = reply_request(
-            request_id=chat_id,  # MVP simplification (will be replaced with state system)
-            sender_type="USER",
-            message=message,
-        )
+    if not result["success"]:
+        return result["message"]
 
-        if result["success"]:
-            return "پیام شما ثبت شد."
-
-        return result.get("message", GENERAL_ERROR)
-
-    except Exception as e:
-        log_info("user_handlers", "error", str(e))
-        return GENERAL_ERROR
+    return f"درخواست ثبت شد\nکد پیگیری: {result['tracking_code']}"
