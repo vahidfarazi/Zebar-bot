@@ -1,190 +1,265 @@
 """
 admin_service.py
 
-Business logic for admin operations:
-- expert management
-- holiday management
-- settings management
-- request transfer
+Business logic for admin operations.
 """
 
 from typing import Dict, Any
-from database import get_connection
-from logger import log_info, log_error
+
+from database import (
+    create_expert,
+    set_active,
+    assign_expert,
+    add_holiday,
+    remove_holiday,
+    set_setting,
+)
+
+from logger import (
+    log_info,
+    log_error,
+)
 
 
 # -----------------------------
-# Create Expert
+# Expert Management
 # -----------------------------
-def create_expert(chat_id: int, name: str, username: str, department: str) -> Dict[str, Any]:
+def create_expert_account(
+    chat_id: int,
+    name: str,
+    username: str,
+    department: str,
+) -> Dict[str, Any]:
     """
-    Add new expert to system.
+    Create or update expert account.
     """
 
     try:
-        conn = get_connection()
-        cursor = conn.cursor()
 
-        cursor.execute("""
-        INSERT OR REPLACE INTO experts (chat_id, name, username, department, is_active)
-        VALUES (?, ?, ?, ?, 1)
-        """, (chat_id, name, username, department))
+        create_expert(
+            chat_id,
+            name,
+            username,
+            department,
+        )
 
-        conn.commit()
-        conn.close()
+        log_info(
+            "admin_service",
+            "create_expert",
+            str(chat_id),
+        )
 
-        log_info("admin_service", "create_expert", f"{chat_id}")
-
-        return {"success": True}
+        return {
+            "success": True,
+        }
 
     except Exception as e:
-        log_error("admin_service", "create_expert", str(e))
-        return {"success": False, "message": "خطا در ایجاد کارشناس"}
+
+        log_error(
+            "admin_service",
+            "create_expert",
+            str(e),
+        )
+
+        return {
+            "success": False,
+            "message": "خطا در ایجاد کارشناس",
+        }
 
 
 # -----------------------------
 # Deactivate Expert
 # -----------------------------
-def deactivate_expert(chat_id: int) -> Dict[str, Any]:
+def deactivate_expert(
+    chat_id: int,
+) -> Dict[str, Any]:
     """
-    Deactivate expert account.
+    Deactivate expert.
     """
 
     try:
-        conn = get_connection()
-        cursor = conn.cursor()
 
-        cursor.execute("""
-        UPDATE experts
-        SET is_active = 0
-        WHERE chat_id = ?
-        """, (chat_id,))
+        set_active(
+            chat_id,
+            False,
+        )
 
-        conn.commit()
-        conn.close()
+        log_info(
+            "admin_service",
+            "deactivate_expert",
+            str(chat_id),
+        )
 
-        log_info("admin_service", "deactivate_expert", f"{chat_id}")
-
-        return {"success": True}
+        return {
+            "success": True,
+        }
 
     except Exception as e:
-        log_error("admin_service", "deactivate_expert", str(e))
-        return {"success": False, "message": "خطا در غیرفعال‌سازی کارشناس"}
+
+        log_error(
+            "admin_service",
+            "deactivate_expert",
+            str(e),
+        )
+
+        return {
+            "success": False,
+            "message": "خطا در غیرفعال‌سازی کارشناس",
+        }
 
 
 # -----------------------------
 # Transfer Request
 # -----------------------------
-def transfer_request(request_id: int, expert_id: int) -> Dict[str, Any]:
+def transfer_request(
+    request_id: int,
+    expert_id: int,
+) -> Dict[str, Any]:
     """
-    Transfer request to another expert.
-    """
-
-    try:
-        conn = get_connection()
-        cursor = conn.cursor()
-
-        cursor.execute("""
-        UPDATE requests
-        SET expert_id = ?, updated_at = CURRENT_TIMESTAMP
-        WHERE id = ?
-        """, (expert_id, request_id))
-
-        conn.commit()
-        conn.close()
-
-        log_info("admin_service", "transfer_request", f"{request_id} -> {expert_id}")
-
-        return {"success": True}
-
-    except Exception as e:
-        log_error("admin_service", "transfer_request", str(e))
-        return {"success": False, "message": "خطا در انتقال درخواست"}
-
-
-# -----------------------------
-# Add Holiday
-# -----------------------------
-def add_holiday(date: str) -> Dict[str, Any]:
-    """
-    Add system holiday.
+    Transfer request to expert.
     """
 
     try:
-        conn = get_connection()
-        cursor = conn.cursor()
 
-        cursor.execute("""
-        INSERT OR IGNORE INTO holidays (holiday_date, enabled)
-        VALUES (?, 1)
-        """, (date,))
+        assign_expert(
+            request_id,
+            expert_id,
+        )
 
-        conn.commit()
-        conn.close()
+        log_info(
+            "admin_service",
+            "transfer_request",
+            f"{request_id} -> {expert_id}",
+        )
 
-        log_info("admin_service", "add_holiday", date)
-
-        return {"success": True}
+        return {
+            "success": True,
+        }
 
     except Exception as e:
-        log_error("admin_service", "add_holiday", str(e))
-        return {"success": False, "message": "خطا در ثبت تعطیلی"}
+
+        log_error(
+            "admin_service",
+            "transfer_request",
+            str(e),
+        )
+
+        return {
+            "success": False,
+            "message": "خطا در انتقال درخواست",
+        }
 
 
 # -----------------------------
-# Remove Holiday
+# Holiday Management
 # -----------------------------
-def remove_holiday(date: str) -> Dict[str, Any]:
+def add_system_holiday(
+    date: str,
+) -> Dict[str, Any]:
     """
-    Remove system holiday.
+    Add holiday.
     """
 
     try:
-        conn = get_connection()
-        cursor = conn.cursor()
 
-        cursor.execute("""
-        DELETE FROM holidays
-        WHERE holiday_date = ?
-        """, (date,))
+        add_holiday(date)
 
-        conn.commit()
-        conn.close()
+        log_info(
+            "admin_service",
+            "add_holiday",
+            date,
+        )
 
-        log_info("admin_service", "remove_holiday", date)
-
-        return {"success": True}
+        return {
+            "success": True,
+        }
 
     except Exception as e:
-        log_error("admin_service", "remove_holiday", str(e))
-        return {"success": False, "message": "خطا در حذف تعطیلی"}
+
+        log_error(
+            "admin_service",
+            "add_holiday",
+            str(e),
+        )
+
+        return {
+            "success": False,
+            "message": "خطا در ثبت تعطیلی",
+        }
+
+
+def delete_system_holiday(
+    date: str,
+) -> Dict[str, Any]:
+    """
+    Remove holiday.
+    """
+
+    try:
+
+        remove_holiday(date)
+
+        log_info(
+            "admin_service",
+            "remove_holiday",
+            date,
+        )
+
+        return {
+            "success": True,
+        }
+
+    except Exception as e:
+
+        log_error(
+            "admin_service",
+            "remove_holiday",
+            str(e),
+        )
+
+        return {
+            "success": False,
+            "message": "خطا در حذف تعطیلی",
+        }
 
 
 # -----------------------------
-# Update Settings (MVP simple version)
+# Settings
 # -----------------------------
-def update_settings(key: str, value: str) -> Dict[str, Any]:
+def update_settings(
+    key: str,
+    value: str,
+) -> Dict[str, Any]:
     """
     Update system settings.
     """
 
     try:
-        conn = get_connection()
-        cursor = conn.cursor()
 
-        cursor.execute("""
-        INSERT INTO settings (key, value)
-        VALUES (?, ?)
-        ON CONFLICT(key) DO UPDATE SET value = excluded.value
-        """, (key, value))
+        set_setting(
+            key,
+            value,
+        )
 
-        conn.commit()
-        conn.close()
+        log_info(
+            "admin_service",
+            "update_settings",
+            f"{key}={value}",
+        )
 
-        log_info("admin_service", "update_settings", f"{key}={value}")
-
-        return {"success": True}
+        return {
+            "success": True,
+        }
 
     except Exception as e:
-        log_error("admin_service", "update_settings", str(e))
-        return {"success": False, "message": "خطا در بروزرسانی تنظیمات"}
+
+        log_error(
+            "admin_service",
+            "update_settings",
+            str(e),
+        )
+
+        return {
+            "success": False,
+            "message": "خطا در بروزرسانی تنظیمات",
+        }
