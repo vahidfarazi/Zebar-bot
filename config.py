@@ -51,4 +51,77 @@ DEFAULT_SETTINGS: dict[str, Any] = {
 
     # ---------------- SECURITY ---------------- #
     "RATE_LIMIT": 30,
-    "SESSION_TIMEOUT": 
+    "SESSION_TIMEOUT": 3600,
+}
+
+
+class Config:
+    """
+    Central configuration provider.
+    """
+
+    _cache: dict[str, Any] = {}
+
+    @classmethod
+    def load(cls) -> None:
+        """
+        Initialize configuration cache.
+        """
+        cls._cache = DEFAULT_SETTINGS.copy()
+
+    @classmethod
+    def refresh(cls) -> None:
+        """
+        Reload configuration.
+        """
+        cls.load()
+
+    @classmethod
+    def get(cls, key: str, default: Any = None) -> Any:
+        """
+        Get configuration value.
+
+        Environment variable has highest priority.
+        """
+
+        env = os.getenv(key)
+
+        if env is not None:
+            return env
+
+        return cls._cache.get(key, default)
+
+    @classmethod
+    def get_int(cls, key: str) -> int:
+        return int(cls.get(key))
+
+    @classmethod
+    def get_float(cls, key: str) -> float:
+        return float(cls.get(key))
+
+    @classmethod
+    def get_bool(cls, key: str) -> bool:
+        value = cls.get(key)
+
+        if isinstance(value, bool):
+            return value
+
+        return str(value).lower() in (
+            "1",
+            "true",
+            "yes",
+            "on",
+        )
+
+    @classmethod
+    def set(cls, key: str, value: Any) -> None:
+        """
+        Update cache value.
+
+        Database persistence will be implemented
+        in database.py.
+        """
+        cls._cache[key] = value
+
+
+Config.load()
