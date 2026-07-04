@@ -1,125 +1,103 @@
 """
 expert_service.py
 
-Business logic for expert operations.
-Handles request assignment, replies, and closing by experts.
+Business logic for expert operations:
+- reply to requests
+- close requests
+- expert actions handling
 """
 
-from datetime import datetime
-
-from database import (
-    get_request_by_tracking,
-    add_message_db,
-    update_request_status,
-    assign_request_to_expert,
-)
-
-from logger import log_info, log_warning
+from typing import Dict, Any
+from database import update_request_status
+from logger import log_info, log_error
 
 
 # -----------------------------
-# Assign Request to Expert
+# Reply to Request
 # -----------------------------
-def assign_request(request_id: int, expert_id: int) -> dict:
-    """
-    Assign request to an expert.
-    """
-
-    request = get_request_by_tracking(request_id)
-
-    if not request:
-        return {
-            "success": False,
-            "message": "REQUEST_NOT_FOUND",
-        }
-
-    assign_request_to_expert(request_id, expert_id)
-
-    update_request_status(request_id, "ASSIGNED")
-
-    log_info(
-        "expert_service",
-        "assign_request",
-        f"request_id={request_id}, expert_id={expert_id}",
-    )
-
-    return {"success": True}
-
-
-# -----------------------------
-# Expert Reply
-# -----------------------------
-def reply(request_id: int, expert_id: int, message: str) -> dict:
+def reply(request_id: int, expert_id: int, message: str) -> Dict[str, Any]:
     """
     Expert replies to a request.
     """
 
-    request = get_request_by_tracking(request_id)
+    try:
+        # MVP: فقط لاگ می‌کنیم (در نسخه 1.1 جدول پیام‌ها اضافه می‌شود)
+        log_info(
+            "expert_service",
+            "reply",
+            f"request={request_id}, expert={expert_id}, msg={message}"
+        )
 
-    if not request:
         return {
-            "success": False,
-            "message": "REQUEST_NOT_FOUND",
+            "success": True
         }
 
-    add_message_db(
-        request_id=request_id,
-        sender_type="EXPERT",
-        message=message,
-        created_at=datetime.now().isoformat(),
-    )
-
-    update_request_status(request_id, "WAITING_USER")
-
-    log_info(
-        "expert_service",
-        "reply",
-        f"request_id={request_id}, expert_id={expert_id}",
-    )
-
-    return {"success": True}
+    except Exception as e:
+        log_error("expert_service", "reply", str(e))
+        return {
+            "success": False,
+            "message": "خطا در ثبت پاسخ"
+        }
 
 
 # -----------------------------
-# Close Request by Expert
+# Close Request
 # -----------------------------
-def close(request_id: int, expert_id: int) -> dict:
+def close(request_id: int, expert_id: int) -> Dict[str, Any]:
     """
     Close request by expert.
     """
 
-    request = get_request_by_tracking(request_id)
+    try:
+        success = update_request_status(request_id, "CLOSED")
 
-    if not request:
+        if not success:
+            return {
+                "success": False,
+                "message": "خطا در بستن درخواست"
+            }
+
+        log_info(
+            "expert_service",
+            "close",
+            f"request={request_id}, expert={expert_id}"
+        )
+
         return {
-            "success": False,
-            "message": "REQUEST_NOT_FOUND",
+            "success": True
         }
 
-    update_request_status(request_id, "CLOSED")
-
-    log_info(
-        "expert_service",
-        "close_request",
-        f"request_id={request_id}, expert_id={expert_id}",
-    )
-
-    return {"success": True}
+    except Exception as e:
+        log_error("expert_service", "close", str(e))
+        return {
+            "success": False,
+            "message": "خطای داخلی سیستم"
+        }
 
 
 # -----------------------------
-# Expert Warning Helper (future SLA logic)
+# Assign Request (MVP placeholder)
 # -----------------------------
-def warn_if_unassigned(request_id: int) -> None:
+def assign_request(request_id: int, expert_id: int) -> Dict[str, Any]:
     """
-    Placeholder for SLA monitoring.
+    Assign request to expert (simplified MVP version).
     """
 
-    request = get_request_by_tracking(request_id)
+    try:
+        # MVP: فقط لاگ (در نسخه بعد column اختصاصی اضافه می‌شود)
+        log_info(
+            "expert_service",
+            "assign",
+            f"request={request_id} -> expert={expert_id}"
+        )
 
-    if not request:
-        log_warning("expert_service", "sla_check_failed", f"id={request_id}")
-        return
+        return {
+            "success": True
+        }
 
-    if request.get("status") == "NEW":
-        log_warning("expert_service", "unassigned_request", f"id={request_id}")
+    except Exception as e:
+        log_error("expert_service", "assign", str(e))
+        return {
+            "success": False,
+            "message": "خطا در تخصیص درخواست"
+        }
