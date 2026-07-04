@@ -1,56 +1,39 @@
 """
 tracking_handlers.py
-
-Handles tracking code queries for users, experts, and admins.
 """
 
-from tracking import validate_tracking
-from database import get_request_by_tracking
-from logger import log_info
-from messages import (
-    INVALID_TRACKING,
-    REQUEST_NOT_FOUND,
-)
+from request_service import get_request_info
+from validators import validate_tracking
 
 
 # -----------------------------
 # Handle Tracking Message
 # -----------------------------
-def handle_tracking_message(chat_id: int, message: str):
+def handle_tracking_message(chat_id: int, message: str) -> str:
     """
-    If message is a tracking code, return request info.
-    Otherwise return None (so router continues flow).
+    Handle tracking code queries.
+
+    Returns response string or empty string if not tracking.
     """
+
+    if not isinstance(message, str):
+        return ""
 
     message = message.strip()
 
-    # -------------------------
-    # Check if message is tracking code
-    # -------------------------
     if not validate_tracking(message):
-        return None  # not tracking → pass to next handler
+        return ""
 
-    log_info("tracking_handlers", "search", f"user={chat_id}, code={message}")
+    result = get_request_info(message)
 
-    request = get_request_by_tracking(message)
+    if not result["success"]:
+        return result["message"]
 
-    # -------------------------
-    # Not found
-    # -------------------------
-    if not request:
-        return REQUEST_NOT_FOUND
+    data = result["data"]
 
-    # -------------------------
-    # Format response
-    # -------------------------
-    response = f"""
-📌 Tracking: {request['tracking_code']}
-📊 Status: {request['status']}
-🧾 Title: {request.get('title', '-')}
-
-📅 Created: {request.get('created_at', '-')}
-
-🔄 Updated: {request.get('updated_at', '-')}
-"""
-
-    return response
+    return (
+        f"📦 وضعیت درخواست:\n"
+        f"کد: {data['tracking_code']}\n"
+        f"وضعیت: {data['status']}\n"
+        f"عنوان: {data['title']}"
+    )
