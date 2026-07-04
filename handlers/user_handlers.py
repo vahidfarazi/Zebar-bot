@@ -1,33 +1,61 @@
 """
-User handlers - normal user flow
+user_handlers.py
+
+Handles all USER role interactions.
+Acts as bridge between router and services.
 """
 
-from request_service import create_request
-from working_hours import can_create_request
+from request_service import create_request, reply_request
 from logger import log_info
+from messages import REQUEST_CREATED, INVALID_INPUT, GENERAL_ERROR
 
 
+# -----------------------------
+# Handle User Message
+# -----------------------------
 def handle_user_message(chat_id: int, message: str) -> str:
     """
-    Handle normal user messages.
+    Process user messages.
     """
 
-    log_info("user_handlers", "message_received", message, user_id=chat_id)
+    try:
+        message = message.strip()
 
-    if message == "ثبت درخواست":
+        # -------------------------
+        # Create Request Command
+        # Example: /new title|description
+        # -------------------------
+        if message.startswith("/new"):
+            parts = message.replace("/new", "").strip().split("|")
 
-        if not can_create_request():
-            return "در حال حاضر امکان ثبت درخواست وجود ندارد."
+            if len(parts) < 2:
+                return INVALID_INPUT
 
-        tracking = create_request(
-            chat_id=chat_id,
-            service="GENERAL",
-            sub_service="OTHER",
+            title = parts[0].strip()
+            description = parts[1].strip()
+
+            result = create_request(chat_id, title, description)
+
+            if result["success"]:
+                log_info("user_handlers", "create_request", f"user={chat_id}")
+                return f"{REQUEST_CREATED}\n\nTracking:\n{result['tracking_code']}"
+
+            return result.get("message", GENERAL_ERROR)
+
+        # -------------------------
+        # Default fallback (chat message)
+        # -------------------------
+        result = reply_request(
+            request_id=chat_id,  # MVP simplification (will be replaced with state system)
+            sender_type="USER",
+            message=message,
         )
 
-        if tracking:
-            return f"درخواست شما ثبت شد.\nکد رهگیری:\n{tracking}"
+        if result["success"]:
+            return "پیام شما ثبت شد."
 
-        return "خطا در ثبت درخواست."
+        return result.get("message", GENERAL_ERROR)
 
-    return "پیام شما دریافت شد."
+    except Exception as e:
+        log_info("user_handlers", "error", str(e))
+        return GENERAL_ERROR
