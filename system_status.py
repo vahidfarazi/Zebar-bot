@@ -1,48 +1,95 @@
 from datetime import datetime
 
-from core.settings import (
-    SYSTEM_MODE,
-    WORK_START,
-    WORK_END,
-    HOLIDAYS
+from database import (
+    get_setting,
+    is_holiday
 )
 
 
-def is_friday():
+SYSTEM_NORMAL = "NORMAL"
+SYSTEM_MAINTENANCE = "MAINTENANCE"
+SYSTEM_CLOSED = "CLOSED"
 
-    # Monday=0 ... Friday=4 ... Sunday=6
-    return datetime.now().weekday() == 4
+
+def get_system_mode():
+
+    mode = get_setting("system_mode")
+
+    if mode is None:
+        return SYSTEM_NORMAL
+
+    return mode
+
+
+def get_work_start():
+
+    value = get_setting("work_start")
+
+    if value is None:
+        return 7
+
+    return int(value)
+
+
+def get_work_end():
+
+    value = get_setting("work_end")
+
+    if value is None:
+        return 13
+
+    return int(value)
+
+
+def allow_new_request():
+
+    value = get_setting("allow_new_request")
+
+    if value is None:
+        return True
+
+    return value == "1"
+
+
+def allow_status():
+
+    value = get_setting("allow_status")
+
+    if value is None:
+        return True
+
+    return value == "1"
 
 
 def is_work_time():
 
     now = datetime.now()
 
-    return WORK_START <= now.hour < WORK_END
+    # جمعه
+    if now.weekday() == 4:
+        return False
 
+    # تعطیلات ثبت شده
+    if is_holiday(now.strftime("%Y-%m-%d")):
+        return False
 
-def is_holiday():
+    start = get_work_start()
+    end = get_work_end()
 
-    today = datetime.now().strftime("%Y-%m-%d")
-
-    return today in HOLIDAYS
+    return start <= now.hour < end
 
 
 def get_system_status():
 
-    if SYSTEM_MODE == "MAINTENANCE":
+    mode = get_system_mode()
+
+    if mode == SYSTEM_MAINTENANCE:
         return "MAINTENANCE"
 
-    if SYSTEM_MODE == "CLOSED":
+    if mode == SYSTEM_CLOSED:
         return "CLOSED"
 
-    if is_holiday():
-        return "HOLIDAY"
-
-    if is_friday():
-        return "HOLIDAY"
-
     if is_work_time():
-        return "WORK_TIME"
+        return "NORMAL"
 
     return "OUT_OF_TIME"
