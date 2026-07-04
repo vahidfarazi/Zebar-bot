@@ -2,91 +2,82 @@
 working_hours.py
 
 Central time & SLA management for Azarakhsh system.
-All time-based decisions must go through this module.
 """
 
 from datetime import datetime, time
+
 from config import Config
+from database import is_holiday as db_is_holiday
 
 
 # -----------------------------
-# Get current time (Asia/Tehran)
+# Current Time
 # -----------------------------
 def get_current_time() -> datetime:
     """
-    Return current system time.
-    MVP: system time (later: timezone-safe version)
+    Return current system datetime.
     """
     return datetime.now()
 
 
 # -----------------------------
-# Get current date
+# Current Date
 # -----------------------------
 def get_current_date() -> str:
     """
-    Return current date as ISO string.
+    Return current date (YYYY-MM-DD).
     """
-    return datetime.now().date().isoformat()
+    return get_current_time().date().isoformat()
 
 
 # -----------------------------
-# Working hours check
+# Working Time
 # -----------------------------
 def is_working_time() -> bool:
     """
-    Check if current time is within working hours.
+    Check whether current time is inside working hours.
     """
 
-    current = datetime.now().time()
+    now = get_current_time().time()
 
-    start_str = Config.get("WORK_START", "07:00")
-    end_str = Config.get("WORK_END", "13:00")
+    start = Config.get_str("WORK_START", "07:00")
+    end = Config.get_str("WORK_END", "13:00")
 
-    start_hour, start_min = map(int, start_str.split(":"))
-    end_hour, end_min = map(int, end_str.split(":"))
+    start_hour, start_minute = map(int, start.split(":"))
+    end_hour, end_minute = map(int, end.split(":"))
 
-    start_time = time(start_hour, start_min)
-    end_time = time(end_hour, end_min)
+    start_time = time(start_hour, start_minute)
+    end_time = time(end_hour, end_minute)
 
-    return start_time <= current <= end_time
+    return start_time <= now <= end_time
 
 
 # -----------------------------
-# Holiday check
+# Holiday
 # -----------------------------
-def is_holiday(date_str: str = None) -> bool:
+def is_holiday(date_str: str | None = None) -> bool:
     """
-    Check if today is holiday.
-    MVP: simple static check (DB version later)
+    Check whether the given date is a holiday.
     """
 
     if date_str is None:
         date_str = get_current_date()
 
-    # MVP: placeholder (real version will query DB)
-    # Example logic: Config-based or cached holidays
-    holidays = Config.get("HOLIDAYS", "")
-
-    if not holidays:
-        return False
-
-    holiday_list = [h.strip() for h in holidays.split(",")]
-
-    return date_str in holiday_list
+    return db_is_holiday(date_str)
 
 
 # -----------------------------
-# Can create request
+# Request Availability
 # -----------------------------
 def can_create_request() -> bool:
     """
-    Determine if request creation is allowed.
+    Determine whether creating a new request is currently allowed.
     """
 
-    system_mode = Config.get("SYSTEM_MODE", "NORMAL")
+    if not Config.get_bool("ALLOW_NEW_REQUEST", True):
+        return False
 
-    if system_mode != "NORMAL":
+    if Config.get_str("SYSTEM_MODE", "NORMAL") != "NORMAL":
         return False
 
     if is_holiday():
@@ -99,12 +90,16 @@ def can_create_request() -> bool:
 
 
 # -----------------------------
-# SLA calculation (MVP simple version)
+# SLA
 # -----------------------------
-def calculate_sla(start_time: datetime, end_time: datetime) -> int:
+def calculate_sla(
+    start_time: datetime,
+    end_time: datetime,
+) -> int:
     """
-    Calculate SLA in minutes.
+    Calculate SLA duration in minutes.
     """
 
-    delta = end_time - start_time
-    return int(delta.total_seconds() / 60)
+    return int(
+        (end_time - start_time).total_seconds() // 60
+    )
