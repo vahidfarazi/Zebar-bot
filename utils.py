@@ -1,24 +1,33 @@
 """
 utils.py
 
-Common utility functions for Azarakhsh system.
-Must not contain business logic.
+General utility functions for Azarakhsh system.
+No business logic allowed here.
 """
 
 import uuid
 import os
-import re
 from datetime import datetime
 
 
 # -----------------------------
-# UUID Generator
+# Generate UUID
 # -----------------------------
 def generate_uuid() -> str:
     """
-    Generate a unique identifier.
+    Generate unique identifier.
     """
     return str(uuid.uuid4())
+
+
+# -----------------------------
+# Format Date
+# -----------------------------
+def format_date(dt: datetime) -> str:
+    """
+    Convert datetime to ISO format string.
+    """
+    return dt.isoformat()
 
 
 # -----------------------------
@@ -26,40 +35,22 @@ def generate_uuid() -> str:
 # -----------------------------
 def safe_filename(filename: str) -> str:
     """
-    Sanitize filename to prevent path injection.
+    Create safe filename for uploads.
     """
-
-    if not filename:
-        return "file"
-
-    # remove path traversal
-    filename = os.path.basename(filename)
-
-    # remove unsafe chars
-    filename = re.sub(r"[^a-zA-Z0-9._-]", "_", filename)
-
-    return filename
+    ext = os.path.splitext(filename)[1]
+    return f"{uuid.uuid4().hex}{ext}"
 
 
 # -----------------------------
-# Date Formatter
+# Simple slug generator (optional MVP helper)
 # -----------------------------
-def format_date(dt: datetime, fmt: str = "%Y-%m-%d %H:%M:%S") -> str:
+def slugify(text: str) -> str:
     """
-    Format datetime object to string.
+    Convert text to simple slug.
     """
-    return dt.strftime(fmt)
-
-
-# -----------------------------
-# Chunk Text (for messaging limits)
-# -----------------------------
-def chunk_text(text: str, size: int = 3000) -> list[str]:
-    """
-    Split long text into chunks for messaging limits.
-    """
-
-    if not text:
-        return []
-
-    return [text[i:i + size] for i in range(0, len(text), size)]
+    return (
+        text.strip()
+        .replace(" ", "_")
+        .replace("/", "_")
+        .lower()
+    )
