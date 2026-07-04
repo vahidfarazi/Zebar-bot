@@ -1,67 +1,132 @@
 """
 main_runner.py
 
-Runtime entry for Azarakhsh bot system.
-Connects incoming updates to router.
+Runtime entry for Azarakhsh system.
+Responsible for:
+- initializing the system
+- processing incoming updates
+- sending responses to Bale
 """
 
 from router import route_message
-from logger import log_system, log_error
-from main import initialize_system
+from bale_client import send_message
+
+from logger import (
+    log_system,
+    log_error,
+)
+
+from database import init_database
+from messages import GENERAL_ERROR
 
 
 # -----------------------------
-# Process Incoming Message
+# System Initialization
 # -----------------------------
-def process_update(chat_id: int, message: str, role: str = "USER") -> str:
+def initialize_system() -> None:
     """
-    Entry point for each incoming message.
+    Initialize all required system components.
+    """
+
+    init_database()
+
+    log_system(
+        "main_runner",
+        "startup",
+        "System initialized successfully."
+    )
+
+
+# -----------------------------
+# Process Incoming Update
+# -----------------------------
+def process_update(
+    chat_id: int,
+    message: str,
+    role: str = "USER",
+) -> str:
+    """
+    Process one incoming message and send response.
     """
 
     try:
-        response = route_message(chat_id, message, role)
+
+        response = route_message(
+            chat_id=chat_id,
+            message=message,
+            role=role,
+        )
+
+        send_message(
+            chat_id=chat_id,
+            text=response,
+        )
+
         return response
 
-    except Exception as e:
-        log_error("runner", "process_update", str(e))
-        return "خطایی در پردازش پیام رخ داد."
+    except Exception as exc:
+
+        log_error(
+            "main_runner",
+            "process_update",
+            str(exc),
+        )
+
+        send_message(
+            chat_id=chat_id,
+            text=GENERAL_ERROR,
+        )
+
+        return GENERAL_ERROR
 
 
 # -----------------------------
-# Simulated Bot Loop (MVP)
+# Mock CLI Runner
 # -----------------------------
-def run_mock_bot():
+def run_mock() -> None:
     """
-    Simple CLI simulation for testing system.
+    Simple CLI runner for local testing.
     """
 
     initialize_system()
-    log_system("runner", "start", "Mock bot started")
 
-    print("Azarakhsh Bot is running (mock mode)...")
+    print("Azarakhsh Mock Runner Started")
+    print("Press Ctrl+C to exit.\n")
 
     while True:
+
         try:
-            chat_id = int(input("\nChat ID: "))
+
+            chat_id = int(input("Chat ID: "))
+            role = input("Role (USER/ADMIN/EXPERT): ").strip().upper()
             message = input("Message: ")
-            role = input("Role (USER/ADMIN/EXPERT): ").upper()
 
-            response = process_update(chat_id, message, role)
+            response = process_update(
+                chat_id=chat_id,
+                message=message,
+                role=role,
+            )
 
-            print("\nRESPONSE:")
-            print(response)
+            print(f"Response: {response}\n")
 
         except KeyboardInterrupt:
-            print("\nStopping bot...")
+
+            print("\nStopping...")
+
             break
 
-        except Exception as e:
-            log_error("runner", "loop_error", str(e))
-            print("Error occurred")
+        except Exception as exc:
+
+            log_error(
+                "main_runner",
+                "mock_runner",
+                str(exc),
+            )
 
 
 # -----------------------------
 # Entry Point
 # -----------------------------
 if __name__ == "__main__":
-    run_mock_bot()
+
+    run_mock()
