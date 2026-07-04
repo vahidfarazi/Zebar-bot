@@ -445,3 +445,422 @@ def get_last_request():
     conn.close()
 
     return row
+    # ---------------- REQUESTS ----------------
+
+def get_request_by_tracking(tracking_code):
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute(
+        "SELECT * FROM requests WHERE tracking_code=?",
+        (tracking_code,)
+    )
+
+    row = cur.fetchone()
+
+    conn.close()
+
+    return row
+
+
+def get_request_by_id(request_id):
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute(
+        "SELECT * FROM requests WHERE id=?",
+        (request_id,)
+    )
+
+    row = cur.fetchone()
+
+    conn.close()
+
+    return row
+
+
+def update_request_status(request_id, status):
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+
+        UPDATE requests
+
+        SET
+
+            status=?,
+
+            updated_at=?
+
+        WHERE id=?
+
+    """, (
+
+        status,
+
+        datetime.now().isoformat(),
+
+        request_id
+
+    ))
+
+    conn.commit()
+    conn.close()
+
+
+def assign_expert(request_id, expert_id):
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+
+        UPDATE requests
+
+        SET
+
+            expert_id=?,
+
+            updated_at=?
+
+        WHERE id=?
+
+    """, (
+
+        expert_id,
+
+        datetime.now().isoformat(),
+
+        request_id
+
+    ))
+
+    conn.commit()
+    conn.close()
+
+
+# ---------------- REQUEST MESSAGES ----------------
+
+def add_request_message(
+
+    request_id,
+
+    sender_type,
+
+    sender_id,
+
+    message,
+
+    attachment=None
+
+):
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+
+        INSERT INTO request_messages(
+
+            request_id,
+
+            sender_type,
+
+            sender_id,
+
+            message,
+
+            attachment,
+
+            created_at
+
+        )
+
+        VALUES(?,?,?,?,?,?)
+
+    """, (
+
+        request_id,
+
+        sender_type,
+
+        sender_id,
+
+        message,
+
+        attachment,
+
+        datetime.now().isoformat()
+
+    ))
+
+    conn.commit()
+    conn.close()
+
+
+def get_request_messages(request_id):
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+
+        SELECT *
+
+        FROM request_messages
+
+        WHERE request_id=?
+
+        ORDER BY id ASC
+
+    """, (
+
+        request_id,
+
+    ))
+
+    rows = cur.fetchall()
+
+    conn.close()
+
+    return rows
+
+
+# ---------------- ADMINS ----------------
+
+def is_admin(chat_id):
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute(
+
+        """
+
+        SELECT *
+
+        FROM admins
+
+        WHERE chat_id=?
+
+        AND active=1
+
+        """,
+
+        (chat_id,)
+
+    )
+
+    row = cur.fetchone()
+
+    conn.close()
+
+    return row is not None
+
+
+def add_admin(chat_id, name, role="ADMIN"):
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+
+        INSERT OR IGNORE INTO admins(
+
+            chat_id,
+
+            name,
+
+            role,
+
+            active
+
+        )
+
+        VALUES(?,?,?,1)
+
+    """, (
+
+        chat_id,
+
+        name,
+
+        role
+
+    ))
+
+    conn.commit()
+    conn.close()
+
+
+# ---------------- SETTINGS ----------------
+
+def get_setting(key):
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute(
+
+        "SELECT value FROM settings WHERE key=?",
+
+        (key,)
+
+    )
+
+    row = cur.fetchone()
+
+    conn.close()
+
+    if row:
+        return row["value"]
+
+    return None
+
+
+def set_setting(key, value):
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+
+        INSERT INTO settings(
+
+            key,
+
+            value
+
+        )
+
+        VALUES(?,?)
+
+        ON CONFLICT(key)
+
+        DO UPDATE SET
+
+        value=excluded.value
+
+    """, (
+
+        key,
+
+        str(value)
+
+    ))
+
+    conn.commit()
+    conn.close()
+
+
+# ---------------- HOLIDAYS ----------------
+
+def add_holiday(date):
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+
+        INSERT OR IGNORE INTO holidays(
+
+            holiday_date,
+
+            enabled
+
+        )
+
+        VALUES(?,1)
+
+    """, (
+
+        date,
+
+    ))
+
+    conn.commit()
+    conn.close()
+
+
+def remove_holiday(date):
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute(
+
+        "DELETE FROM holidays WHERE holiday_date=?",
+
+        (date,)
+
+    )
+
+    conn.commit()
+    conn.close()
+
+
+def is_holiday(date):
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+
+        SELECT *
+
+        FROM holidays
+
+        WHERE holiday_date=?
+
+        AND enabled=1
+
+    """, (
+
+        date,
+
+    ))
+
+    row = cur.fetchone()
+
+    conn.close()
+
+    return row is not None
+
+
+# ---------------- SYSTEM LOGS ----------------
+
+def write_system_log(admin_id, action):
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+
+        INSERT INTO system_logs(
+
+            admin_id,
+
+            action,
+
+            created_at
+
+        )
+
+        VALUES(?,?,?)
+
+    """, (
+
+        admin_id,
+
+        action,
+
+        datetime.now().isoformat()
+
+    ))
+
+    conn.commit()
+    conn.close()
