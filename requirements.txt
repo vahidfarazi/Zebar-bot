@@ -1,4 +1,4 @@
-flask
-gunicorn
+fastapi
+uvicorn
 requests
-jdatetime
+python-dotenv
