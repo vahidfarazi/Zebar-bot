@@ -1,78 +1,78 @@
 """
 validators.py
 
-Validation layer for Azarakhsh Project.
-
-Responsibilities:
-- Input validation
-- Format checking
-- Security filtering
+Input validation layer for Azarakhsh system.
 
 Rule:
-- No database access allowed
+- No DB access
+- No business logic
+- Only pure validation
 """
 
-from __future__ import annotations
-
 import re
-from typing import Any
 
 
-# ---------------- REGEX PATTERNS ---------------- #
-
+# -----------------------------
+# Tracking Code Validation
+# -----------------------------
 TRACKING_REGEX = r"^SR-[0-9]{4}-[0-9]{7}$"
-MOBILE_REGEX = r"^09[0-9]{9}$"
-USERNAME_REGEX = r"^[a-zA-Z0-9_]{3,32}$"
 
 
-# ---------------- TRACKING VALIDATION ---------------- #
-
-def validate_tracking(tracking_code: str) -> bool:
+def validate_tracking(code: str) -> bool:
     """
     Validate tracking code format.
     """
-    if not tracking_code:
+    if not isinstance(code, str):
         return False
 
-    return bool(re.match(TRACKING_REGEX, tracking_code))
+    return re.match(TRACKING_REGEX, code) is not None
 
 
-# ---------------- MOBILE VALIDATION ---------------- #
+# -----------------------------
+# Mobile Validation
+# -----------------------------
+MOBILE_REGEX = r"^09[0-9]{9}$"
+
 
 def validate_mobile(mobile: str) -> bool:
     """
-    Validate Iranian mobile number.
+    Validate Iranian mobile number format.
     """
-    if not mobile:
+    if not isinstance(mobile, str):
         return False
 
-    return bool(re.match(MOBILE_REGEX, mobile))
+    return re.match(MOBILE_REGEX, mobile) is not None
 
 
-# ---------------- USERNAME VALIDATION ---------------- #
-
-def validate_username(username: str) -> bool:
+# -----------------------------
+# National Code Validation
+# -----------------------------
+def validate_national_code(code: str) -> bool:
     """
-    Validate username format.
+    Validate Iranian national code (basic algorithm).
     """
-    if not username:
+    if not isinstance(code, str) or not code.isdigit() or len(code) != 10:
         return False
 
-    return bool(re.match(USERNAME_REGEX, username))
+    if len(set(code)) == 1:
+        return False
+
+    check = int(code[9])
+    sum_ = sum(int(code[i]) * (10 - i) for i in range(9))
+    remainder = sum_ % 11
+
+    return (remainder < 2 and check == remainder) or (
+        remainder >= 2 and check == (11 - remainder)
+    )
 
 
-# ---------------- FILE VALIDATION ---------------- #
-
+# -----------------------------
+# File Validation
+# -----------------------------
 ALLOWED_EXTENSIONS = {
-    "jpg",
-    "jpeg",
-    "png",
-    "pdf",
-    "doc",
-    "docx",
-    "xlsx",
-    "zip",
-    "rar",
+    "jpg", "jpeg", "png",
+    "pdf", "doc", "docx",
+    "xlsx", "zip", "rar"
 }
 
 
@@ -81,40 +81,44 @@ def validate_file(filename: str, max_size: int, file_size: int) -> bool:
     Validate uploaded file.
     """
 
-    if not filename or "." not in filename:
-        return False
-
-    ext = filename.rsplit(".", 1)[-1].lower()
-
-    if ext not in ALLOWED_EXTENSIONS:
+    if not isinstance(filename, str):
         return False
 
     if file_size > max_size:
         return False
 
+    if "." not in filename:
+        return False
+
+    ext = filename.rsplit(".", 1)[-1].lower()
+
+    return ext in ALLOWED_EXTENSIONS
+
+
+# -----------------------------
+# General Text Validation
+# -----------------------------
+def validate_text(text: str, max_length: int = 3000) -> bool:
+    """
+    Validate user text input.
+    """
+    if not isinstance(text, str):
+        return False
+
+    if len(text.strip()) == 0:
+        return False
+
+    if len(text) > max_length:
+        return False
+
     return True
 
 
-# ---------------- GENERIC VALIDATION ---------------- #
-
-def is_empty(value: Any) -> bool:
+# -----------------------------
+# Tracking Search Input
+# -----------------------------
+def is_tracking_query(text: str) -> bool:
     """
-    Check if value is empty or None.
+    Detect if input is tracking code.
     """
-    if value is None:
-        return True
-
-    if isinstance(value, str) and value.strip() == "":
-        return True
-
-    return False
-
-
-def validate_length(value: str, max_length: int) -> bool:
-    """
-    Validate string length.
-    """
-    if value is None:
-        return False
-
-    return len(value) <= max_length
+    return validate_tracking(text.strip() if isinstance(text, str) else "")
