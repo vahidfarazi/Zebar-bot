@@ -6,8 +6,14 @@ FastAPI webhook server for Bale bot.
 
 from fastapi import FastAPI, Request
 
+from database import init_database
 from main_runner import handle_update
 from logger import log_info, log_error
+
+# -----------------------------
+# Initialize Database
+# -----------------------------
+init_database()
 
 app = FastAPI()
 
@@ -24,7 +30,6 @@ async def webhook(request: Request):
 
         update = await request.json()
 
-        # لاگ کل داده دریافتی از بله
         log_info(
             "webhook",
             "raw_update",
