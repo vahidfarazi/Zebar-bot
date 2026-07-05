@@ -2,6 +2,7 @@
 request_service.py
 
 Core business logic for request management.
+Handles creation, replies, closing and request lookup.
 """
 
 from typing import Dict, Any
@@ -12,7 +13,7 @@ from database import (
     update_request_status,
 )
 
-from tracking_service import generate_tracking_code
+from services.tracking_service import generate_tracking_code
 
 from logger import (
     log_info,
@@ -23,34 +24,39 @@ from logger import (
 # -----------------------------
 # Create Request
 # -----------------------------
-def create_request(
-    chat_id: int,
-    title: str,
-    description: str,
-) -> Dict[str, Any]:
+def create_request(chat_id: int, title: str, description: str) -> Dict[str, Any]:
     """
     Create a new support request.
     """
 
     try:
-
         tracking_code = generate_tracking_code()
 
-        request_id = insert_request(
-            tracking_code,
-            chat_id,
-            title,
-            description,
+        success = insert_request(
+            tracking_code=tracking_code,
+            chat_id=chat_id,
+            title=title,
+            description=description,
+        )
+
+        if not success:
+            return {
+                "success": False,
+                "message": "خطا در ثبت درخواست"
+            }
+
+        log_info(
+            "request_service",
+            "create_request",
+            f"{chat_id} -> {tracking_code}"
         )
 
         return {
             "success": True,
-            "request_id": request_id,
             "tracking_code": tracking_code,
         }
 
     except Exception as e:
-
         log_error(
             "request_service",
             "create_request",
@@ -59,49 +65,44 @@ def create_request(
 
         return {
             "success": False,
-            "message": "خطا در ثبت درخواست",
+            "message": "خطای داخلی سیستم",
         }
 
 
 # -----------------------------
-# Get Request
+# Reply
 # -----------------------------
-def get_request_info(
-    tracking_code: str,
+def reply_request(
+    request_id: int,
+    sender_type: str,
+    message: str,
 ) -> Dict[str, Any]:
     """
-    Return request information.
+    Reply to request.
+    MVP: only logging.
     """
 
     try:
-
-        request = get_request_by_tracking(
-            tracking_code,
+        log_info(
+            "request_service",
+            "reply_request",
+            f"request={request_id}, sender={sender_type}, message={message}",
         )
-
-        if request is None:
-
-            return {
-                "success": False,
-                "message": "درخواستی یافت نشد.",
-            }
 
         return {
             "success": True,
-            "data": request,
         }
 
     except Exception as e:
-
         log_error(
             "request_service",
-            "get_request_info",
+            "reply_request",
             str(e),
         )
 
         return {
             "success": False,
-            "message": "خطای داخلی سیستم",
+            "message": "خطا در ثبت پیام",
         }
 
 
@@ -113,20 +114,25 @@ def close_request(
     user_id: int,
 ) -> Dict[str, Any]:
     """
-    Close request.
+    Close support request.
     """
 
     try:
-
-        update_request_status(
+        success = update_request_status(
             request_id,
             "CLOSED",
         )
 
+        if not success:
+            return {
+                "success": False,
+                "message": "خطا در بستن درخواست",
+            }
+
         log_info(
             "request_service",
             "close_request",
-            f"{request_id} by {user_id}",
+            f"request={request_id}, user={user_id}",
         )
 
         return {
@@ -134,7 +140,6 @@ def close_request(
         }
 
     except Exception as e:
-
         log_error(
             "request_service",
             "close_request",
@@ -143,43 +148,44 @@ def close_request(
 
         return {
             "success": False,
-            "message": "خطا در بستن درخواست",
+            "message": "خطای داخلی سیستم",
         }
 
 
 # -----------------------------
-# Reply (MVP)
+# Get Request
 # -----------------------------
-def reply_request(
-    request_id: int,
-    sender_type: str,
-    message: str,
+def get_request_info(
+    tracking_code: str,
 ) -> Dict[str, Any]:
     """
-    Reply to request.
+    Get request by tracking code.
     """
 
     try:
-
-        log_info(
-            "request_service",
-            "reply",
-            f"{request_id} | {sender_type}",
+        request = get_request_by_tracking(
+            tracking_code
         )
+
+        if request is None:
+            return {
+                "success": False,
+                "message": "درخواستی یافت نشد",
+            }
 
         return {
             "success": True,
+            "data": request,
         }
 
     except Exception as e:
-
         log_error(
             "request_service",
-            "reply_request",
+            "get_request_info",
             str(e),
         )
 
         return {
             "success": False,
-            "message": "خطا در ثبت پاسخ",
+            "message": "خطای داخلی سیستم",
         }
