@@ -12,7 +12,7 @@ from database import (
     update_request_status,
 )
 
-from tracking import generate_tracking_code
+from tracking_service import generate_tracking_code
 
 from logger import (
     log_info,
