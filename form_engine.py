@@ -12,6 +12,10 @@ from validators import (
     validate_bill_id,
 )
 
+
+# -----------------------------
+# Validators
+# -----------------------------
 VALIDATORS = {
     "request_number": validate_request_number,
     "national_code": validate_national_code,
@@ -22,6 +26,9 @@ VALIDATORS = {
 
 
 class FormEngine:
+    """
+    Generic form processor.
+    """
 
     def __init__(self, form: list):
 
@@ -30,23 +37,38 @@ class FormEngine:
     # -----------------------------
     # First Step
     # -----------------------------
-    def first_step(self):
+    def first_step(self) -> dict:
 
         return self.form[0]
+
+    # -----------------------------
+    # Find Step
+    # -----------------------------
+    def current_step(
+        self,
+        state: str,
+    ) -> dict | None:
+
+        for step in self.form:
+
+            if step["state"] == state:
+                return step
+
+        return None
 
     # -----------------------------
     # Next Step
     # -----------------------------
     def next_step(
         self,
-        current_state: str,
-    ):
+        state: str,
+    ) -> dict | None:
 
-        for index, item in enumerate(self.form):
+        for index, step in enumerate(self.form):
 
-            if item["state"] == current_state:
+            if step["state"] == state:
 
-                if index + 1 >= len(self.form):
+                if index == len(self.form) - 1:
                     return None
 
                 return self.form[index + 1]
@@ -54,17 +76,21 @@ class FormEngine:
         return None
 
     # -----------------------------
-    # Current Step
+    # Previous Step
     # -----------------------------
-    def current_step(
+    def previous_step(
         self,
         state: str,
-    ):
+    ) -> dict | None:
 
-        for item in self.form:
+        for index, step in enumerate(self.form):
 
-            if item["state"] == state:
-                return item
+            if step["state"] == state:
+
+                if index == 0:
+                    return None
+
+                return self.form[index - 1]
 
         return None
 
@@ -83,10 +109,57 @@ class FormEngine:
             return False
 
         validator = VALIDATORS.get(
-            step["validator"]
+            step["validator"],
         )
 
         if validator is None:
             return False
 
         return validator(value)
+
+    # -----------------------------
+    # Field Name
+    # -----------------------------
+    def field_name(
+        self,
+        state: str,
+    ) -> str | None:
+
+        step = self.current_step(state)
+
+        if step is None:
+            return None
+
+        return step["field"]
+
+    # -----------------------------
+    # Step Title
+    # -----------------------------
+    def title(
+        self,
+        state: str,
+    ) -> str:
+
+        step = self.current_step(state)
+
+        if step is None:
+            return ""
+
+        return step["title"]
+
+    # -----------------------------
+    # Is Last Step
+    # -----------------------------
+    def is_last_step(
+        self,
+        state: str,
+    ) -> bool:
+
+        return self.next_step(state) is None
+
+    # -----------------------------
+    # Step Count
+    # -----------------------------
+    def step_count(self) -> int:
+
+        return len(self.form)
