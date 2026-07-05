@@ -2,45 +2,63 @@
 main_runner.py
 
 Core runtime processor for Azarakhsh system.
-Handles incoming updates from Bale and routes responses.
 """
 
 from router import route_message
-from logger import log_error, log_info
+
+from logger import (
+    log_error,
+    log_info,
+)
+
 from database import create_user
-from working_hours import can_create_request
 
 from bale_client import send_message
 
 
+# -----------------------------
+# Process Update
+# -----------------------------
 def process_update(
     chat_id: int,
     message: str,
     role: str = "USER",
-) -> str:
+) -> None:
+    """
+    Process incoming message.
+    """
 
     try:
 
         create_user(chat_id)
 
-        response = route_message(
+        result = route_message(
             chat_id,
             message,
             role,
         )
 
-        send_message(
-            chat_id,
-            response,
-        )
+        # New response format
+        if isinstance(result, dict):
+
+            send_message(
+                chat_id,
+                result.get("text", ""),
+                result.get("keyboard"),
+            )
+
+        else:
+
+            send_message(
+                chat_id,
+                str(result),
+            )
 
         log_info(
             "runner",
             "process_update",
             str(chat_id),
         )
-
-        return response
 
     except Exception as e:
 
@@ -52,13 +70,19 @@ def process_update(
 
         send_message(
             chat_id,
-            "خطایی رخ داد",
+            "خطایی رخ داد.",
         )
 
-        return "خطایی رخ داد"
 
-
-def handle_update(update: dict) -> None:
+# -----------------------------
+# Handle Incoming Update
+# -----------------------------
+def handle_update(
+    update: dict,
+) -> None:
+    """
+    Entry point.
+    """
 
     try:
 
@@ -67,27 +91,16 @@ def handle_update(update: dict) -> None:
         chat = message.get("chat", {})
 
         chat_id = chat.get("id")
+
         text = message.get("text", "")
 
-        role = "USER"
+        if not chat_id:
 
-        if chat_id is None:
-            return
-
-        if not text:
-            return
-
-        if not can_create_request():
-            send_message(
-                chat_id,
-                "سیستم در حال حاضر در دسترس نیست",
-            )
             return
 
         process_update(
             chat_id,
             text,
-            role,
         )
 
     except Exception as e:
