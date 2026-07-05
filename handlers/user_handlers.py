@@ -1,116 +1,148 @@
 """
-handlers/user_handlers.py
-
-User message handler.
+user_handlers.py
 """
 
 from database import create_user
-from request_service import create_request, get_request_info
-from working_hours import can_create_request
+
+from menus import (
+    MAIN_MENU,
+    REQUEST_MENU,
+    AFTER_SALES_MENU,
+)
+
+from user_state import (
+    get_state,
+    set_state,
+)
+
+from validators import (
+    validate_request_number,
+    validate_national_code,
+    validate_mobile,
+    validate_computer_code,
+    validate_bill_id,
+)
 
 
 # -----------------------------
-# Handle User Message
+# Handle User
 # -----------------------------
 def handle_user_message(
     chat_id: int,
     message: str,
-) -> str:
+):
     """
-    Default user flow.
+    User flow.
     """
 
     create_user(chat_id)
 
-    if not message:
-        return "پیام نامعتبر است."
-
-    message = message.strip()
+    state = get_state(chat_id)
 
     # -----------------------------
-    # Greeting
+    # Main Menu
     # -----------------------------
-    greetings = {
-        "سلام",
-        "سلام.",
-        "سلام!",
-        "درود",
-        "hi",
-        "hello",
+    if message == "/start":
+
+        return {
+            "text": "به سامانه آذرخش خوش آمدید.",
+            "keyboard": MAIN_MENU,
+        }
+
+    if message == "🏠 منوی اصلی":
+
+        return {
+            "text": "منوی اصلی",
+            "keyboard": MAIN_MENU,
+        }
+
+    # -----------------------------
+    # Register Request
+    # -----------------------------
+    if message == "📝 ثبت درخواست":
+
+        return {
+            "text": "لطفاً خدمت موردنظر را انتخاب کنید.",
+            "keyboard": REQUEST_MENU,
+        }
+
+    # -----------------------------
+    # After Sales
+    # -----------------------------
+    if message == "🔧 خدمات پس از فروش":
+
+        return {
+            "text": "لطفاً نوع خدمت را انتخاب کنید.",
+            "keyboard": AFTER_SALES_MENU,
+        }
+
+    # -----------------------------
+    # New Connection
+    # -----------------------------
+    if message == "🔌 نصب انشعاب جدید":
+
+        set_state(
+            chat_id,
+            "WAIT_REQUEST_NUMBER_NEW_CONNECTION",
+        )
+
+        return {
+            "text": (
+                "لطفاً شماره تقاضا ۱۱ رقمی را وارد کنید."
+            ),
+        }
+
+    # -----------------------------
+    # Meter Test
+    # -----------------------------
+    if message == "🔍 بازرسی و تست کنتور":
+
+        set_state(
+            chat_id,
+            "WAIT_REQUEST_NUMBER_METER_TEST",
+        )
+
+        return {
+            "text": (
+                "لطفاً شماره تقاضا ۱۱ رقمی را وارد کنید."
+            ),
+        }
+
+    # -----------------------------
+    # Bill
+    # -----------------------------
+    if message == "🧾 بررسی قبض برق":
+
+        set_state(
+            chat_id,
+            "WAIT_BILL_ID",
+        )
+
+        return {
+            "text": (
+                "لطفاً شناسه قبض را وارد کنید."
+            ),
+        }
+
+    # -----------------------------
+    # Waiting Request Number
+    # -----------------------------
+    if state == "WAIT_REQUEST_NUMBER_NEW_CONNECTION":
+
+        if not validate_request_number(message):
+
+            return {
+                "text": "شماره تقاضا نامعتبر است."
+            }
+
+        return {
+            "text": "مرحله بعدی..."
+        }
+
+    # -----------------------------
+    # Default
+    # -----------------------------
+    return {
+        "text": "لطفاً از دکمه‌های موجود استفاده کنید.",
+        "keyboard": MAIN_MENU,
     }
-
-    if message.lower() in greetings:
-        return (
-            "🌹 به سامانه آذرخش خوش آمدید.\n\n"
-            "لطفاً یکی از گزینه‌های زیر را انتخاب کنید:\n\n"
-            "1️⃣ ثبت درخواست\n"
-            "2️⃣ پیگیری درخواست\n"
-            "3️⃣ راهنما"
-        )
-
-    # -----------------------------
-    # Help
-    # -----------------------------
-    if message == "راهنما":
-        return (
-            "برای ثبت درخواست، عبارت «ثبت درخواست» را ارسال کنید.\n\n"
-            "برای پیگیری، کد رهگیری مانند:\n"
-            "SR-2026-0000001\n"
-            "را ارسال کنید."
-        )
-
-    # -----------------------------
-    # Tracking
-    # -----------------------------
-    if message.startswith("SR-"):
-
-        result = get_request_info(message)
-
-        if not result["success"]:
-            return result["message"]
-
-        return str(result["data"])
-
-    # -----------------------------
-    # Create Request
-    # -----------------------------
-    if message == "ثبت درخواست":
-
-        if not can_create_request():
-            return "در حال حاضر امکان ثبت درخواست وجود ندارد."
-
-        return "لطفاً متن درخواست خود را ارسال کنید."
-
-    # -----------------------------
-    # Ignore menu options
-    # -----------------------------
-    if message in (
-        "1",
-        "1️⃣",
-        "2",
-        "2️⃣",
-        "3",
-        "3️⃣",
-        "پیگیری درخواست",
-    ):
-        return "این بخش در حال تکمیل است."
-
-    # -----------------------------
-    # Default: create request
-    # -----------------------------
-    if not can_create_request():
-        return "در حال حاضر امکان ثبت درخواست وجود ندارد."
-
-    result = create_request(
-        chat_id,
-        "درخواست کاربر",
-        message,
-    )
-
-    if not result["success"]:
-        return result["message"]
-
-    return (
-        "✅ درخواست شما ثبت شد.\n\n"
-        f"کد پیگیری:\n{result['tracking_code']}"
-    )
