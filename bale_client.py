@@ -5,15 +5,9 @@ Official Bale Bot API client (HTTP-based).
 """
 
 import requests
+
 from config import Config
 from logger import log_error, log_info
-
-
-# -----------------------------
-# Config
-# -----------------------------
-BASE_URL = Config.get_str("BALE_API_URL", "https://tapi.bale.ai")
-BOT_TOKEN = Config.get_str("BALE_BOT_TOKEN", "")
 
 
 # -----------------------------
@@ -24,7 +18,17 @@ def send_message(chat_id: int, text: str) -> bool:
     Send message via Bale Bot API.
     """
 
-    if not BOT_TOKEN:
+    base_url = Config.get_str(
+        "BALE_API_URL",
+        "https://tapi.bale.ai",
+    )
+
+    bot_token = Config.get_str(
+        "BALE_BOT_TOKEN",
+        "",
+    )
+
+    if not bot_token:
         log_error(
             "bale_client",
             "missing_token",
@@ -34,21 +38,27 @@ def send_message(chat_id: int, text: str) -> bool:
 
     try:
 
-        url = f"{BASE_URL}/bot{BOT_TOKEN}/sendMessage"
+        url = f"{base_url}/bot{bot_token}/sendMessage"
 
         payload = {
             "chat_id": chat_id,
             "text": text,
         }
 
-        response = requests.post(url, json=payload, timeout=10)
+        response = requests.post(
+            url,
+            json=payload,
+            timeout=10,
+        )
 
         if response.status_code != 200:
+
             log_error(
                 "bale_client",
                 "send_failed",
-                response.text,
+                f"{response.status_code}: {response.text}",
             )
+
             return False
 
         log_info(
