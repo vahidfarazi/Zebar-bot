@@ -7,14 +7,9 @@ Tracking number database operations.
 from .crud import fetch_one
 
 
-# -----------------------------
-# Get Last Tracking Number
-# -----------------------------
 def get_last_tracking_number(year: int) -> int:
     """
-    Return the last issued tracking number for the given year.
-
-    If no tracking exists, return 0.
+    Return last tracking sequence for given year.
     """
 
     row = fetch_one(
@@ -22,13 +17,13 @@ def get_last_tracking_number(year: int) -> int:
         SELECT tracking_code
         FROM requests
         WHERE tracking_code LIKE ?
-        ORDER BY tracking_code DESC
+        ORDER BY id DESC
         LIMIT 1
         """,
-        (f"SR-{year}-%",),
+        (f"SR-{year}-%",)
     )
 
-    if row is None:
+    if not row:
         return 0
 
     tracking_code = row["tracking_code"]
