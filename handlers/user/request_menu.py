@@ -1,7 +1,7 @@
 """
 handlers/user/request_menu.py
 
-Request menus.
+Request menu handler.
 """
 
 from menus import (
@@ -9,11 +9,7 @@ from menus import (
     AFTER_SALES_MENU,
 )
 
-from forms import (
-    NEW_CONNECTION_FORM,
-    AFTER_SALES_FORM,
-    METER_TEST_FORM,
-)
+from form_registry import get_form
 
 from form_engine import FormEngine
 
@@ -25,7 +21,72 @@ from user_state import (
 
 
 # -----------------------------
-# Request Menu
+# Services
+# -----------------------------
+AFTER_SALES_SERVICES = {
+
+    "❓ نوع درخواست خود را نمی‌دانم": "UNKNOWN",
+
+    "🔧 اصلاح سرویس": "SERVICE_FIX",
+
+    "🔵 نصب مجدد": "REINSTALL",
+
+    "📍 تغییر مکان": "RELOCATION",
+
+    "👤 تغییر نام": "CHANGE_NAME",
+
+    "⚡ تبدیل آمپراژ": "AMPERAGE",
+
+    "⏸ جمع‌آوری موقت": "TEMP_REMOVE",
+
+    "❌ جمع‌آوری دائم": "PERMANENT_REMOVE",
+
+}
+
+
+# -----------------------------
+# Start Form
+# -----------------------------
+def start_form(
+    chat_id: int,
+    service: str,
+    sub_service: str | None = None,
+):
+
+    clear_data(chat_id)
+
+    update_data(
+        chat_id,
+        "service",
+        service,
+    )
+
+    if sub_service:
+
+        update_data(
+            chat_id,
+            "sub_service",
+            sub_service,
+        )
+
+    form = get_form(service)
+
+    engine = FormEngine(form)
+
+    first_step = engine.first_step()
+
+    set_state(
+        chat_id,
+        first_step["state"],
+    )
+
+    return {
+        "text": f"لطفاً {first_step['title']} را وارد کنید.",
+    }
+
+
+# -----------------------------
+# Handle Request Menu
 # -----------------------------
 def handle_request_menu(
     chat_id: int,
@@ -33,7 +94,7 @@ def handle_request_menu(
 ):
 
     # -----------------------------
-    # Main Request Menu
+    # Register Request
     # -----------------------------
     if message == "📝 ثبت درخواست":
 
@@ -49,31 +110,13 @@ def handle_request_menu(
     # -----------------------------
     if message == "🔌 نصب انشعاب جدید":
 
-        clear_data(chat_id)
-
-        update_data(
+        return start_form(
             chat_id,
-            "service",
             "NEW_CONNECTION",
         )
 
-        engine = FormEngine(
-            NEW_CONNECTION_FORM,
-        )
-
-        first = engine.first_step()
-
-        set_state(
-            chat_id,
-            first["state"],
-        )
-
-        return {
-            "text": f"لطفاً {first['title']} را وارد کنید.",
-        }
-
     # -----------------------------
-    # After Sales
+    # After Sales Menu
     # -----------------------------
     if message == "🔧 خدمات پس از فروش":
 
@@ -85,92 +128,23 @@ def handle_request_menu(
     # -----------------------------
     # After Sales Services
     # -----------------------------
-    after_sales_services = {
+    if message in AFTER_SALES_SERVICES:
 
-        "❓ نوع درخواست خود را نمی‌دانم":
-            "UNKNOWN",
-
-        "🔧 اصلاح سرویس":
-            "SERVICE_FIX",
-
-        "🔵 نصب مجدد":
-            "REINSTALL",
-
-        "📍 تغییر مکان":
-            "RELOCATION",
-
-        "👤 تغییر نام":
-            "CHANGE_NAME",
-
-        "⚡ تبدیل آمپراژ":
-            "AMPERAGE",
-
-        "⏸ جمع‌آوری موقت":
-            "TEMP_REMOVE",
-
-        "❌ جمع‌آوری دائم":
-            "PERMANENT_REMOVE",
-
-    }
-
-    if message in after_sales_services:
-
-        clear_data(chat_id)
-
-        update_data(
+        return start_form(
             chat_id,
-            "service",
             "AFTER_SALES",
+            AFTER_SALES_SERVICES[message],
         )
-
-        update_data(
-            chat_id,
-            "sub_service",
-            after_sales_services[message],
-        )
-
-        engine = FormEngine(
-            AFTER_SALES_FORM,
-        )
-
-        first = engine.first_step()
-
-        set_state(
-            chat_id,
-            first["state"],
-        )
-
-        return {
-            "text": f"لطفاً {first['title']} را وارد کنید.",
-        }
 
     # -----------------------------
     # Meter Test
     # -----------------------------
     if message == "🔍 بازرسی و تست کنتور":
 
-        clear_data(chat_id)
-
-        update_data(
+        return start_form(
             chat_id,
-            "service",
             "METER_TEST",
         )
-
-        engine = FormEngine(
-            METER_TEST_FORM,
-        )
-
-        first = engine.first_step()
-
-        set_state(
-            chat_id,
-            first["state"],
-        )
-
-        return {
-            "text": f"لطفاً {first['title']} را وارد کنید.",
-        }
 
     # -----------------------------
     # Bill Inquiry
@@ -178,8 +152,7 @@ def handle_request_menu(
     if message == "🧾 بررسی قبض برق":
 
         return {
-            "text":
-                "این خدمت در نسخه بعدی فعال خواهد شد.",
+            "text": "این بخش در نسخه بعدی فعال خواهد شد.",
         }
 
     # -----------------------------
@@ -193,8 +166,17 @@ def handle_request_menu(
         }
 
     # -----------------------------
+    # Main Menu
+    # -----------------------------
+    if message == "🏠 منوی اصلی":
+
+        return {
+            "text": "به منوی اصلی بازگشتید.",
+        }
+
+    # -----------------------------
     # Invalid
     # -----------------------------
     return {
-        "text": "لطفاً یکی از گزینه‌های موجود را انتخاب کنید.",
+        "text": "لطفاً فقط از گزینه‌های موجود استفاده کنید.",
     }
