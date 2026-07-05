@@ -71,20 +71,9 @@ def is_holiday(date_str: str | None = None) -> bool:
 # -----------------------------
 def can_create_request() -> bool:
     """
-    Determine whether creating a new request is currently allowed.
+    Temporary: Always allow creating requests.
+    This is only for debugging.
     """
-
-    if not Config.get_bool("ALLOW_NEW_REQUEST", True):
-        return False
-
-    if Config.get_str("SYSTEM_MODE", "NORMAL") != "NORMAL":
-        return False
-
-    if is_holiday():
-        return False
-
-    if not is_working_time():
-        return False
 
     return True
 
