@@ -1,31 +1,35 @@
 """
 forms.py
 
-Request forms definition for Azarakhsh.
+Request forms for Azarakhsh.
 """
 
 # -----------------------------
 # New Connection
 # -----------------------------
 NEW_CONNECTION_FORM = [
+
     {
         "field": "request_number",
-        "state": "WAIT_REQUEST_NUMBER",
+        "state": "NEW_CONNECTION_REQUEST_NUMBER",
         "title": "شماره تقاضا",
         "validator": "request_number",
     },
+
     {
         "field": "national_code",
-        "state": "WAIT_NATIONAL_CODE",
+        "state": "NEW_CONNECTION_NATIONAL_CODE",
         "title": "کد ملی",
         "validator": "national_code",
     },
+
     {
         "field": "mobile",
-        "state": "WAIT_MOBILE",
+        "state": "NEW_CONNECTION_MOBILE",
         "title": "شماره تلفن همراه",
         "validator": "mobile",
     },
+
 ]
 
 
@@ -33,36 +37,42 @@ NEW_CONNECTION_FORM = [
 # After Sales
 # -----------------------------
 AFTER_SALES_FORM = [
+
     {
         "field": "computer_code",
-        "state": "WAIT_COMPUTER_CODE",
+        "state": "AFTER_SALES_COMPUTER_CODE",
         "title": "رمز رایانه",
         "validator": "computer_code",
     },
+
     {
         "field": "bill_id",
-        "state": "WAIT_BILL_ID",
+        "state": "AFTER_SALES_BILL_ID",
         "title": "شناسه قبض",
         "validator": "bill_id",
     },
+
     {
         "field": "request_number",
-        "state": "WAIT_REQUEST_NUMBER",
+        "state": "AFTER_SALES_REQUEST_NUMBER",
         "title": "شماره تقاضا",
         "validator": "request_number",
     },
+
     {
         "field": "national_code",
-        "state": "WAIT_NATIONAL_CODE",
+        "state": "AFTER_SALES_NATIONAL_CODE",
         "title": "کد ملی",
         "validator": "national_code",
     },
+
     {
         "field": "mobile",
-        "state": "WAIT_MOBILE",
+        "state": "AFTER_SALES_MOBILE",
         "title": "شماره تلفن همراه",
         "validator": "mobile",
     },
+
 ]
 
 
@@ -70,34 +80,40 @@ AFTER_SALES_FORM = [
 # Meter Test
 # -----------------------------
 METER_TEST_FORM = [
+
     {
         "field": "request_number",
-        "state": "WAIT_REQUEST_NUMBER",
+        "state": "METER_TEST_REQUEST_NUMBER",
         "title": "شماره تقاضا",
         "validator": "request_number",
     },
+
     {
         "field": "computer_code",
-        "state": "WAIT_COMPUTER_CODE",
+        "state": "METER_TEST_COMPUTER_CODE",
         "title": "رمز رایانه",
         "validator": "computer_code",
     },
+
     {
         "field": "bill_id",
-        "state": "WAIT_BILL_ID",
+        "state": "METER_TEST_BILL_ID",
         "title": "شناسه قبض",
         "validator": "bill_id",
     },
+
     {
         "field": "mobile",
-        "state": "WAIT_MOBILE",
+        "state": "METER_TEST_MOBILE",
         "title": "شماره تلفن همراه",
         "validator": "mobile",
     },
+
     {
         "field": "national_code",
-        "state": "WAIT_NATIONAL_CODE",
+        "state": "METER_TEST_NATIONAL_CODE",
         "title": "کد ملی",
         "validator": "national_code",
     },
+
 ]
