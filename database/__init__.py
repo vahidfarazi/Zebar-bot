@@ -14,9 +14,9 @@ from .schema import init_database
 # Generic CRUD
 from .crud import (
     execute,
+    execute_many,
     fetch_one,
     fetch_all,
-    execute_many,
     table_exists,
 )
 
@@ -29,8 +29,13 @@ from .settings import (
 # Requests
 from .requests import (
     insert_request,
+    get_request,
     get_request_by_tracking,
+    get_user_requests,
     update_request_status,
+    assign_expert,
+    update_priority,
+    delete_request,
 )
 
 # Tracking
@@ -62,6 +67,8 @@ from .admins import (
 # Holidays
 from .holidays import (
     is_holiday,
+    add_holiday,
+    remove_holiday,
 )
 
 # Logs
@@ -78,9 +85,9 @@ __all__ = [
 
     # CRUD
     "execute",
+    "execute_many",
     "fetch_one",
     "fetch_all",
-    "execute_many",
     "table_exists",
 
     # Settings
@@ -89,8 +96,13 @@ __all__ = [
 
     # Requests
     "insert_request",
+    "get_request",
     "get_request_by_tracking",
+    "get_user_requests",
     "update_request_status",
+    "assign_expert",
+    "update_priority",
+    "delete_request",
 
     # Tracking
     "get_last_tracking_number",
@@ -112,6 +124,8 @@ __all__ = [
 
     # Holidays
     "is_holiday",
+    "add_holiday",
+    "remove_holiday",
 
     # Logs
     "insert_log",
