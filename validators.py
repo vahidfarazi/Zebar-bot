@@ -1,124 +1,104 @@
 """
 validators.py
 
-Input validation layer for Azarakhsh system.
-
-Rule:
-- No DB access
-- No business logic
-- Only pure validation
+Input validators for Azarakhsh.
 """
 
 import re
 
 
 # -----------------------------
-# Tracking Code Validation
+# Request Number
 # -----------------------------
-TRACKING_REGEX = r"^SR-[0-9]{4}-[0-9]{7}$"
-
-
-def validate_tracking(code: str) -> bool:
+def validate_request_number(value: str) -> bool:
     """
-    Validate tracking code format.
+    11 digits.
     """
-    if not isinstance(code, str):
-        return False
 
-    return re.match(TRACKING_REGEX, code) is not None
-
-
-# -----------------------------
-# Mobile Validation
-# -----------------------------
-MOBILE_REGEX = r"^09[0-9]{9}$"
-
-
-def validate_mobile(mobile: str) -> bool:
-    """
-    Validate Iranian mobile number format.
-    """
-    if not isinstance(mobile, str):
-        return False
-
-    return re.match(MOBILE_REGEX, mobile) is not None
-
-
-# -----------------------------
-# National Code Validation
-# -----------------------------
-def validate_national_code(code: str) -> bool:
-    """
-    Validate Iranian national code (basic algorithm).
-    """
-    if not isinstance(code, str) or not code.isdigit() or len(code) != 10:
-        return False
-
-    if len(set(code)) == 1:
-        return False
-
-    check = int(code[9])
-    sum_ = sum(int(code[i]) * (10 - i) for i in range(9))
-    remainder = sum_ % 11
-
-    return (remainder < 2 and check == remainder) or (
-        remainder >= 2 and check == (11 - remainder)
+    return bool(
+        re.fullmatch(
+            r"\d{11}",
+            value,
+        )
     )
 
 
 # -----------------------------
-# File Validation
+# Computer Code
 # -----------------------------
-ALLOWED_EXTENSIONS = {
-    "jpg", "jpeg", "png",
-    "pdf", "doc", "docx",
-    "xlsx", "zip", "rar"
-}
-
-
-def validate_file(filename: str, max_size: int, file_size: int) -> bool:
+def validate_computer_code(value: str) -> bool:
     """
-    Validate uploaded file.
+    7 digits.
     """
 
-    if not isinstance(filename, str):
-        return False
-
-    if file_size > max_size:
-        return False
-
-    if "." not in filename:
-        return False
-
-    ext = filename.rsplit(".", 1)[-1].lower()
-
-    return ext in ALLOWED_EXTENSIONS
+    return bool(
+        re.fullmatch(
+            r"\d{7}",
+            value,
+        )
+    )
 
 
 # -----------------------------
-# General Text Validation
+# Mobile
 # -----------------------------
-def validate_text(text: str, max_length: int = 3000) -> bool:
+def validate_mobile(value: str) -> bool:
     """
-    Validate user text input.
+    10 digits without leading zero.
+    Starts with 9.
     """
-    if not isinstance(text, str):
-        return False
 
-    if len(text.strip()) == 0:
-        return False
-
-    if len(text) > max_length:
-        return False
-
-    return True
+    return bool(
+        re.fullmatch(
+            r"9\d{9}",
+            value,
+        )
+    )
 
 
 # -----------------------------
-# Tracking Search Input
+# Bill ID
 # -----------------------------
-def is_tracking_query(text: str) -> bool:
+def validate_bill_id(value: str) -> bool:
     """
-    Detect if input is tracking code.
+    13 digits.
+    Starts with 1.
     """
-    return validate_tracking(text.strip() if isinstance(text, str) else "")
+
+    return bool(
+        re.fullmatch(
+            r"1\d{12}",
+            value,
+        )
+    )
+
+
+# -----------------------------
+# National Code
+# -----------------------------
+def validate_national_code(value: str) -> bool:
+    """
+    Validate Iranian national code.
+    """
+
+    if not re.fullmatch(r"\d{10}", value):
+        return False
+
+    if value == value[0] * 10:
+        return False
+
+    digits = list(map(int, value))
+
+    checksum = digits[-1]
+
+    total = sum(
+        digits[i] * (10 - i)
+        for i in range(9)
+    )
+
+    remainder = total % 11
+
+    if remainder < 2:
+        return checksum == remainder
+
+    return checksum == (11 - remainder)
