@@ -1,27 +1,15 @@
 """
-user_handlers.py
+handlers/user_handlers.py
+
+Main user router.
 """
 
-from database import create_user
+from handlers.user.main_menu import handle_main_menu
+from handlers.user.request_menu import handle_request_menu
+from handlers.user.form_handler import handle_form
+from handlers.user.tracking import handle_tracking
 
-from menus import (
-    MAIN_MENU,
-    REQUEST_MENU,
-    AFTER_SALES_MENU,
-)
-
-from user_state import (
-    get_state,
-    set_state,
-)
-
-from validators import (
-    validate_request_number,
-    validate_national_code,
-    validate_mobile,
-    validate_computer_code,
-    validate_bill_id,
-)
+from user_state import get_state
 
 
 # -----------------------------
@@ -31,118 +19,55 @@ def handle_user_message(
     chat_id: int,
     message: str,
 ):
-    """
-    User flow.
-    """
-
-    create_user(chat_id)
 
     state = get_state(chat_id)
 
     # -----------------------------
+    # Form Mode
+    # -----------------------------
+    if state:
+
+        return handle_form(
+            chat_id,
+            message,
+            state,
+        )
+
+    # -----------------------------
     # Main Menu
     # -----------------------------
-    if message == "/start":
+    if (
+        message == "/start"
+        or message == "🏠 منوی اصلی"
+    ):
 
-        return {
-            "text": "به سامانه آذرخش خوش آمدید.",
-            "keyboard": MAIN_MENU,
-        }
-
-    if message == "🏠 منوی اصلی":
-
-        return {
-            "text": "منوی اصلی",
-            "keyboard": MAIN_MENU,
-        }
+        return handle_main_menu(
+            chat_id,
+        )
 
     # -----------------------------
-    # Register Request
+    # Request Menu
     # -----------------------------
     if message == "📝 ثبت درخواست":
 
-        return {
-            "text": "لطفاً خدمت موردنظر را انتخاب کنید.",
-            "keyboard": REQUEST_MENU,
-        }
-
-    # -----------------------------
-    # After Sales
-    # -----------------------------
-    if message == "🔧 خدمات پس از فروش":
-
-        return {
-            "text": "لطفاً نوع خدمت را انتخاب کنید.",
-            "keyboard": AFTER_SALES_MENU,
-        }
-
-    # -----------------------------
-    # New Connection
-    # -----------------------------
-    if message == "🔌 نصب انشعاب جدید":
-
-        set_state(
+        return handle_request_menu(
             chat_id,
-            "WAIT_REQUEST_NUMBER_NEW_CONNECTION",
+            message,
         )
 
-        return {
-            "text": (
-                "لطفاً شماره تقاضا ۱۱ رقمی را وارد کنید."
-            ),
-        }
-
     # -----------------------------
-    # Meter Test
+    # Tracking
     # -----------------------------
-    if message == "🔍 بازرسی و تست کنتور":
+    if message == "📋 پیگیری درخواست":
 
-        set_state(
+        return handle_tracking(
             chat_id,
-            "WAIT_REQUEST_NUMBER_METER_TEST",
+            message,
         )
 
-        return {
-            "text": (
-                "لطفاً شماره تقاضا ۱۱ رقمی را وارد کنید."
-            ),
-        }
-
     # -----------------------------
-    # Bill
-    # -----------------------------
-    if message == "🧾 بررسی قبض برق":
-
-        set_state(
-            chat_id,
-            "WAIT_BILL_ID",
-        )
-
-        return {
-            "text": (
-                "لطفاً شناسه قبض را وارد کنید."
-            ),
-        }
-
-    # -----------------------------
-    # Waiting Request Number
-    # -----------------------------
-    if state == "WAIT_REQUEST_NUMBER_NEW_CONNECTION":
-
-        if not validate_request_number(message):
-
-            return {
-                "text": "شماره تقاضا نامعتبر است."
-            }
-
-        return {
-            "text": "مرحله بعدی..."
-        }
-
-    # -----------------------------
-    # Default
+    # Invalid Message
     # -----------------------------
     return {
-        "text": "لطفاً از دکمه‌های موجود استفاده کنید.",
-        "keyboard": MAIN_MENU,
+        "text": "لطفاً فقط از دکمه‌های موجود استفاده کنید.",
     }
