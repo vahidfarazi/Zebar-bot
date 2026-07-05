@@ -2,6 +2,9 @@
 Handlers package initializer
 """
 
-from handlers.router import route_message
-
-__all__ = ["route_message"]
+__all__ = [
+    "admin_handlers",
+    "expert_handlers",
+    "tracking_handlers",
+    "user_handlers",
+]
