@@ -36,7 +36,6 @@ def init_database() -> None:
         # -----------------------------
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS requests (
-
             id INTEGER PRIMARY KEY AUTOINCREMENT,
 
             tracking_code TEXT UNIQUE NOT NULL,
@@ -47,7 +46,7 @@ def init_database() -> None:
 
             sub_service TEXT,
 
-            status TEXT DEFAULT 'NEW',
+            status TEXT DEFAULT 'OPEN',
 
             priority TEXT DEFAULT 'NORMAL',
 
@@ -57,12 +56,11 @@ def init_database() -> None:
 
             expert_message_id INTEGER,
 
+            closed_at TEXT,
+
             created_at TEXT DEFAULT CURRENT_TIMESTAMP,
 
-            updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
-
-            closed_at TEXT
-
+            updated_at TEXT DEFAULT CURRENT_TIMESTAMP
         )
         """)
 
@@ -71,7 +69,6 @@ def init_database() -> None:
         # -----------------------------
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS request_messages (
-
             id INTEGER PRIMARY KEY AUTOINCREMENT,
 
             tracking_code TEXT NOT NULL,
@@ -85,7 +82,6 @@ def init_database() -> None:
             message TEXT NOT NULL,
 
             created_at TEXT DEFAULT CURRENT_TIMESTAMP
-
         )
         """)
 
@@ -94,17 +90,11 @@ def init_database() -> None:
         # -----------------------------
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS experts (
-
             chat_id INTEGER PRIMARY KEY,
-
             name TEXT,
-
             username TEXT,
-
             department TEXT,
-
             is_active INTEGER DEFAULT 1
-
         )
         """)
 
@@ -113,9 +103,7 @@ def init_database() -> None:
         # -----------------------------
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS admins (
-
             chat_id INTEGER PRIMARY KEY
-
         )
         """)
 
@@ -124,11 +112,8 @@ def init_database() -> None:
         # -----------------------------
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS settings (
-
             key TEXT PRIMARY KEY,
-
             value TEXT
-
         )
         """)
 
@@ -137,11 +122,8 @@ def init_database() -> None:
         # -----------------------------
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS holidays (
-
             holiday_date TEXT PRIMARY KEY,
-
             enabled INTEGER DEFAULT 1
-
         )
         """)
 
@@ -150,19 +132,12 @@ def init_database() -> None:
         # -----------------------------
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS system_logs (
-
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-
             created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-
             level TEXT NOT NULL,
-
             module TEXT NOT NULL,
-
             action TEXT NOT NULL,
-
             description TEXT
-
         )
         """)
 
