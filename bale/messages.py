@@ -1,16 +1,16 @@
 """
 bale/messages.py
 
-Send messages to Bale.
+Message operations for Bale Bot API.
 """
 
-import requests
-
-from logger import log_error
+from .client import post
 
 from .constants import (
-    BASE_URL,
     SEND_MESSAGE,
+    EDIT_MESSAGE,
+    DELETE_MESSAGE,
+    ANSWER_CALLBACK,
 )
 
 from .keyboards import (
@@ -38,63 +38,101 @@ def send_message(
 
     }
 
-    # -----------------------------
-    # Parse Mode
-    # -----------------------------
     if parse_mode:
 
         payload["parse_mode"] = parse_mode
 
-    # -----------------------------
-    # Reply Keyboard
-    # -----------------------------
     if reply_markup:
 
         payload["reply_markup"] = reply_keyboard(
             reply_markup,
         )
 
-    # -----------------------------
-    # Inline Keyboard
-    # -----------------------------
     elif inline_markup:
 
         payload["reply_markup"] = inline_keyboard(
             inline_markup,
         )
 
-    try:
+    return post(
+        SEND_MESSAGE,
+        payload,
+    )
 
-        response = requests.post(
 
-            BASE_URL + SEND_MESSAGE,
+# -----------------------------
+# Edit Message
+# -----------------------------
+def edit_message(
+    chat_id: int,
+    message_id: int,
+    text: str,
+    inline_markup=None,
+):
 
-            json=payload,
+    payload = {
 
-            timeout=20,
+        "chat_id": chat_id,
 
+        "message_id": message_id,
+
+        "text": text,
+
+    }
+
+    if inline_markup:
+
+        payload["reply_markup"] = inline_keyboard(
+            inline_markup,
         )
 
-        response.raise_for_status()
+    return post(
+        EDIT_MESSAGE,
+        payload,
+    )
 
-        data = response.json()
 
-        if not data.get("ok", False):
+# -----------------------------
+# Delete Message
+# -----------------------------
+def delete_message(
+    chat_id: int,
+    message_id: int,
+):
 
-            raise Exception(str(data))
+    payload = {
 
-        return data
+        "chat_id": chat_id,
 
-    except Exception as e:
+        "message_id": message_id,
 
-        log_error(
+    }
 
-            "bale",
+    return post(
+        DELETE_MESSAGE,
+        payload,
+    )
 
-            "send_message",
 
-            str(e),
+# -----------------------------
+# Answer Callback
+# -----------------------------
+def answer_callback(
+    callback_query_id: str,
+    text: str | None = None,
+):
 
-        )
+    payload = {
 
-        return None
+        "callback_query_id": callback_query_id,
+
+    }
+
+    if text:
+
+        payload["text"] = text
+
+    return post(
+        ANSWER_CALLBACK,
+        payload,
+    )
