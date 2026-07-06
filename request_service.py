@@ -11,6 +11,7 @@ from database import (
 )
 
 from ticket_formatter import (
+    format_request,
     format_expert,
     format_success,
 )
@@ -32,6 +33,7 @@ def generate_tracking_code() -> str:
     last = get_last_tracking_number()
 
     if last is None:
+
         return "SR-2026-0000001"
 
     number = int(
@@ -54,9 +56,10 @@ def create_request(
 
     tracking = generate_tracking_code()
 
-    # -----------------------------
+    # -------------------------
     # Save Request
-    # -----------------------------
+    # -------------------------
+
     insert_request(
 
         tracking_code=tracking,
@@ -71,9 +74,10 @@ def create_request(
 
     )
 
-    # -----------------------------
-    # Save First Message
-    # -----------------------------
+    # -------------------------
+    # Save First User Message
+    # -------------------------
+
     add_message(
 
         tracking_code=tracking,
@@ -84,17 +88,16 @@ def create_request(
 
         message_type="REQUEST",
 
-        message=format_expert(
-            tracking,
-            chat_id,
+        message=format_request(
             data,
         ),
 
     )
 
-    # -----------------------------
-    # Expert Message
-    # -----------------------------
+    # -------------------------
+    # Expert Notification
+    # -------------------------
+
     expert_message = format_expert(
 
         tracking,
@@ -118,6 +121,10 @@ def create_request(
         tracking,
 
     )
+
+    # -------------------------
+    # Result
+    # -------------------------
 
     return {
 
