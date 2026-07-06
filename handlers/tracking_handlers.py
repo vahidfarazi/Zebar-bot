@@ -1,39 +1,80 @@
 """
-tracking_handlers.py
+handlers/tracking_handler.py
+
+Request tracking handler.
 """
 
-from request_service import get_request_info
-from validators import validate_tracking
+from database import (
+    get_request_by_tracking,
+    get_messages,
+)
+
+from ticket_formatter import (
+    format_user_history,
+)
 
 
 # -----------------------------
-# Handle Tracking Message
+# Handle Tracking
 # -----------------------------
-def handle_tracking_message(chat_id: int, message: str) -> str:
+def handle_tracking(
+    chat_id: int,
+    tracking_code: str,
+) -> dict:
     """
-    Handle tracking code queries.
-
-    Returns response string or empty string if not tracking.
+    Return request history by tracking code.
     """
 
-    if not isinstance(message, str):
-        return ""
-
-    message = message.strip()
-
-    if not validate_tracking(message):
-        return ""
-
-    result = get_request_info(message)
-
-    if not result["success"]:
-        return result["message"]
-
-    data = result["data"]
-
-    return (
-        f"📦 وضعیت درخواست:\n"
-        f"کد: {data['tracking_code']}\n"
-        f"وضعیت: {data['status']}\n"
-        f"عنوان: {data['title']}"
+    # -------------------------
+    # Find Request
+    # -------------------------
+    request = get_request_by_tracking(
+        tracking_code,
     )
+
+    if request is None:
+
+        return {
+
+            "text":
+                "❌ درخواستی با این کد پیگیری یافت نشد.",
+
+        }
+
+    # -------------------------
+    # Ownership Check
+    # -------------------------
+    if request["chat_id"] != chat_id:
+
+        return {
+
+            "text":
+                "⛔ این کد پیگیری متعلق به شما نیست.",
+
+        }
+
+    # -------------------------
+    # Load Conversation
+    # -------------------------
+    messages = get_messages(
+        tracking_code,
+    )
+
+    # -------------------------
+    # Build Response
+    # -------------------------
+    text = format_user_history(
+
+        tracking=tracking_code,
+
+        status=request["status"],
+
+        messages=messages,
+
+    )
+
+    return {
+
+        "text": text,
+
+    }
