@@ -34,8 +34,19 @@ from .requests import (
     get_user_requests,
     update_request_status,
     assign_expert,
+    save_expert_message,
+    close_request,
     update_priority,
     delete_request,
+)
+
+# Request Messages
+from .messages import (
+    add_message,
+    get_message,
+    get_messages,
+    get_last_message,
+    delete_messages,
 )
 
 # Tracking
@@ -77,6 +88,7 @@ from .logs import (
 )
 
 __all__ = [
+
     # Connection
     "get_connection",
 
@@ -101,8 +113,17 @@ __all__ = [
     "get_user_requests",
     "update_request_status",
     "assign_expert",
+    "save_expert_message",
+    "close_request",
     "update_priority",
     "delete_request",
+
+    # Request Messages
+    "add_message",
+    "get_message",
+    "get_messages",
+    "get_last_message",
+    "delete_messages",
 
     # Tracking
     "get_last_tracking_number",
