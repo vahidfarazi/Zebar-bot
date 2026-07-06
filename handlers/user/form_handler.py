@@ -1,7 +1,7 @@
 """
 handlers/user/form_handler.py
 
-Generic request form handler.
+Generic request form handler (v1).
 """
 
 from form_engine import FormEngine
@@ -15,57 +15,63 @@ from user_state import (
     reset,
 )
 
-from database import (
-    insert_request,
-    get_last_tracking_number,
+from request_service import (
+    create_request,
 )
 
 
-def _next_tracking():
-
-    last = get_last_tracking_number()
-
-    if last is None:
-        return "SR-2026-0000001"
-
-    number = int(last.split("-")[-1]) + 1
-
-    return f"SR-2026-{number:07d}"
-
-
+# -----------------------------
+# Handle Form Message
+# -----------------------------
 def handle_form(
     chat_id: int,
     message: str,
     state: str,
 ):
 
+    # -------------------------
+    # Load user draft data
+    # -------------------------
     data = get_data(chat_id)
 
     service = data.get("service")
 
+    # If no service selected yet
+    if not service:
+
+        return {
+            "text": "ابتدا سرویس را انتخاب کنید.",
+        }
+
+    # -------------------------
+    # Load form
+    # -------------------------
     form = get_form(service)
+
+    if not form:
+
+        return {
+            "text": "فرم برای این سرویس تعریف نشده است.",
+        }
 
     engine = FormEngine(form)
 
-    # -----------------------------
-    # Validate
-    # -----------------------------
-    if not engine.validate(
-        state,
-        message,
-    ):
+    # -------------------------
+    # Validate input
+    # -------------------------
+    if not engine.validate(state, message):
 
         return {
 
             "text":
-                f"{engine.title(state)} معتبر نیست.\n\n"
-                f"لطفاً دوباره وارد کنید.",
+                f"❌ مقدار وارد شده برای «{engine.title(state)}» نامعتبر است.\n\n"
+                "لطفاً دوباره وارد کنید.",
 
         }
 
-    # -----------------------------
-    # Save Field
-    # -----------------------------
+    # -------------------------
+    # Save field
+    # -------------------------
     field = engine.field_name(state)
 
     update_data(
@@ -74,9 +80,12 @@ def handle_form(
         message,
     )
 
-    # -----------------------------
-    # Next Step
-    # -----------------------------
+    # refresh data after update
+    data = get_data(chat_id)
+
+    # -------------------------
+    # Next step
+    # -------------------------
     next_step = engine.next_step(state)
 
     if next_step:
@@ -93,34 +102,21 @@ def handle_form(
 
         }
 
-    # -----------------------------
-    # Finish
-    # -----------------------------
-    tracking = _next_tracking()
-
-    insert_request(
-
-        tracking_code=tracking,
-
-        chat_id=chat_id,
-
-        title=data.get(
-            "sub_service",
-            service,
-        ),
-
-        description=str(
-            get_data(chat_id)
-        ),
-
+    # -------------------------
+    # Finish form → create request
+    # -------------------------
+    result = create_request(
+        chat_id,
+        data,
     )
 
     reset(chat_id)
 
+    # -------------------------
+    # Response to user
+    # -------------------------
     return {
 
-        "text":
-            "✅ درخواست شما ثبت شد.\n\n"
-            f"کد پیگیری:\n{tracking}",
+        "text": result["user_message"],
 
     }
