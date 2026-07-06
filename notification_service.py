@@ -6,9 +6,12 @@ Notification service.
 
 from config import Config
 
-from bale.messages import send_message
+from bale_client import send_message
 
-from logger import log_info
+from logger import (
+    log_info,
+    log_error,
+)
 
 
 # -----------------------------
@@ -16,13 +19,10 @@ from logger import log_info
 # -----------------------------
 def notify_experts(
     message: str,
-    inline_markup=None,
-):
+    keyboard=None,
+) -> bool:
     """
     Send message to expert group.
-
-    Returns:
-        Bale API response.
     """
 
     group_id = Config.get_str(
@@ -31,7 +31,14 @@ def notify_experts(
     )
 
     if not group_id:
-        return None
+
+        log_error(
+            "notification",
+            "expert_group",
+            "EXPERT_GROUP_ID is not set",
+        )
+
+        return False
 
     result = send_message(
 
@@ -39,19 +46,33 @@ def notify_experts(
 
         text=message,
 
-        inline_markup=inline_markup,
+        keyboard=keyboard,
 
     )
 
-    log_info(
+    if result:
 
-        "notification",
+        log_info(
 
-        "expert_group",
+            "notification",
 
-        "sent",
+            "expert_group",
 
-    )
+            "sent",
+
+        )
+
+    else:
+
+        log_error(
+
+            "notification",
+
+            "expert_group",
+
+            "failed",
+
+        )
 
     return result
 
@@ -62,13 +83,10 @@ def notify_experts(
 def notify_user(
     chat_id: int,
     message: str,
-    reply_markup=None,
-):
+    keyboard=None,
+) -> bool:
     """
     Send message to user.
-
-    Returns:
-        Bale API response.
     """
 
     result = send_message(
@@ -77,18 +95,32 @@ def notify_user(
 
         text=message,
 
-        reply_markup=reply_markup,
+        keyboard=keyboard,
 
     )
 
-    log_info(
+    if result:
 
-        "notification",
+        log_info(
 
-        "user",
+            "notification",
 
-        str(chat_id),
+            "user",
 
-    )
+            str(chat_id),
+
+        )
+
+    else:
+
+        log_error(
+
+            "notification",
+
+            "user",
+
+            "failed",
+
+        )
 
     return result
