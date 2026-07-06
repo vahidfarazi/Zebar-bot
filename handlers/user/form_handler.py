@@ -1,11 +1,10 @@
 """
 handlers/user/form_handler.py
 
-Generic request form handler (v1).
+Generic request form handler (v2).
 """
 
 from form_engine import FormEngine
-
 from form_registry import get_form
 
 from user_state import (
@@ -15,9 +14,7 @@ from user_state import (
     reset,
 )
 
-from request_service import (
-    create_request,
-)
+from request_service import create_request
 
 
 # -----------------------------
@@ -30,13 +27,45 @@ def handle_form(
 ):
 
     # -------------------------
-    # Load user draft data
+    # Cancel
+    # -------------------------
+    if message == "❌ انصراف":
+
+        reset(chat_id)
+
+        return {
+            "text": "ثبت درخواست لغو شد.\n\nبرای ادامه از منوی اصلی استفاده کنید.",
+        }
+
+    # -------------------------
+    # Main Menu
+    # -------------------------
+    if message == "🏠 منوی اصلی":
+
+        reset(chat_id)
+
+        return {
+            "text": "به سامانه خدمات مشترکین برق آذرخش خوش آمدید.",
+        }
+
+    # -------------------------
+    # Back
+    # -------------------------
+    if message == "⬅️ بازگشت":
+
+        reset(chat_id)
+
+        return {
+            "text": "لطفاً دوباره خدمت موردنظر را انتخاب کنید.",
+        }
+
+    # -------------------------
+    # Load user data
     # -------------------------
     data = get_data(chat_id)
 
     service = data.get("service")
 
-    # If no service selected yet
     if not service:
 
         return {
@@ -57,16 +86,14 @@ def handle_form(
     engine = FormEngine(form)
 
     # -------------------------
-    # Validate input
+    # Validate
     # -------------------------
     if not engine.validate(state, message):
 
         return {
-
             "text":
                 f"❌ مقدار وارد شده برای «{engine.title(state)}» نامعتبر است.\n\n"
-                "لطفاً دوباره وارد کنید.",
-
+                "لطفاً دوباره وارد کنید یا از «❌ انصراف» استفاده کنید.",
         }
 
     # -------------------------
@@ -80,11 +107,10 @@ def handle_form(
         message,
     )
 
-    # refresh data after update
     data = get_data(chat_id)
 
     # -------------------------
-    # Next step
+    # Next Step
     # -------------------------
     next_step = engine.next_step(state)
 
@@ -96,14 +122,12 @@ def handle_form(
         )
 
         return {
-
             "text":
                 f"لطفاً {next_step['title']} را وارد کنید.",
-
         }
 
     # -------------------------
-    # Finish form → create request
+    # Finish
     # -------------------------
     result = create_request(
         chat_id,
@@ -112,11 +136,6 @@ def handle_form(
 
     reset(chat_id)
 
-    # -------------------------
-    # Response to user
-    # -------------------------
     return {
-
         "text": result["user_message"],
-
     }
