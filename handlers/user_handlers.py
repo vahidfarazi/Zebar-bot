@@ -46,14 +46,16 @@ def handle_user_message(
         )
 
     # -----------------------------
-    # Request Menu
+    # Request Menu & Services
     # -----------------------------
-    if message == "📝 ثبت درخواست":
+    request_result = handle_request_menu(
+        chat_id,
+        message,
+    )
 
-        return handle_request_menu(
-            chat_id,
-            message,
-        )
+    if request_result["text"] != "لطفاً فقط از گزینه‌های موجود استفاده کنید.":
+
+        return request_result
 
     # -----------------------------
     # Tracking
