@@ -135,19 +135,19 @@ def update_request_status(
 # -----------------------------
 def assign_expert(
     request_id: int,
-    assigned_expert_id: int,
+    expert_id: int,
 ) -> None:
 
     execute(
         """
         UPDATE requests
         SET
-            assigned_expert_id = ?,
+            expert_id = ?,
             updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
         """,
         (
-            assigned_expert_id,
+            expert_id,
             request_id,
         ),
     )
