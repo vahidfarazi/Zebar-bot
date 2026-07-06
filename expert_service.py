@@ -1,7 +1,7 @@
 """
 expert_service.py
 
-Business logic for expert operations.
+Business logic for expert operations (v1).
 """
 
 from typing import Dict, Any
@@ -9,6 +9,8 @@ from typing import Dict, Any
 from database import (
     update_request_status,
     assign_expert,
+    get_request_by_tracking,
+    add_message,
 )
 
 from logger import (
@@ -21,7 +23,7 @@ from logger import (
 # Reply
 # -----------------------------
 def reply(
-    request_id: int,
+    tracking_code: str,
     expert_id: int,
     message: str,
 ) -> Dict[str, Any]:
@@ -31,10 +33,27 @@ def reply(
 
     try:
 
+        request = get_request_by_tracking(tracking_code)
+
+        if not request:
+            return {
+                "success": False,
+                "message": "درخواست پیدا نشد",
+            }
+
+        # save expert message
+        add_message(
+            tracking_code=tracking_code,
+            sender_type="EXPERT",
+            sender_id=expert_id,
+            message_type="REPLY",
+            message=message,
+        )
+
         log_info(
             "expert_service",
             "reply",
-            f"{request_id} | {expert_id}",
+            f"{tracking_code} | {expert_id}",
         )
 
         return {
@@ -56,10 +75,10 @@ def reply(
 
 
 # -----------------------------
-# Close
+# Close Request
 # -----------------------------
 def close(
-    request_id: int,
+    tracking_code: str,
     expert_id: int,
 ) -> Dict[str, Any]:
     """
@@ -68,15 +87,23 @@ def close(
 
     try:
 
+        request = get_request_by_tracking(tracking_code)
+
+        if not request:
+            return {
+                "success": False,
+                "message": "درخواست پیدا نشد",
+            }
+
         update_request_status(
-            request_id,
+            request["id"],
             "CLOSED",
         )
 
         log_info(
             "expert_service",
             "close",
-            f"{request_id} | {expert_id}",
+            f"{tracking_code} | {expert_id}",
         )
 
         return {
@@ -98,10 +125,10 @@ def close(
 
 
 # -----------------------------
-# Assign
+# Assign Request
 # -----------------------------
 def assign_request(
-    request_id: int,
+    tracking_code: str,
     expert_id: int,
 ) -> Dict[str, Any]:
     """
@@ -110,15 +137,23 @@ def assign_request(
 
     try:
 
+        request = get_request_by_tracking(tracking_code)
+
+        if not request:
+            return {
+                "success": False,
+                "message": "درخواست پیدا نشد",
+            }
+
         assign_expert(
-            request_id,
+            request["id"],
             expert_id,
         )
 
         log_info(
             "expert_service",
             "assign",
-            f"{request_id} -> {expert_id}",
+            f"{tracking_code} -> {expert_id}",
         )
 
         return {
@@ -136,4 +171,4 @@ def assign_request(
         return {
             "success": False,
             "message": "خطا در تخصیص درخواست",
-    }
+        }
