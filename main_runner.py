@@ -38,7 +38,6 @@ def process_update(
             role,
         )
 
-        # New response format
         if isinstance(result, dict):
 
             send_message(
@@ -86,11 +85,17 @@ def handle_update(
 
     try:
 
+        print("========== UPDATE ==========")
+        print(update)
+        print("============================")
+
         message = update.get("message", {})
 
         chat = message.get("chat", {})
 
         chat_id = chat.get("id")
+
+        print("CHAT ID:", chat_id)
 
         text = message.get("text", "")
 
