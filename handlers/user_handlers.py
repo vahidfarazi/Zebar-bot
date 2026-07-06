@@ -7,9 +7,12 @@ Main user router.
 from handlers.user.main_menu import handle_main_menu
 from handlers.user.request_menu import handle_request_menu
 from handlers.user.form_handler import handle_form
-from handlers.user.tracking import handle_tracking
 
-from user_state import get_state
+from handlers.tracking_handler import handle_tracking
+
+from user_state import (
+    get_state,
+)
 
 
 # -----------------------------
@@ -46,7 +49,7 @@ def handle_user_message(
         )
 
     # -----------------------------
-    # Request Menu & Services
+    # Request Menu
     # -----------------------------
     request_result = handle_request_menu(
         chat_id,
