@@ -1,8 +1,7 @@
 """
 ticket_formatter.py
 
-Formats request data for database,
-expert group and user.
+Request text formatter.
 """
 
 FIELD_NAMES = {
@@ -15,7 +14,7 @@ FIELD_NAMES = {
 
     "national_code": "کد ملی",
 
-    "mobile": "شماره تلفن همراه",
+    "mobile": "شماره همراه",
 
 }
 
@@ -40,7 +39,7 @@ SERVICE_NAMES = {
 SUB_SERVICE_NAMES = {
 
     "UNKNOWN":
-        "نوع درخواست مشخص نیست",
+        "نامشخص",
 
     "SERVICE_FIX":
         "اصلاح سرویس",
@@ -67,9 +66,11 @@ SUB_SERVICE_NAMES = {
 
 
 # -----------------------------
-# Database Text
+# Request Body
 # -----------------------------
-def format_database(data: dict) -> str:
+def format_request(
+    data: dict,
+) -> str:
 
     lines = []
 
@@ -89,12 +90,16 @@ def format_database(data: dict) -> str:
             f"زیرخدمت: {SUB_SERVICE_NAMES.get(sub, sub)}"
         )
 
+    lines.append("")
+
     for key, title in FIELD_NAMES.items():
 
-        if key in data:
+        value = data.get(key)
+
+        if value:
 
             lines.append(
-                f"{title}: {data[key]}"
+                f"{title}: {value}"
             )
 
     return "\n".join(lines)
@@ -109,37 +114,96 @@ def format_expert(
     data: dict,
 ) -> str:
 
-    text = []
+    return "\n".join(
 
-    text.append("📩 درخواست جدید")
+        [
 
-    text.append("")
+            "📩 درخواست جدید",
 
-    text.append(
-        f"کد پیگیری: {tracking}"
+            "",
+
+            f"🎫 {tracking}",
+
+            "",
+
+            format_request(data),
+
+            "",
+
+            f"👤 شناسه مشترک: {chat_id}",
+
+        ]
+
     )
-
-    text.append(
-        f"کاربر: {chat_id}"
-    )
-
-    text.append("")
-
-    text.append(
-        format_database(data)
-    )
-
-    return "\n".join(text)
 
 
 # -----------------------------
-# User Success
+# User History
+# -----------------------------
+def format_user_history(
+    tracking: str,
+    status: str,
+    messages: list[dict],
+) -> str:
+
+    lines = [
+
+        f"🎫 {tracking}",
+
+        "",
+
+        f"وضعیت: {status}",
+
+        "",
+
+        "━━━━━━━━━━━━",
+
+    ]
+
+    for item in messages:
+
+        sender = item["sender_type"]
+
+        if sender == "USER":
+
+            prefix = "👤"
+
+        else:
+
+            prefix = "👨‍💼"
+
+        lines.append("")
+
+        lines.append(
+
+            f"{prefix} {item['message']}"
+
+        )
+
+    return "\n".join(lines)
+
+
+# -----------------------------
+# Success Message
 # -----------------------------
 def format_success(
     tracking: str,
 ) -> str:
 
     return (
-        "✅ درخواست شما با موفقیت ثبت شد.\n\n"
-        f"کد پیگیری:\n{tracking}"
+
+        "✅ درخواست شما با موفقیت ثبت شد."
+
+        "\n\n"
+
+        "کد پیگیری شما:"
+
+        "\n"
+
+        f"{tracking}"
+
+        "\n\n"
+
+        "این کد را برای پیگیری نزد خود نگه دارید."
+
     )
