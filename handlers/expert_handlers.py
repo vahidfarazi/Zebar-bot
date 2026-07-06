@@ -1,5 +1,7 @@
 """
 expert_handlers.py
+
+Expert command handler (v1).
 """
 
 from expert_service import (
@@ -27,13 +29,18 @@ def handle_expert_message(chat_id: int, message: str) -> str:
     # Reply
     # -------------------------
     if cmd == "reply":
-        if len(parts) < 3:
-            return "فرمت: reply request_id message"
 
-        request_id = int(parts[1])
+        if len(parts) < 3:
+            return "فرمت: reply tracking_code message"
+
+        tracking_code = parts[1]
         msg = " ".join(parts[2:])
 
-        result = reply(request_id, chat_id, msg)
+        result = reply(
+            tracking_code,
+            chat_id,
+            msg,
+        )
 
         return "ارسال شد" if result["success"] else result["message"]
 
@@ -41,21 +48,34 @@ def handle_expert_message(chat_id: int, message: str) -> str:
     # Close
     # -------------------------
     if cmd == "close":
-        if len(parts) < 2:
-            return "فرمت: close request_id"
 
-        result = close(int(parts[1]), chat_id)
+        if len(parts) < 2:
+            return "فرمت: close tracking_code"
+
+        tracking_code = parts[1]
+
+        result = close(
+            tracking_code,
+            chat_id,
+        )
 
         return "بسته شد" if result["success"] else result["message"]
 
     # -------------------------
-    # Assign (optional)
+    # Assign
     # -------------------------
     if cmd == "assign":
-        if len(parts) < 3:
-            return "فرمت: assign request_id expert_id"
 
-        result = assign_request(int(parts[1]), int(parts[2]))
+        if len(parts) < 3:
+            return "فرمت: assign tracking_code expert_id"
+
+        tracking_code = parts[1]
+        expert_id = int(parts[2])
+
+        result = assign_request(
+            tracking_code,
+            expert_id,
+        )
 
         return "انجام شد" if result["success"] else result["message"]
 
