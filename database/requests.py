@@ -6,7 +6,11 @@ Request repository.
 
 from typing import Optional
 
-from .crud import execute, fetch_one, fetch_all
+from .crud import (
+    execute,
+    fetch_one,
+    fetch_all,
+)
 
 
 # -----------------------------
@@ -15,8 +19,8 @@ from .crud import execute, fetch_one, fetch_all
 def insert_request(
     tracking_code: str,
     chat_id: int,
-    title: str,
-    description: str,
+    service: str,
+    sub_service: str | None = None,
 ) -> int:
     """
     Create new request.
@@ -31,16 +35,16 @@ def insert_request(
         (
             tracking_code,
             chat_id,
-            title,
-            description
+            service,
+            sub_service
         )
         VALUES (?, ?, ?, ?)
         """,
         (
             tracking_code,
             chat_id,
-            title,
-            description,
+            service,
+            sub_service,
         ),
     )
 
@@ -131,21 +135,67 @@ def update_request_status(
 # -----------------------------
 def assign_expert(
     request_id: int,
-    expert_id: int,
+    assigned_expert_id: int,
 ) -> None:
 
     execute(
         """
         UPDATE requests
         SET
-            expert_id = ?,
+            assigned_expert_id = ?,
             updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
         """,
         (
-            expert_id,
+            assigned_expert_id,
             request_id,
         ),
+    )
+
+
+# -----------------------------
+# Save Expert Message
+# -----------------------------
+def save_expert_message(
+    request_id: int,
+    expert_chat_id: int,
+    expert_message_id: int,
+) -> None:
+
+    execute(
+        """
+        UPDATE requests
+        SET
+            expert_chat_id = ?,
+            expert_message_id = ?,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+        """,
+        (
+            expert_chat_id,
+            expert_message_id,
+            request_id,
+        ),
+    )
+
+
+# -----------------------------
+# Close Request
+# -----------------------------
+def close_request(
+    request_id: int,
+) -> None:
+
+    execute(
+        """
+        UPDATE requests
+        SET
+            status = 'CLOSED',
+            closed_at = CURRENT_TIMESTAMP,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+        """,
+        (request_id,),
     )
 
 
