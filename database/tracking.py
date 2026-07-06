@@ -4,31 +4,43 @@ database/tracking.py
 Tracking number database operations.
 """
 
+from datetime import datetime
+
 from .crud import fetch_one
 
 
-def get_last_tracking_number(year: int) -> int:
+# -----------------------------
+# Last Tracking Number
+# -----------------------------
+def get_last_tracking_number() -> str | None:
     """
-    Return last tracking sequence for given year.
+    Return last tracking code for current year.
+
+    Example:
+        SR-2026-0000001
     """
+
+    year = datetime.now().year
 
     row = fetch_one(
         """
         SELECT tracking_code
+
         FROM requests
+
         WHERE tracking_code LIKE ?
+
         ORDER BY id DESC
+
         LIMIT 1
         """,
-        (f"SR-{year}-%",)
+        (
+            f"SR-{year}-%",
+        ),
     )
 
     if not row:
-        return 0
 
-    tracking_code = row["tracking_code"]
+        return None
 
-    try:
-        return int(tracking_code.split("-")[-1])
-    except (ValueError, IndexError):
-        return 0
+    return row["tracking_code"]
