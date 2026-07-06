@@ -7,20 +7,24 @@ FastAPI webhook server for Bale bot.
 from fastapi import FastAPI, Request
 
 from database import init_database
-from main_runner import handle_update
 from logger import log_info, log_error
 
 # -----------------------------
-# Initialize Database
+# Initialize Database FIRST
 # -----------------------------
 init_database()
+
+# بعد از ساخت دیتابیس import کن
+from main_runner import handle_update
 
 app = FastAPI()
 
 
 @app.get("/")
 def health():
-    return {"status": "ok"}
+    return {
+        "status": "ok",
+    }
 
 
 @app.post("/webhook")
@@ -38,7 +42,9 @@ async def webhook(request: Request):
 
         handle_update(update)
 
-        return {"ok": True}
+        return {
+            "ok": True,
+        }
 
     except Exception as e:
 
@@ -48,4 +54,6 @@ async def webhook(request: Request):
             str(e),
         )
 
-        return {"ok": False}
+        return {
+            "ok": False,
+        }
