@@ -1,11 +1,14 @@
 """
 database/messages.py
 
-Request messages CRUD.
+Request messages repository.
 """
+
+from typing import Optional
 
 from .crud import (
     execute,
+    fetch_one,
     fetch_all,
 )
 
@@ -19,67 +22,73 @@ def add_message(
     sender_id: int,
     message_type: str,
     message: str,
-) -> None:
+) -> int:
+    """
+    Save a request message.
 
-    execute(
+    Returns:
+        Message ID
+    """
+
+    return execute(
         """
-        INSERT INTO request_messages (
-
+        INSERT INTO request_messages
+        (
             tracking_code,
-
             sender_type,
-
             sender_id,
-
             message_type,
-
             message
-
         )
-
         VALUES (?, ?, ?, ?, ?)
         """,
-
         (
-
             tracking_code,
-
             sender_type,
-
             sender_id,
-
             message_type,
-
             message,
-
         ),
     )
 
 
 # -----------------------------
-# Get Messages
+# Get Message
+# -----------------------------
+def get_message(
+    message_id: int,
+) -> Optional[dict]:
+
+    row = fetch_one(
+        """
+        SELECT *
+        FROM request_messages
+        WHERE id = ?
+        """,
+        (message_id,),
+    )
+
+    return dict(row) if row else None
+
+
+# -----------------------------
+# Get Request Messages
 # -----------------------------
 def get_messages(
     tracking_code: str,
-):
+) -> list[dict]:
 
-    return fetch_all(
-
+    rows = fetch_all(
         """
         SELECT *
-
         FROM request_messages
-
-        WHERE tracking_code=?
-
-        ORDER BY id
+        WHERE tracking_code = ?
+        ORDER BY created_at ASC, id ASC
         """,
-
-        (
-            tracking_code,
-        ),
-
+        (tracking_code,),
     )
+
+    return [dict(row) for row in rows]
 
 
 # -----------------------------
@@ -87,30 +96,33 @@ def get_messages(
 # -----------------------------
 def get_last_message(
     tracking_code: str,
-):
+) -> Optional[dict]:
 
-    rows = fetch_all(
-
+    row = fetch_one(
         """
         SELECT *
-
         FROM request_messages
-
-        WHERE tracking_code=?
-
-        ORDER BY id DESC
-
+        WHERE tracking_code = ?
+        ORDER BY created_at DESC, id DESC
         LIMIT 1
         """,
-
-        (
-            tracking_code,
-        ),
-
+        (tracking_code,),
     )
 
-    if rows:
+    return dict(row) if row else None
 
-        return rows[0]
 
-    return None
+# -----------------------------
+# Delete Messages
+# -----------------------------
+def delete_messages(
+    tracking_code: str,
+) -> None:
+
+    execute(
+        """
+        DELETE FROM request_messages
+        WHERE tracking_code = ?
+        """,
+        (tracking_code,),
+    )
