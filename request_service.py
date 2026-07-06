@@ -7,15 +7,21 @@ Request creation service.
 from database import (
     insert_request,
     get_last_tracking_number,
+    add_message,
 )
 
 from ticket_formatter import (
-    format_database,
     format_expert,
     format_success,
 )
 
-from logger import log_info
+from notification_service import (
+    notify_experts,
+)
+
+from logger import (
+    log_info,
+)
 
 
 # -----------------------------
@@ -43,32 +49,52 @@ def create_request(
     data: dict,
 ) -> dict:
     """
-    Creates request and returns result.
+    Create new request.
     """
 
     tracking = generate_tracking_code()
 
-    description = format_database(
-        data,
-    )
-
+    # -----------------------------
+    # Save Request
+    # -----------------------------
     insert_request(
 
         tracking_code=tracking,
 
         chat_id=chat_id,
 
-        title=data.get(
-            "sub_service",
-            data.get("service"),
-        ),
+        service=data["service"],
 
-        description=description,
+        sub_service=data.get(
+            "sub_service",
+        ),
 
     )
 
-    # -------- Expert Message --------
+    # -----------------------------
+    # Save First Message
+    # -----------------------------
+    add_message(
 
+        tracking_code=tracking,
+
+        sender_type="USER",
+
+        sender_id=chat_id,
+
+        message_type="REQUEST",
+
+        message=format_expert(
+            tracking,
+            chat_id,
+            data,
+        ),
+
+    )
+
+    # -----------------------------
+    # Expert Message
+    # -----------------------------
     expert_message = format_expert(
 
         tracking,
@@ -79,8 +105,9 @@ def create_request(
 
     )
 
-    # TODO
-    # send_to_expert_group(expert_message)
+    notify_experts(
+        expert_message,
+    )
 
     log_info(
 
@@ -95,8 +122,6 @@ def create_request(
     return {
 
         "tracking": tracking,
-
-        "expert_message": expert_message,
 
         "user_message": format_success(
             tracking,
