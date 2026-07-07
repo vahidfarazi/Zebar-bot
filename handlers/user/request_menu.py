@@ -7,10 +7,11 @@ Request menu handler.
 from menus import (
     REQUEST_MENU,
     AFTER_SALES_MENU,
+    MAIN_MENU,
+    FORM_MENU,
 )
 
 from form_registry import get_form
-
 from form_engine import FormEngine
 
 from user_state import (
@@ -71,6 +72,13 @@ def start_form(
 
     form = get_form(service)
 
+    if not form:
+
+        return {
+            "text": "فرم این خدمت تعریف نشده است.",
+            "keyboard": REQUEST_MENU,
+        }
+
     engine = FormEngine(form)
 
     first_step = engine.first_step()
@@ -81,7 +89,8 @@ def start_form(
     )
 
     return {
-        "text": f"لطفاً {first_step['title']} را وارد کنید.",
+        "text": first_step["title"],
+        "keyboard": FORM_MENU,
     }
 
 
@@ -116,7 +125,7 @@ def handle_request_menu(
         )
 
     # -----------------------------
-    # After Sales Menu
+    # After Sales
     # -----------------------------
     if message == "🔧 خدمات پس از فروش":
 
@@ -126,7 +135,7 @@ def handle_request_menu(
         }
 
     # -----------------------------
-    # After Sales Services
+    # After Sales Sub Services
     # -----------------------------
     if message in AFTER_SALES_SERVICES:
 
@@ -151,9 +160,10 @@ def handle_request_menu(
     # -----------------------------
     if message == "🧾 بررسی قبض برق":
 
-        return {
-            "text": "این بخش در نسخه بعدی فعال خواهد شد.",
-        }
+        return start_form(
+            chat_id,
+            "BILL_INQUIRY",
+        )
 
     # -----------------------------
     # Back
@@ -170,8 +180,16 @@ def handle_request_menu(
     # -----------------------------
     if message == "🏠 منوی اصلی":
 
+        clear_data(chat_id)
+
         return {
-            "text": "به منوی اصلی بازگشتید.",
+            "text": (
+                "به سامانه هوشمند خدمات مشترکین "
+                "شرکت توزیع نیروی برق استان خراسان رضوی "
+                "(آذرخش) خوش آمدید.\n\n"
+                "لطفاً یکی از گزینه‌های زیر را انتخاب کنید."
+            ),
+            "keyboard": MAIN_MENU,
         }
 
     # -----------------------------
