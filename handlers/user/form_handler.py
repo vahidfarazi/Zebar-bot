@@ -1,7 +1,7 @@
 """
 handlers/user/form_handler.py
 
-Generic request form handler (v3).
+Generic request form handler (v4).
 """
 
 from menus import (
@@ -12,6 +12,8 @@ from menus import (
 
 from form_engine import FormEngine
 from form_registry import get_form
+
+from validators import detect_identifier
 
 from user_state import (
     get_data,
@@ -53,7 +55,7 @@ def handle_form(
 
         return {
             "text": (
-                "به سامانه خدمات مشترکین "
+                "به سامانه هوشمند خدمات مشترکین "
                 "شرکت توزیع نیروی برق استان خراسان رضوی "
                 "(آذرخش) خوش آمدید.\n\n"
                 "لطفاً یکی از گزینه‌های زیر را انتخاب کنید."
@@ -102,29 +104,53 @@ def handle_form(
     engine = FormEngine(form)
 
     # -------------------------
-    # Validate
+    # ONE_OF validator
     # -------------------------
-    if not engine.validate(state, message):
+    step = engine.current_step(state)
 
-        return {
-            "text":
-                f"❌ مقدار وارد شده برای «{engine.title(state)}» نامعتبر است.\n\n"
-                "لطفاً دوباره وارد کنید یا از دکمه‌های زیر استفاده کنید.",
-            "keyboard": FORM_MENU,
-        }
+    if step["validator"] == "ONE_OF":
 
-    # -------------------------
-    # Save field
-    # -------------------------
-    field = engine.field_name(state)
+        identifier_type = detect_identifier(message)
 
-    update_data(
-        chat_id,
-        field,
-        message,
-    )
+        if identifier_type is None:
 
-    data = get_data(chat_id)
+            return {
+                "text": (
+                    "❌ اطلاعات وارد شده معتبر نیست.\n\n"
+                    "لطفاً یکی از شناسه‌های مجاز را وارد کنید."
+                ),
+                "keyboard": FORM_MENU,
+            }
+
+        update_data(
+            chat_id,
+            identifier_type,
+            message,
+        )
+
+        data = get_data(chat_id)
+
+    else:
+
+        if not engine.validate(state, message):
+
+            return {
+                "text": (
+                    f"❌ مقدار وارد شده برای «{engine.title(state)}» نامعتبر است.\n\n"
+                    "لطفاً دوباره وارد کنید."
+                ),
+                "keyboard": FORM_MENU,
+            }
+
+        field = engine.field_name(state)
+
+        update_data(
+            chat_id,
+            field,
+            message,
+        )
+
+        data = get_data(chat_id)
 
     # -------------------------
     # Next Step
@@ -156,4 +182,4 @@ def handle_form(
     return {
         "text": result["user_message"],
         "keyboard": MAIN_MENU,
-    }
+        }
