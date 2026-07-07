@@ -16,6 +16,10 @@ FIELD_NAMES = {
 
     "mobile": "شماره همراه",
 
+    "subscription": "اشتراک",
+
+    "meter_serial": "سریال کنتور",
+
 }
 
 
@@ -30,7 +34,7 @@ SERVICE_NAMES = {
     "METER_TEST":
         "بازرسی و تست کنتور",
 
-    "BILL":
+    "BILL_INQUIRY":
         "بررسی قبض برق",
 
 }
@@ -130,7 +134,7 @@ def format_expert(
 
             "",
 
-            f"👤 شناسه مشترک: {chat_id}",
+            f"👤 شناسه بله: {chat_id}",
 
         ]
 
