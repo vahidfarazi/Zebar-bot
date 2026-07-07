@@ -31,9 +31,6 @@ VALIDATORS = {
 
 
 class FormEngine:
-    """
-    Generic form processor.
-    """
 
     def __init__(self, form: list):
 
@@ -47,7 +44,7 @@ class FormEngine:
         return self.form[0]
 
     # -----------------------------
-    # Find Step
+    # Current Step
     # -----------------------------
     def current_step(
         self,
@@ -115,9 +112,6 @@ class FormEngine:
 
         validator = step["validator"]
 
-        # ---------------------------------
-        # ONE OF
-        # ---------------------------------
         if validator == "ONE_OF":
 
             return detect_identifier(value) is not None
