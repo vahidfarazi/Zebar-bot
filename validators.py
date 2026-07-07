@@ -78,27 +78,87 @@ def validate_bill_id(value: str) -> bool:
 # -----------------------------
 def validate_national_code(value: str) -> bool:
     """
-    Validate Iranian national code.
+    10 digits.
     """
 
-    if not re.fullmatch(r"\d{10}", value):
-        return False
-
-    if value == value[0] * 10:
-        return False
-
-    digits = list(map(int, value))
-
-    checksum = digits[-1]
-
-    total = sum(
-        digits[i] * (10 - i)
-        for i in range(9)
+    return bool(
+        re.fullmatch(
+            r"\d{10}",
+            value,
+        )
     )
 
-    remainder = total % 11
 
-    if remainder < 2:
-        return checksum == remainder
+# -----------------------------
+# Subscription
+# -----------------------------
+def validate_subscription(value: str) -> bool:
+    """
+    5 digits.
+    """
 
-    return checksum == (11 - remainder)
+    return bool(
+        re.fullmatch(
+            r"\d{5}",
+            value,
+        )
+    )
+
+
+# -----------------------------
+# Meter Serial
+# -----------------------------
+def validate_meter_serial(value: str) -> bool:
+    """
+    Up to 20 digits.
+    """
+
+    return bool(
+        re.fullmatch(
+            r"\d{1,20}",
+            value,
+        )
+    )
+
+
+# -----------------------------
+# Detect Identifier
+# -----------------------------
+def detect_identifier(
+    value: str,
+) -> str | None:
+    """
+    Detect identifier type.
+
+    Priority:
+    mobile
+    national_code
+    bill_id
+    request_number
+    computer_code
+    subscription
+    meter_serial
+    """
+
+    if validate_mobile(value):
+        return "mobile"
+
+    if validate_national_code(value):
+        return "national_code"
+
+    if validate_bill_id(value):
+        return "bill_id"
+
+    if validate_request_number(value):
+        return "request_number"
+
+    if validate_computer_code(value):
+        return "computer_code"
+
+    if validate_subscription(value):
+        return "subscription"
+
+    if validate_meter_serial(value):
+        return "meter_serial"
+
+    return None
