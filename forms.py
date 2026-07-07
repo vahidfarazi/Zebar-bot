@@ -10,24 +10,15 @@ Request forms for Azarakhsh.
 NEW_CONNECTION_FORM = [
 
     {
-        "field": "request_number",
-        "state": "NEW_CONNECTION_REQUEST_NUMBER",
-        "title": "شماره تقاضا",
-        "validator": "request_number",
-    },
-
-    {
-        "field": "national_code",
-        "state": "NEW_CONNECTION_NATIONAL_CODE",
-        "title": "کد ملی",
-        "validator": "national_code",
-    },
-
-    {
-        "field": "mobile",
-        "state": "NEW_CONNECTION_MOBILE",
-        "title": "شماره تلفن همراه",
-        "validator": "mobile",
+        "field": "identifier",
+        "state": "NEW_CONNECTION_IDENTIFIER",
+        "title": (
+            "یکی از موارد زیر را وارد کنید:\n\n"
+            "• شماره موبایل (بدون صفر اول)\n"
+            "• شماره تقاضا\n"
+            "• کد ملی"
+        ),
+        "validator": "ONE_OF",
     },
 
 ]
@@ -39,38 +30,19 @@ NEW_CONNECTION_FORM = [
 AFTER_SALES_FORM = [
 
     {
-        "field": "computer_code",
-        "state": "AFTER_SALES_COMPUTER_CODE",
-        "title": "رمز رایانه",
-        "validator": "computer_code",
-    },
-
-    {
-        "field": "bill_id",
-        "state": "AFTER_SALES_BILL_ID",
-        "title": "شناسه قبض",
-        "validator": "bill_id",
-    },
-
-    {
-        "field": "request_number",
-        "state": "AFTER_SALES_REQUEST_NUMBER",
-        "title": "شماره تقاضا",
-        "validator": "request_number",
-    },
-
-    {
-        "field": "national_code",
-        "state": "AFTER_SALES_NATIONAL_CODE",
-        "title": "کد ملی",
-        "validator": "national_code",
-    },
-
-    {
-        "field": "mobile",
-        "state": "AFTER_SALES_MOBILE",
-        "title": "شماره تلفن همراه",
-        "validator": "mobile",
+        "field": "identifier",
+        "state": "AFTER_SALES_IDENTIFIER",
+        "title": (
+            "یکی از موارد زیر را وارد کنید:\n\n"
+            "• شماره موبایل (بدون صفر اول)\n"
+            "• سریال کنتور\n"
+            "• شماره تقاضا\n"
+            "• شناسه قبض\n"
+            "• رمز رایانه\n"
+            "• اشتراک\n"
+            "• کد ملی"
+        ),
+        "validator": "ONE_OF",
     },
 
 ]
@@ -82,38 +54,41 @@ AFTER_SALES_FORM = [
 METER_TEST_FORM = [
 
     {
-        "field": "request_number",
-        "state": "METER_TEST_REQUEST_NUMBER",
-        "title": "شماره تقاضا",
-        "validator": "request_number",
+        "field": "identifier",
+        "state": "METER_TEST_IDENTIFIER",
+        "title": (
+            "یکی از موارد زیر را وارد کنید:\n\n"
+            "• شماره موبایل (بدون صفر اول)\n"
+            "• سریال کنتور\n"
+            "• شماره تقاضا\n"
+            "• شناسه قبض\n"
+            "• رمز رایانه\n"
+            "• اشتراک\n"
+            "• کد ملی"
+        ),
+        "validator": "ONE_OF",
     },
 
-    {
-        "field": "computer_code",
-        "state": "METER_TEST_COMPUTER_CODE",
-        "title": "رمز رایانه",
-        "validator": "computer_code",
-    },
+]
+
+
+# -----------------------------
+# Bill Inquiry
+# -----------------------------
+BILL_INQUIRY_FORM = [
 
     {
-        "field": "bill_id",
-        "state": "METER_TEST_BILL_ID",
-        "title": "شناسه قبض",
-        "validator": "bill_id",
-    },
-
-    {
-        "field": "mobile",
-        "state": "METER_TEST_MOBILE",
-        "title": "شماره تلفن همراه",
-        "validator": "mobile",
-    },
-
-    {
-        "field": "national_code",
-        "state": "METER_TEST_NATIONAL_CODE",
-        "title": "کد ملی",
-        "validator": "national_code",
+        "field": "identifier",
+        "state": "BILL_INQUIRY_IDENTIFIER",
+        "title": (
+            "یکی از موارد زیر را وارد کنید:\n\n"
+            "• شماره موبایل (بدون صفر اول)\n"
+            "• سریال کنتور\n"
+            "• شناسه قبض\n"
+            "• رمز رایانه\n"
+            "• اشتراک"
+        ),
+        "validator": "ONE_OF",
     },
 
 ]
