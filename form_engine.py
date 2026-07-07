@@ -10,6 +10,9 @@ from validators import (
     validate_mobile,
     validate_computer_code,
     validate_bill_id,
+    validate_subscription,
+    validate_meter_serial,
+    detect_identifier,
 )
 
 
@@ -22,6 +25,8 @@ VALIDATORS = {
     "mobile": validate_mobile,
     "computer_code": validate_computer_code,
     "bill_id": validate_bill_id,
+    "subscription": validate_subscription,
+    "meter_serial": validate_meter_serial,
 }
 
 
@@ -108,14 +113,41 @@ class FormEngine:
         if step is None:
             return False
 
-        validator = VALIDATORS.get(
-            step["validator"],
-        )
+        validator = step["validator"]
 
-        if validator is None:
+        # ---------------------------------
+        # ONE OF
+        # ---------------------------------
+        if validator == "ONE_OF":
+
+            return detect_identifier(value) is not None
+
+        func = VALIDATORS.get(validator)
+
+        if func is None:
             return False
 
-        return validator(value)
+        return func(value)
+
+    # -----------------------------
+    # Detect Field
+    # -----------------------------
+    def detect_field(
+        self,
+        state: str,
+        value: str,
+    ) -> str | None:
+
+        step = self.current_step(state)
+
+        if step is None:
+            return None
+
+        if step["validator"] == "ONE_OF":
+
+            return detect_identifier(value)
+
+        return step["field"]
 
     # -----------------------------
     # Field Name
