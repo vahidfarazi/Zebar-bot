@@ -13,7 +13,7 @@ NEW_CONNECTION_FORM = [
         "field": "identifier",
         "state": "NEW_CONNECTION_IDENTIFIER",
         "title": (
-            "یکی از موارد زیر را وارد کنید:\n\n"
+            "لطفاً یکی از موارد زیر را وارد کنید:\n\n"
             "• شماره موبایل (بدون صفر اول)\n"
             "• شماره تقاضا\n"
             "• کد ملی"
@@ -33,7 +33,7 @@ AFTER_SALES_FORM = [
         "field": "identifier",
         "state": "AFTER_SALES_IDENTIFIER",
         "title": (
-            "یکی از موارد زیر را وارد کنید:\n\n"
+            "لطفاً یکی از موارد زیر را وارد کنید:\n\n"
             "• شماره موبایل (بدون صفر اول)\n"
             "• سریال کنتور\n"
             "• شماره تقاضا\n"
@@ -57,7 +57,7 @@ METER_TEST_FORM = [
         "field": "identifier",
         "state": "METER_TEST_IDENTIFIER",
         "title": (
-            "یکی از موارد زیر را وارد کنید:\n\n"
+            "لطفاً یکی از موارد زیر را وارد کنید:\n\n"
             "• شماره موبایل (بدون صفر اول)\n"
             "• سریال کنتور\n"
             "• شماره تقاضا\n"
@@ -81,7 +81,7 @@ BILL_INQUIRY_FORM = [
         "field": "identifier",
         "state": "BILL_INQUIRY_IDENTIFIER",
         "title": (
-            "یکی از موارد زیر را وارد کنید:\n\n"
+            "لطفاً یکی از موارد زیر را وارد کنید:\n\n"
             "• شماره موبایل (بدون صفر اول)\n"
             "• سریال کنتور\n"
             "• شناسه قبض\n"
