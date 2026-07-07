@@ -1,8 +1,14 @@
 """
 handlers/user/form_handler.py
 
-Generic request form handler (v2).
+Generic request form handler (v3).
 """
+
+from menus import (
+    MAIN_MENU,
+    REQUEST_MENU,
+    FORM_MENU,
+)
 
 from form_engine import FormEngine
 from form_registry import get_form
@@ -34,7 +40,8 @@ def handle_form(
         reset(chat_id)
 
         return {
-            "text": "ثبت درخواست لغو شد.\n\nبرای ادامه از منوی اصلی استفاده کنید.",
+            "text": "ثبت درخواست لغو شد.",
+            "keyboard": MAIN_MENU,
         }
 
     # -------------------------
@@ -46,6 +53,7 @@ def handle_form(
 
         return {
             "text": "به سامانه خدمات مشترکین برق آذرخش خوش آمدید.",
+            "keyboard": MAIN_MENU,
         }
 
     # -------------------------
@@ -56,7 +64,8 @@ def handle_form(
         reset(chat_id)
 
         return {
-            "text": "لطفاً دوباره خدمت موردنظر را انتخاب کنید.",
+            "text": "لطفاً خدمت موردنظر را انتخاب کنید.",
+            "keyboard": REQUEST_MENU,
         }
 
     # -------------------------
@@ -70,6 +79,7 @@ def handle_form(
 
         return {
             "text": "ابتدا سرویس را انتخاب کنید.",
+            "keyboard": REQUEST_MENU,
         }
 
     # -------------------------
@@ -81,6 +91,7 @@ def handle_form(
 
         return {
             "text": "فرم برای این سرویس تعریف نشده است.",
+            "keyboard": REQUEST_MENU,
         }
 
     engine = FormEngine(form)
@@ -93,7 +104,8 @@ def handle_form(
         return {
             "text":
                 f"❌ مقدار وارد شده برای «{engine.title(state)}» نامعتبر است.\n\n"
-                "لطفاً دوباره وارد کنید یا از «❌ انصراف» استفاده کنید.",
+                "لطفاً دوباره وارد کنید یا از دکمه‌های زیر استفاده کنید.",
+            "keyboard": FORM_MENU,
         }
 
     # -------------------------
@@ -122,8 +134,8 @@ def handle_form(
         )
 
         return {
-            "text":
-                f"لطفاً {next_step['title']} را وارد کنید.",
+            "text": f"لطفاً {next_step['title']} را وارد کنید.",
+            "keyboard": FORM_MENU,
         }
 
     # -------------------------
@@ -138,4 +150,5 @@ def handle_form(
 
     return {
         "text": result["user_message"],
+        "keyboard": MAIN_MENU,
     }
