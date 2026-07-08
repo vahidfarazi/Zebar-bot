@@ -65,6 +65,7 @@ def handle_callback(
     # -----------------------------------------
     if data.startswith("reply:"):
 
+        # کارشناس قبلاً در حال پاسخ است
         if is_waiting_reply(
             expert_id,
         ):
@@ -88,25 +89,33 @@ def handle_callback(
         )
 
         # ---------------------------------
-        # Edit request message
+        # Mark message
         # ---------------------------------
 
-        new_text = (
-            text
-            + "\n\n"
-            + "━━━━━━━━━━━━━━\n"
-            + f"✍️ در حال پاسخ توسط کارشناس {expert_id}"
-        )
+        try:
 
-        edit_message(
+            new_text = (
+                text
+                + "\n\n"
+                + "━━━━━━━━━━━━━━\n"
+                + f"✍️ در حال پاسخ توسط کارشناس {expert_id}"
+            )
 
-            chat_id=group_chat_id,
+            edit_message(
 
-            message_id=message_id,
+                chat_id=group_chat_id,
 
-            text=new_text,
+                message_id=message_id,
 
-        )
+                text=new_text,
+
+            )
+
+        except Exception:
+
+            # اگر ویرایش پیام انجام نشد،
+            # روند پاسخ متوقف نشود.
+            pass
 
         return
 
