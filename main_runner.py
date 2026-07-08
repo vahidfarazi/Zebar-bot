@@ -15,6 +15,9 @@ from database import create_user
 
 from bale_client import send_message
 
+# این را بعداً می‌سازیم
+from expert_handlers import handle_callback
+
 
 # -----------------------------
 # Process Update
@@ -24,9 +27,6 @@ def process_update(
     message: str,
     role: str = "USER",
 ) -> None:
-    """
-    Process incoming message.
-    """
 
     try:
 
@@ -37,6 +37,9 @@ def process_update(
             message,
             role,
         )
+
+        if result is None:
+            return
 
         if isinstance(result, dict):
 
@@ -79,9 +82,6 @@ def process_update(
 def handle_update(
     update: dict,
 ) -> None:
-    """
-    Entry point.
-    """
 
     try:
 
@@ -89,6 +89,20 @@ def handle_update(
         print(update)
         print("============================")
 
+        # -----------------------------
+        # Callback Query
+        # -----------------------------
+        callback = update.get("callback_query")
+
+        if callback:
+
+            handle_callback(callback)
+
+            return
+
+        # -----------------------------
+        # Message
+        # -----------------------------
         message = update.get("message", {})
 
         chat = message.get("chat", {})
@@ -97,11 +111,11 @@ def handle_update(
 
         print("CHAT ID:", chat_id)
 
-        text = message.get("text", "")
-
         if not chat_id:
 
             return
+
+        text = message.get("text", "")
 
         process_update(
             chat_id,
