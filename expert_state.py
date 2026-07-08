@@ -46,9 +46,6 @@ def set_waiting_reply(
 def get_state(
     chat_id: int,
 ) -> Optional[dict]:
-    """
-    Return expert state.
-    """
 
     return _states.get(chat_id)
 
@@ -59,28 +56,22 @@ def get_state(
 def is_waiting_reply(
     chat_id: int,
 ) -> bool:
-    """
-    Check whether expert is waiting for reply.
-    """
 
     state = _states.get(chat_id)
 
-    if not state:
-
-        return False
-
-    return state.get("state") == "WAITING_REPLY"
+    return bool(
+        state
+        and
+        state.get("state") == "WAITING_REPLY"
+    )
 
 
 # -------------------------------------------------
-# Get Tracking Code
+# Tracking Code
 # -------------------------------------------------
 def get_tracking_code(
     chat_id: int,
 ) -> Optional[str]:
-    """
-    Return tracking code of current reply.
-    """
 
     state = _states.get(chat_id)
 
@@ -88,18 +79,17 @@ def get_tracking_code(
 
         return None
 
-    return state.get("tracking_code")
+    return state.get(
+        "tracking_code",
+    )
 
 
 # -------------------------------------------------
-# Get Group Chat ID
+# Group Chat ID
 # -------------------------------------------------
 def get_group_chat_id(
     chat_id: int,
 ) -> Optional[int]:
-    """
-    Return expert group chat id.
-    """
 
     state = _states.get(chat_id)
 
@@ -107,18 +97,17 @@ def get_group_chat_id(
 
         return None
 
-    return state.get("group_chat_id")
+    return state.get(
+        "group_chat_id",
+    )
 
 
 # -------------------------------------------------
-# Get Message ID
+# Request Message ID
 # -------------------------------------------------
 def get_message_id(
     chat_id: int,
 ) -> Optional[int]:
-    """
-    Return request message id inside group.
-    """
 
     state = _states.get(chat_id)
 
@@ -126,7 +115,9 @@ def get_message_id(
 
         return None
 
-    return state.get("message_id")
+    return state.get(
+        "message_id",
+    )
 
 
 # -------------------------------------------------
@@ -135,11 +126,8 @@ def get_message_id(
 def reset(
     chat_id: int,
 ) -> None:
-    """
-    Clear expert state.
-    """
 
     _states.pop(
         chat_id,
         None,
-    )
+)
