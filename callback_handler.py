@@ -4,14 +4,16 @@ callback_handler.py
 Handle Bale callback queries.
 """
 
-from bale_client import answer_callback
-
-from expert_state import (
-    set_state,
-    update_data,
+from bale_client import (
+    answer_callback,
+    send_message,
 )
 
-from bale_client import send_message
+from expert_state import (
+    set_waiting_reply,
+    is_waiting_reply,
+    get_tracking_code,
+)
 
 
 # -------------------------------------------------
@@ -44,17 +46,35 @@ def handle_callback(
     # -----------------------------------------
     if data.startswith("reply:"):
 
+        if is_waiting_reply(chat_id):
+
+            tracking = get_tracking_code(
+                chat_id,
+            )
+
+            send_message(
+
+                chat_id=chat_id,
+
+                text=(
+                    "شما در حال پاسخ به درخواست\n\n"
+                    f"{tracking}\n\n"
+                    "هستید.\n"
+                    "ابتدا پاسخ آن را ارسال کنید."
+                ),
+
+            )
+
+            return
+
         tracking = data.split(":", 1)[1]
 
-        set_state(
-            chat_id,
-            "WAITING_REPLY",
-        )
+        set_waiting_reply(
 
-        update_data(
             chat_id,
-            "tracking_code",
+
             tracking,
+
         )
 
         send_message(
@@ -62,7 +82,8 @@ def handle_callback(
             chat_id=chat_id,
 
             text=(
-                "لطفاً پاسخ خود را برای مشترک ارسال کنید."
+                f"درخواست {tracking} انتخاب شد.\n\n"
+                "اکنون پاسخ خود را ارسال کنید."
             ),
 
         )
@@ -82,7 +103,7 @@ def handle_callback(
 
             text=(
                 f"ارجاع درخواست {tracking} "
-                "در نسخه بعدی فعال می‌شود."
+                "در نسخه بعدی فعال خواهد شد."
             ),
 
         )
