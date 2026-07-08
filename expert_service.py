@@ -23,7 +23,7 @@ from bale_client import (
 
 from expert_state import (
     get_group_chat_id,
-    get_message_id,
+    get_group_message_id,
 )
 
 from logger import (
@@ -32,9 +32,9 @@ from logger import (
 )
 
 
-# -----------------------------
+# -------------------------------------------------
 # Reply
-# -----------------------------
+# -------------------------------------------------
 def reply(
     tracking_code: str,
     expert_id: int,
@@ -63,9 +63,9 @@ def reply(
 
             }
 
-        # -------------------------
+        # -----------------------------------------
         # Save Reply
-        # -------------------------
+        # -----------------------------------------
 
         add_message(
 
@@ -81,9 +81,9 @@ def reply(
 
         )
 
-        # -------------------------
+        # -----------------------------------------
         # Notify User
-        # -------------------------
+        # -----------------------------------------
 
         notify_user(
 
@@ -96,62 +96,66 @@ def reply(
 
         )
 
-        # -------------------------
+        # -----------------------------------------
         # Close Request
-        # -------------------------
+        # -----------------------------------------
 
         close_request(
             request["id"],
         )
 
-        # -------------------------
-        # Edit Group Message
-        # -------------------------
+        # -----------------------------------------
+        # Update Group Message
+        # -----------------------------------------
 
         group_chat_id = get_group_chat_id(
             expert_id,
         )
 
-        request_message_id = get_message_id(
+        request_message_id = get_group_message_id(
             expert_id,
         )
 
         if group_chat_id and request_message_id:
 
-            edit_message(
+            try:
 
-                chat_id=group_chat_id,
+                edit_message(
 
-                message_id=request_message_id,
+                    chat_id=group_chat_id,
 
-                text=(
-                    "✅ این درخواست پاسخ داده شد.\n\n"
-                    f"کد رهگیری: {tracking_code}"
-                ),
+                    message_id=request_message_id,
 
-            )
+                    text=(
+                        "✅ این درخواست پاسخ داده شد.\n\n"
+                        f"کد رهگیری: {tracking_code}"
+                    ),
 
-        # -------------------------
-        # Delete Expert Reply
-        # -------------------------
+                )
 
-        if (
+            except Exception:
 
-            group_chat_id
+                pass
 
-            and
+        # -----------------------------------------
+        # Delete Expert Reply From Group
+        # -----------------------------------------
 
-            reply_message_id
+        if group_chat_id and reply_message_id:
 
-        ):
+            try:
 
-            delete_message(
+                delete_message(
 
-                chat_id=group_chat_id,
+                    chat_id=group_chat_id,
 
-                message_id=reply_message_id,
+                    message_id=reply_message_id,
 
-            )
+                )
+
+            except Exception:
+
+                pass
 
         log_info(
 
@@ -190,9 +194,9 @@ def reply(
         }
 
 
-# -----------------------------
+# -------------------------------------------------
 # Assign
-# -----------------------------
+# -------------------------------------------------
 def assign_request(
     tracking_code: str,
     expert_id: int,
@@ -204,4 +208,4 @@ def assign_request(
 
         "message": "ارجاع در نسخه بعدی فعال می‌شود.",
 
-        }
+    }
