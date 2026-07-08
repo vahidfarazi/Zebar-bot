@@ -6,12 +6,12 @@ Handle Bale callback queries.
 
 from bale_client import (
     answer_callback,
+    edit_message,
 )
 
 from expert_state import (
     set_waiting_reply,
     is_waiting_reply,
-    get_tracking_code,
 )
 
 
@@ -32,12 +32,6 @@ def handle_callback(
 
     message = callback.get("message", {})
 
-    group_chat = message.get("chat", {})
-
-    group_chat_id = group_chat.get("id")
-
-    message_id = message.get("message_id")
-
     if callback_id:
 
         answer_callback(
@@ -48,13 +42,32 @@ def handle_callback(
 
         return
 
+    group = message.get(
+        "chat",
+        {},
+    )
+
+    group_chat_id = group.get(
+        "id",
+    )
+
+    message_id = message.get(
+        "message_id",
+    )
+
+    text = message.get(
+        "text",
+        "",
+    )
+
     # -----------------------------------------
     # Reply
     # -----------------------------------------
     if data.startswith("reply:"):
 
-        if is_waiting_reply(expert_id):
-
+        if is_waiting_reply(
+            expert_id,
+        ):
             return
 
         tracking = data.split(
@@ -74,6 +87,27 @@ def handle_callback(
 
         )
 
+        # ---------------------------------
+        # Edit request message
+        # ---------------------------------
+
+        new_text = (
+            text
+            + "\n\n"
+            + "━━━━━━━━━━━━━━\n"
+            + f"✍️ در حال پاسخ توسط کارشناس {expert_id}"
+        )
+
+        edit_message(
+
+            chat_id=group_chat_id,
+
+            message_id=message_id,
+
+            text=new_text,
+
+        )
+
         return
 
     # -----------------------------------------
@@ -81,5 +115,5 @@ def handle_callback(
     # -----------------------------------------
     if data.startswith("forward:"):
 
-        # مرحله بعدی پیاده‌سازی می‌شود
+        # مرحله بعد
         return
