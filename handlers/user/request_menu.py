@@ -74,6 +74,8 @@ def start_form(
 
     if not form:
 
+        print("FORM NOT FOUND:", service)
+
         return {
             "text": "فرم این خدمت تعریف نشده است.",
             "keyboard": REQUEST_MENU,
@@ -87,6 +89,8 @@ def start_form(
         chat_id,
         first_step["state"],
     )
+
+    print("FORM STARTED:", service)
 
     return {
         "text": first_step["title"],
@@ -102,10 +106,14 @@ def handle_request_menu(
     message: str,
 ):
 
+    print("REQUEST MENU MESSAGE:", repr(message))
+
     # -----------------------------
     # Register Request
     # -----------------------------
     if message == "📝 ثبت درخواست":
+
+        print("REGISTER REQUEST CLICKED")
 
         clear_data(chat_id)
 
@@ -119,6 +127,8 @@ def handle_request_menu(
     # -----------------------------
     if message == "🔌 نصب انشعاب جدید":
 
+        print("NEW CONNECTION")
+
         return start_form(
             chat_id,
             "NEW_CONNECTION",
@@ -129,6 +139,8 @@ def handle_request_menu(
     # -----------------------------
     if message == "🔧 خدمات پس از فروش":
 
+        print("AFTER SALES")
+
         return {
             "text": "لطفاً نوع خدمت را انتخاب کنید.",
             "keyboard": AFTER_SALES_MENU,
@@ -138,6 +150,8 @@ def handle_request_menu(
     # After Sales Sub Services
     # -----------------------------
     if message in AFTER_SALES_SERVICES:
+
+        print("AFTER SALES SUB:", message)
 
         return start_form(
             chat_id,
@@ -150,6 +164,8 @@ def handle_request_menu(
     # -----------------------------
     if message == "🔍 بازرسی و تست کنتور":
 
+        print("METER TEST")
+
         return start_form(
             chat_id,
             "METER_TEST",
@@ -159,6 +175,8 @@ def handle_request_menu(
     # Bill Inquiry
     # -----------------------------
     if message == "🧾 بررسی قبض برق":
+
+        print("BILL INQUIRY")
 
         return start_form(
             chat_id,
@@ -187,7 +205,7 @@ def handle_request_menu(
                 "به سامانه هوشمند خدمات مشترکین "
                 "شرکت توزیع نیروی برق استان خراسان رضوی "
                 "(آذرخش) خوش آمدید.\n\n"
-                "لطفاً یکی از گزینه‌های زیر را انتخاب کنید."
+                "لطفاً خدمت موردنظر را انتخاب کنید."
             ),
             "keyboard": MAIN_MENU,
         }
@@ -195,6 +213,8 @@ def handle_request_menu(
     # -----------------------------
     # Invalid
     # -----------------------------
+    print("INVALID REQUEST MENU")
+
     return {
         "text": "لطفاً فقط از گزینه‌های موجود استفاده کنید.",
     }
