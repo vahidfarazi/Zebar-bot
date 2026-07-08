@@ -12,7 +12,11 @@ from logger import (
     log_info,
 )
 
-from database import create_user
+from database import (
+    create_user,
+    get_expert,
+    is_admin,
+)
 
 from bale_client import send_message
 
@@ -45,16 +49,16 @@ def process_update(
         if isinstance(result, dict):
 
             send_message(
-                chat_id,
-                result.get("text", ""),
+                chat_id=chat_id,
+                text=result.get("text", ""),
                 keyboard=result.get("keyboard"),
             )
 
         else:
 
             send_message(
-                chat_id,
-                str(result),
+                chat_id=chat_id,
+                text=str(result),
             )
 
         log_info(
@@ -72,8 +76,8 @@ def process_update(
         )
 
         send_message(
-            chat_id,
-            "خطایی رخ داد.",
+            chat_id=chat_id,
+            text="خطایی رخ داد.",
         )
 
 
@@ -117,9 +121,23 @@ def handle_update(
         if not chat_id:
             return
 
+        # -----------------------------
+        # Detect Role
+        # -----------------------------
+        role = "USER"
+
+        if is_admin(chat_id):
+
+            role = "ADMIN"
+
+        elif get_expert(chat_id):
+
+            role = "EXPERT"
+
         process_update(
             chat_id,
             text,
+            role,
         )
 
     except Exception as e:
