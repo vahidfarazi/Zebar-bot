@@ -16,6 +16,16 @@ from notification_service import (
     notify_user,
 )
 
+from bale_client import (
+    edit_message,
+    delete_message,
+)
+
+from expert_state import (
+    get_group_chat_id,
+    get_message_id,
+)
+
 from logger import (
     log_info,
     log_error,
@@ -92,6 +102,39 @@ def reply(
         close_request(
             request["id"],
         )
+
+        # -------------------------
+        # Update Group Message
+        # -------------------------
+
+        group_chat_id = get_group_chat_id(
+            expert_id,
+        )
+
+        message_id = get_message_id(
+            expert_id,
+        )
+
+        if group_chat_id and message_id:
+
+            edit_message(
+
+                chat_id=group_chat_id,
+
+                message_id=message_id,
+
+                text=(
+                    "✅ این درخواست پاسخ داده شد.\n\n"
+                    f"کد رهگیری: {tracking_code}"
+                ),
+
+            )
+
+        # -------------------------
+        # Delete Expert Reply
+        # -------------------------
+        # در نسخه بعدی با داشتن message_id پیام
+        # کارشناس از گروه حذف خواهد شد.
 
         log_info(
 
