@@ -2,27 +2,17 @@
 bale_client.py
 
 Official Bale Bot API client.
-Supports:
-- Send Message
-- Reply Keyboard
-- Inline Keyboard
-- Edit Message
-- Delete Message
-- Answer Callback
 """
 
 import requests
 
 from config import Config
-from logger import (
-    log_info,
-    log_error,
-)
+from logger import log_error, log_info
 
-# -------------------------------------------------
+
+# -----------------------------
 # Config
-# -------------------------------------------------
-
+# -----------------------------
 BASE_URL = Config.get_str(
     "BALE_API_URL",
     "https://tapi.bale.ai",
@@ -34,65 +24,29 @@ BOT_TOKEN = Config.get_str(
 )
 
 
-def api_url(method: str) -> str:
-    return f"{BASE_URL}/bot{BOT_TOKEN}/{method}"
-
-
-# -------------------------------------------------
-# Send Message
-# -------------------------------------------------
-def send_message(
-    chat_id: int,
-    text: str,
-    keyboard=None,
-    inline_keyboard=None,
+# -----------------------------
+# Internal Request
+# -----------------------------
+def _post(
+    method: str,
+    payload: dict,
 ):
 
     if not BOT_TOKEN:
 
         log_error(
             "bale_client",
-            "token",
-            "BALE_BOT_TOKEN is empty",
+            "missing_token",
+            "BALE_BOT_TOKEN is not set",
         )
 
-        return False
-
-    payload = {
-
-        "chat_id": chat_id,
-
-        "text": text,
-
-    }
-
-    # Reply keyboard
-    if keyboard:
-
-        payload["reply_markup"] = {
-
-            "keyboard": keyboard,
-
-            "resize_keyboard": True,
-
-            "one_time_keyboard": False,
-
-        }
-
-    # Inline keyboard
-    elif inline_keyboard:
-
-        payload["reply_markup"] = {
-
-            "inline_keyboard": inline_keyboard,
-
-        }
+        return None
 
     try:
 
         response = requests.post(
 
-            api_url("sendMessage"),
+            f"{BASE_URL}/bot{BOT_TOKEN}/{method}",
 
             json=payload,
 
@@ -106,23 +60,13 @@ def send_message(
 
                 "bale_client",
 
-                "send",
+                method,
 
                 response.text,
 
             )
 
-            return False
-
-        log_info(
-
-            "bale_client",
-
-            "send",
-
-            str(chat_id),
-
-        )
+            return None
 
         return response.json()
 
@@ -132,18 +76,66 @@ def send_message(
 
             "bale_client",
 
-            "exception",
+            method,
 
             str(e),
 
         )
 
-        return False
+        return None
 
 
-# -------------------------------------------------
+# -----------------------------
+# Send Message
+# -----------------------------
+def send_message(
+    chat_id: int,
+    text: str,
+    keyboard: list | None = None,
+):
+
+    payload = {
+
+        "chat_id": chat_id,
+
+        "text": text,
+
+    }
+
+    if keyboard:
+
+        payload["reply_markup"] = {
+
+            "inline_keyboard": keyboard,
+
+        }
+
+    result = _post(
+
+        "sendMessage",
+
+        payload,
+
+    )
+
+    if result:
+
+        log_info(
+
+            "bale_client",
+
+            "send_message",
+
+            str(chat_id),
+
+        )
+
+    return result
+
+
+# -----------------------------
 # Edit Message
-# -------------------------------------------------
+# -----------------------------
 def edit_message(
 
     chat_id: int,
@@ -152,7 +144,7 @@ def edit_message(
 
     text: str,
 
-    inline_keyboard=None,
+    keyboard=None,
 
 ):
 
@@ -166,46 +158,26 @@ def edit_message(
 
     }
 
-    if inline_keyboard:
+    if keyboard:
 
         payload["reply_markup"] = {
 
-            "inline_keyboard": inline_keyboard,
+            "inline_keyboard": keyboard,
 
         }
 
-    try:
+    return _post(
 
-        requests.post(
+        "editMessageText",
 
-            api_url("editMessageText"),
+        payload,
 
-            json=payload,
-
-            timeout=20,
-
-        )
-
-        return True
-
-    except Exception as e:
-
-        log_error(
-
-            "bale_client",
-
-            "edit",
-
-            str(e),
-
-        )
-
-        return False
+    )
 
 
-# -------------------------------------------------
+# -----------------------------
 # Delete Message
-# -------------------------------------------------
+# -----------------------------
 def delete_message(
 
     chat_id: int,
@@ -214,55 +186,37 @@ def delete_message(
 
 ):
 
-    try:
+    payload = {
 
-        requests.post(
+        "chat_id": chat_id,
 
-            api_url("deleteMessage"),
+        "message_id": message_id,
 
-            json={
+    }
 
-                "chat_id": chat_id,
+    return _post(
 
-                "message_id": message_id,
+        "deleteMessage",
 
-            },
+        payload,
 
-            timeout=20,
-
-        )
-
-        return True
-
-    except Exception as e:
-
-        log_error(
-
-            "bale_client",
-
-            "delete",
-
-            str(e),
-
-        )
-
-        return False
+    )
 
 
-# -------------------------------------------------
+# -----------------------------
 # Answer Callback
-# -------------------------------------------------
+# -----------------------------
 def answer_callback(
 
-    callback_query_id: str,
+    callback_id: str,
 
-    text: str | None = None,
+    text: str = "",
 
 ):
 
     payload = {
 
-        "callback_query_id": callback_query_id,
+        "callback_query_id": callback_id,
 
     }
 
@@ -270,30 +224,10 @@ def answer_callback(
 
         payload["text"] = text
 
-    try:
+    return _post(
 
-        requests.post(
+        "answerCallbackQuery",
 
-            api_url("answerCallbackQuery"),
+        payload,
 
-            json=payload,
-
-            timeout=20,
-
-        )
-
-        return True
-
-    except Exception as e:
-
-        log_error(
-
-            "bale_client",
-
-            "callback",
-
-            str(e),
-
-        )
-
-        return False
+    )
