@@ -1,82 +1,81 @@
 """
-expert_handlers.py
+handlers/expert_handlers.py
 
-Expert command handler (v1).
+Expert message handler.
 """
+
+from expert_state import (
+    get_state,
+    get_data,
+    reset,
+)
 
 from expert_service import (
     reply,
-    close,
-    assign_request,
 )
 
 
 # -----------------------------
 # Handle Expert Message
 # -----------------------------
-def handle_expert_message(chat_id: int, message: str) -> str:
-    """
-    Expert command handler (MVP keyword-based).
-    """
+def handle_expert_message(
+    chat_id: int,
+    message: str,
+):
 
-    if not message:
-        return "پیام نامعتبر است"
+    state = get_state(chat_id)
 
-    parts = message.split()
-    cmd = parts[0].lower()
+    # ---------------------------------
+    # Waiting Reply
+    # ---------------------------------
+    if state == "WAITING_REPLY":
 
-    # -------------------------
-    # Reply
-    # -------------------------
-    if cmd == "reply":
+        data = get_data(chat_id)
 
-        if len(parts) < 3:
-            return "فرمت: reply tracking_code message"
+        tracking = data.get("tracking_code")
 
-        tracking_code = parts[1]
-        msg = " ".join(parts[2:])
+        if not tracking:
+
+            reset(chat_id)
+
+            return {
+                "text": "اطلاعات درخواست یافت نشد.",
+            }
 
         result = reply(
-            tracking_code,
-            chat_id,
-            msg,
+
+            tracking_code=tracking,
+
+            expert_id=chat_id,
+
+            message=message,
+
         )
 
-        return "ارسال شد" if result["success"] else result["message"]
+        reset(chat_id)
 
-    # -------------------------
-    # Close
-    # -------------------------
-    if cmd == "close":
+        if result["success"]:
 
-        if len(parts) < 2:
-            return "فرمت: close tracking_code"
+            return {
 
-        tracking_code = parts[1]
+                "text":
+                    "✅ پاسخ با موفقیت برای مشترک ارسال شد.\n"
+                    "درخواست نیز بسته شد.",
 
-        result = close(
-            tracking_code,
-            chat_id,
-        )
+            }
 
-        return "بسته شد" if result["success"] else result["message"]
+        return {
 
-    # -------------------------
-    # Assign
-    # -------------------------
-    if cmd == "assign":
+            "text": result["message"],
 
-        if len(parts) < 3:
-            return "فرمت: assign tracking_code expert_id"
+        }
 
-        tracking_code = parts[1]
-        expert_id = int(parts[2])
+    # ---------------------------------
+    # Default
+    # ---------------------------------
+    return {
 
-        result = assign_request(
-            tracking_code,
-            expert_id,
-        )
+        "text":
+            "برای پاسخ به یک درخواست از دکمه «💬 پاسخ» استفاده کنید.",
 
-        return "انجام شد" if result["success"] else result["message"]
-
-    return "دستور نامعتبر است"
+    }
