@@ -22,14 +22,19 @@ from logger import (
 )
 
 
-# ---------------------------------
+# -----------------------------
 # Reply
-# ---------------------------------
+# -----------------------------
 def reply(
     tracking_code: str,
     expert_id: int,
     message: str,
 ) -> Dict[str, Any]:
+    """
+    Save expert reply,
+    notify user,
+    close request.
+    """
 
     try:
 
@@ -47,9 +52,10 @@ def reply(
 
             }
 
-        # -----------------------------
-        # Save expert message
-        # -----------------------------
+        # -------------------------
+        # Save Message
+        # -------------------------
+
         add_message(
 
             tracking_code=tracking_code,
@@ -64,26 +70,25 @@ def reply(
 
         )
 
-        # -----------------------------
-        # Send to user
-        # -----------------------------
+        # -------------------------
+        # Notify User
+        # -------------------------
+
         notify_user(
 
-            request["chat_id"],
+            chat_id=request["chat_id"],
 
-            (
+            message=(
                 "📩 پاسخ کارشناس\n\n"
-
-                f"🎫 {tracking_code}\n\n"
-
                 f"{message}"
             ),
 
         )
 
-        # -----------------------------
-        # Close request
-        # -----------------------------
+        # -------------------------
+        # Close Request
+        # -------------------------
+
         close_request(
             request["id"],
         )
@@ -120,23 +125,23 @@ def reply(
 
             "success": False,
 
-            "message": "خطا در ثبت پاسخ.",
+            "message": "خطای داخلی سیستم",
 
         }
 
 
-# ---------------------------------
-# Assign (Version 2)
-# ---------------------------------
+# -----------------------------
+# Assign
+# -----------------------------
 def assign_request(
     tracking_code: str,
     expert_id: int,
-):
+) -> Dict[str, Any]:
 
     return {
 
         "success": False,
 
-        "message": "در نسخه بعدی فعال می‌شود.",
+        "message": "ارجاع در نسخه بعدی فعال می‌شود.",
 
     }
