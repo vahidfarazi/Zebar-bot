@@ -58,69 +58,65 @@ def process_update(
         # Expert Reply
         # -----------------------------------------
 
-        if role == "EXPERT":
+        if role == "EXPERT" and is_waiting_reply(sender_id):
 
-            if is_waiting_reply(
+            tracking = get_tracking_code(
                 sender_id,
-            ):
+            )
 
-                tracking = get_tracking_code(
-                    sender_id,
-                )
-
-                if not tracking:
-
-                    reset(
-                        sender_id,
-                    )
-
-                    send_message(
-
-                        chat_id=sender_id,
-
-                        text="اطلاعات درخواست یافت نشد.",
-
-                    )
-
-                    return
-
-                result = reply(
-
-                    tracking_code=tracking,
-
-                    expert_id=sender_id,
-
-                    message=message,
-
-                    reply_message_id=message_id,
-
-                )
+            if not tracking:
 
                 reset(
                     sender_id,
                 )
 
-                if result["success"]:
+                send_message(
 
-                    send_message(
+                    chat_id=sender_id,
 
-                        chat_id=sender_id,
+                    text="اطلاعات درخواست یافت نشد.",
 
-                        text="✅ پاسخ با موفقیت ثبت و برای مشترک ارسال شد.",
-
-                    )
-
-                else:
-
-                    send_message(
-
-                        chat_id=sender_id,
-
-                        text=result["message"],
-
-                    )
+                )
 
                 return
+
+            result = reply(
+
+                tracking_code=tracking,
+
+                expert_id=sender_id,
+
+                message=message,
+
+                reply_message_id=message_id,
+
+            )
+
+            reset(
+                sender_id,
+            )
+
+            if result["success"]:
+
+                send_message(
+
+                    chat_id=sender_id,
+
+                    text="✅ پاسخ با موفقیت ثبت و برای مشترک ارسال شد.",
+
+                )
+
+            else:
+
+                send_message(
+
+                    chat_id=sender_id,
+
+                    text=result["message"],
+
+                )
+
+            return
 
         # -----------------------------------------
         # Router
@@ -283,16 +279,12 @@ def handle_update(
             sender_id,
         ):
 
-            # کارشناس فقط هنگام پاسخ به درخواست Expert است.
+            # کارشناس فقط هنگام پاسخ دادن Expert است.
             if is_waiting_reply(
                 sender_id,
             ):
 
                 role = "EXPERT"
-
-            else:
-
-                role = "USER"
 
         process_update(
 
@@ -318,4 +310,4 @@ def handle_update(
 
             traceback.format_exc(),
 
-        )
+)
