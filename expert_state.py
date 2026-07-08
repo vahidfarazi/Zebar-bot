@@ -7,79 +7,87 @@ Expert temporary state manager.
 from typing import Optional
 
 
-# -----------------------------
+# -------------------------------------------------
 # Memory Storage
-# -----------------------------
-_states: dict[int, str] = {}
+# -------------------------------------------------
 
-_data: dict[int, dict] = {}
+_states: dict[int, dict] = {}
 
 
-# -----------------------------
-# Set State
-# -----------------------------
-def set_state(
+# -------------------------------------------------
+# Set Waiting Reply
+# -------------------------------------------------
+def set_waiting_reply(
     chat_id: int,
-    state: str,
+    tracking_code: str,
 ) -> None:
     """
-    Set expert state.
+    Expert starts replying to a request.
     """
 
-    _states[chat_id] = state
+    _states[chat_id] = {
+
+        "state": "WAITING_REPLY",
+
+        "tracking_code": tracking_code,
+
+    }
 
 
-# -----------------------------
+# -------------------------------------------------
 # Get State
-# -----------------------------
+# -------------------------------------------------
 def get_state(
     chat_id: int,
-) -> Optional[str]:
+) -> Optional[dict]:
     """
-    Get expert state.
+    Return expert state.
     """
 
     return _states.get(chat_id)
 
 
-# -----------------------------
-# Update Data
-# -----------------------------
-def update_data(
+# -------------------------------------------------
+# Is Waiting Reply
+# -------------------------------------------------
+def is_waiting_reply(
     chat_id: int,
-    key: str,
-    value,
-) -> None:
+) -> bool:
     """
-    Save expert temporary data.
+    Check whether expert is waiting for reply.
     """
 
-    if chat_id not in _data:
+    state = _states.get(chat_id)
 
-        _data[chat_id] = {}
+    if not state:
 
-    _data[chat_id][key] = value
+        return False
+
+    return state.get("state") == "WAITING_REPLY"
 
 
-# -----------------------------
-# Get Data
-# -----------------------------
-def get_data(
+# -------------------------------------------------
+# Get Tracking Code
+# -------------------------------------------------
+def get_tracking_code(
     chat_id: int,
-) -> dict:
+) -> Optional[str]:
     """
-    Return expert temporary data.
+    Return tracking code of current reply.
     """
 
-    return _data.get(
-        chat_id,
-        {},
-    )
+    state = _states.get(chat_id)
+
+    if not state:
+
+        return None
+
+    return state.get("tracking_code")
 
 
-# -----------------------------
+# -------------------------------------------------
 # Reset
-# -----------------------------
+# -------------------------------------------------
 def reset(
     chat_id: int,
 ) -> None:
@@ -90,9 +98,4 @@ def reset(
     _states.pop(
         chat_id,
         None,
-    )
-
-    _data.pop(
-        chat_id,
-        None,
-    )
+)
