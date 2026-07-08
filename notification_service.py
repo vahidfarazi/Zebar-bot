@@ -14,16 +14,33 @@ from logger import (
 )
 
 
-# -----------------------------
+# ---------------------------------
+# Expert Inline Keyboard
+# ---------------------------------
+def expert_keyboard(
+    tracking_code: str,
+):
+
+    return [
+
+        [
+
+            ("💬 پاسخ", f"reply:{tracking_code}"),
+
+            ("🔄 ارجاع", f"forward:{tracking_code}"),
+
+        ]
+
+    ]
+
+
+# ---------------------------------
 # Notify Expert Group
-# -----------------------------
+# ---------------------------------
 def notify_experts(
+    tracking_code: str,
     message: str,
-    keyboard=None,
 ) -> bool:
-    """
-    Send message to expert group.
-    """
 
     group_id = Config.get_str(
         "EXPERT_GROUP_ID",
@@ -46,7 +63,9 @@ def notify_experts(
 
         text=message,
 
-        keyboard=keyboard,
+        inline_keyboard=expert_keyboard(
+            tracking_code,
+        ),
 
     )
 
@@ -77,17 +96,14 @@ def notify_experts(
     return result
 
 
-# -----------------------------
+# ---------------------------------
 # Notify User
-# -----------------------------
+# ---------------------------------
 def notify_user(
     chat_id: int,
     message: str,
     keyboard=None,
 ) -> bool:
-    """
-    Send message to user.
-    """
 
     result = send_message(
 
