@@ -57,9 +57,8 @@ def handle_callback(
                 chat_id=chat_id,
 
                 text=(
-                    "شما در حال پاسخ به درخواست\n\n"
+                    "⚠️ شما در حال پاسخ به درخواست زیر هستید:\n\n"
                     f"{tracking}\n\n"
-                    "هستید.\n"
                     "ابتدا پاسخ آن را ارسال کنید."
                 ),
 
@@ -67,7 +66,10 @@ def handle_callback(
 
             return
 
-        tracking = data.split(":", 1)[1]
+        tracking = data.split(
+            ":",
+            1,
+        )[1]
 
         set_waiting_reply(
 
@@ -82,8 +84,9 @@ def handle_callback(
             chat_id=chat_id,
 
             text=(
-                f"درخواست {tracking} انتخاب شد.\n\n"
-                "اکنون پاسخ خود را ارسال کنید."
+                "✅ درخواست انتخاب شد.\n\n"
+                f"کد رهگیری: {tracking}\n\n"
+                "لطفاً پاسخ خود را ارسال کنید."
             ),
 
         )
@@ -95,15 +98,18 @@ def handle_callback(
     # -----------------------------------------
     if data.startswith("forward:"):
 
-        tracking = data.split(":", 1)[1]
+        tracking = data.split(
+            ":",
+            1,
+        )[1]
 
         send_message(
 
             chat_id=chat_id,
 
             text=(
-                f"ارجاع درخواست {tracking} "
-                "در نسخه بعدی فعال خواهد شد."
+                f"ارجاع درخواست {tracking}\n\n"
+                "در مرحله بعدی پیاده‌سازی می‌شود."
             ),
 
         )
