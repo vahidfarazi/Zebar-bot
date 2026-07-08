@@ -4,6 +4,8 @@ main_runner.py
 Core runtime processor for Azarakhsh system.
 """
 
+import traceback
+
 from router import route_message
 from callback_handler import handle_callback
 
@@ -69,16 +71,24 @@ def process_update(
 
     except Exception as e:
 
+        traceback.print_exc()
+
         log_error(
             "runner",
             "process_update",
             str(e),
         )
 
-        send_message(
-            chat_id=chat_id,
-            text="خطایی رخ داد.",
-        )
+        try:
+
+            send_message(
+                chat_id=chat_id,
+                text="خطایی رخ داد.",
+            )
+
+        except Exception:
+
+            traceback.print_exc()
 
 
 # -----------------------------
@@ -141,6 +151,8 @@ def handle_update(
         )
 
     except Exception as e:
+
+        traceback.print_exc()
 
         log_error(
             "runner",
