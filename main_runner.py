@@ -22,12 +22,22 @@ from database import (
 
 from bale_client import send_message
 
+from expert_state import (
+    is_waiting_reply,
+    get_tracking_code,
+    reset,
+)
 
-# -----------------------------
+from expert_service import (
+    reply,
+)
+
+
+# -------------------------------------------------
 # Process Update
-# -----------------------------
+# -------------------------------------------------
 def process_update(
-    chat_id: int,
+    sender_id: int,
     message: str,
     role: str = "USER",
 ) -> None:
@@ -37,11 +47,50 @@ def process_update(
 
     try:
 
-        create_user(chat_id)
+        create_user(sender_id)
+
+        # -----------------------------------------
+        # Expert Waiting Reply
+        # -----------------------------------------
+        if role == "EXPERT" and is_waiting_reply(sender_id):
+
+            tracking = get_tracking_code(
+                sender_id,
+            )
+
+            result = reply(
+
+                tracking_code=tracking,
+
+                expert_id=sender_id,
+
+                message=message,
+
+            )
+
+            reset(
+                sender_id,
+            )
+
+            if not result["success"]:
+
+                send_message(
+
+                    chat_id=sender_id,
+
+                    text=result["message"],
+
+                )
+
+            return
+
+        # -----------------------------------------
+        # Router
+        # -----------------------------------------
 
         result = route_message(
 
-            chat_id,
+            sender_id,
 
             message,
 
@@ -57,7 +106,7 @@ def process_update(
 
             send_message(
 
-                chat_id=chat_id,
+                chat_id=sender_id,
 
                 text=result.get(
                     "text",
@@ -74,7 +123,7 @@ def process_update(
 
             send_message(
 
-                chat_id=chat_id,
+                chat_id=sender_id,
 
                 text=str(result),
 
@@ -86,7 +135,7 @@ def process_update(
 
             "process_update",
 
-            str(chat_id),
+            str(sender_id),
 
         )
 
@@ -106,16 +155,16 @@ def process_update(
 
         send_message(
 
-            chat_id,
+            chat_id=sender_id,
 
-            "خطایی رخ داد.",
+            text="خطایی رخ داد.",
 
         )
 
 
-# -----------------------------
+# -------------------------------------------------
 # Handle Incoming Update
-# -----------------------------
+# -------------------------------------------------
 def handle_update(
     update: dict,
 ) -> None:
@@ -129,9 +178,9 @@ def handle_update(
         print(update)
         print("============================")
 
-        # -----------------------------
+        # -----------------------------------------
         # Callback
-        # -----------------------------
+        # -----------------------------------------
         callback = update.get(
             "callback_query",
         )
@@ -144,48 +193,53 @@ def handle_update(
 
             return
 
-        # -----------------------------
+        # -----------------------------------------
         # Message
-        # -----------------------------
+        # -----------------------------------------
         message = update.get(
             "message",
             {},
         )
 
-        chat = message.get(
-            "chat",
+        if not message:
+
+            return
+
+        sender = message.get(
+            "from",
             {},
         )
 
-        chat_id = chat.get(
+        sender_id = sender.get(
             "id",
         )
+
+        if not sender_id:
+
+            return
 
         text = message.get(
             "text",
             "",
         )
 
-        if not chat_id:
-
-            return
-
-        # -----------------------------
+        # -----------------------------------------
         # Detect Role
-        # -----------------------------
+        # -----------------------------------------
+
         role = "USER"
 
-        if is_admin(chat_id):
+        if is_admin(sender_id):
 
             role = "ADMIN"
 
-        elif get_expert(chat_id):
+        elif get_expert(sender_id):
 
             role = "EXPERT"
 
         process_update(
 
-            chat_id,
+            sender_id,
 
             text,
 
