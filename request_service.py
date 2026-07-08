@@ -22,6 +22,7 @@ from notification_service import (
 
 from logger import (
     log_info,
+    log_error,
 )
 
 
@@ -54,84 +55,104 @@ def create_request(
     Create new request.
     """
 
-    tracking = generate_tracking_code()
+    try:
 
-    # -------------------------
-    # Save Request
-    # -------------------------
+        tracking = generate_tracking_code()
 
-    insert_request(
+        # -------------------------
+        # Save Request
+        # -------------------------
 
-        tracking_code=tracking,
+        insert_request(
 
-        chat_id=chat_id,
+            tracking_code=tracking,
 
-        service=data["service"],
+            chat_id=chat_id,
 
-        sub_service=data.get(
-            "sub_service",
-        ),
+            service=data["service"],
 
-    )
+            sub_service=data.get(
+                "sub_service",
+            ),
 
-    # -------------------------
-    # Save First User Message
-    # -------------------------
+        )
 
-    add_message(
+        # -------------------------
+        # Save First User Message
+        # -------------------------
 
-        tracking_code=tracking,
+        add_message(
 
-        sender_type="USER",
+            tracking_code=tracking,
 
-        sender_id=chat_id,
+            sender_type="USER",
 
-        message_type="REQUEST",
+            sender_id=chat_id,
 
-        message=format_request(
-            data,
-        ),
+            message_type="REQUEST",
 
-    )
+            message=format_request(
+                data,
+            ),
 
-    # -------------------------
-    # Expert Notification
-    # -------------------------
+        )
 
-    expert_message = format_expert(
+        # -------------------------
+        # Expert Notification
+        # -------------------------
 
-        tracking,
+        expert_message = format_expert(
 
-        chat_id,
-
-        data,
-
-    )
-
-    notify_experts(
-        expert_message,
-    )
-
-    log_info(
-
-        "request_service",
-
-        "create_request",
-
-        tracking,
-
-    )
-
-    # -------------------------
-    # Result
-    # -------------------------
-
-    return {
-
-        "tracking": tracking,
-
-        "user_message": format_success(
             tracking,
-        ),
 
-    }
+            chat_id,
+
+            data,
+
+        )
+
+        notify_experts(
+
+            tracking,
+
+            expert_message,
+
+        )
+
+        log_info(
+
+            "request_service",
+
+            "create_request",
+
+            tracking,
+
+        )
+
+        # -------------------------
+        # Result
+        # -------------------------
+
+        return {
+
+            "tracking": tracking,
+
+            "user_message": format_success(
+                tracking,
+            ),
+
+        }
+
+    except Exception as e:
+
+        log_error(
+
+            "request_service",
+
+            "create_request",
+
+            str(e),
+
+        )
+
+        raise
