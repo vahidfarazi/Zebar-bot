@@ -1,17 +1,71 @@
 """
 expert_state.py
 
-Expert temporary state manager.
+Persistent expert state manager.
 """
 
-from typing import Optional
+import json
+
+from database import (
+    get_setting,
+    set_setting,
+)
 
 
 # -------------------------------------------------
-# Memory Storage
+# Keys
 # -------------------------------------------------
+def _state_key(
+    chat_id: int,
+) -> str:
 
-_states: dict[int, dict] = {}
+    return f"EXPERT_STATE_{chat_id}"
+
+
+# -------------------------------------------------
+# Save State
+# -------------------------------------------------
+def _save_state(
+    chat_id: int,
+    state: dict,
+) -> None:
+
+    set_setting(
+
+        _state_key(chat_id),
+
+        json.dumps(
+            state,
+            ensure_ascii=False,
+        ),
+
+    )
+
+
+# -------------------------------------------------
+# Load State
+# -------------------------------------------------
+def _load_state(
+    chat_id: int,
+) -> dict:
+
+    value = get_setting(
+
+        _state_key(chat_id),
+
+    )
+
+    if not value:
+
+        return {}
+
+    try:
+
+        return json.loads(value)
+
+    except Exception:
+
+        return {}
 
 
 # -------------------------------------------------
@@ -24,20 +78,26 @@ def set_waiting_reply(
     message_id: int,
 ) -> None:
     """
-    Expert starts replying to a request.
+    Expert starts replying.
     """
 
-    _states[chat_id] = {
+    _save_state(
 
-        "state": "WAITING_REPLY",
+        chat_id,
 
-        "tracking_code": tracking_code,
+        {
 
-        "group_chat_id": group_chat_id,
+            "state": "WAITING_REPLY",
 
-        "message_id": message_id,
+            "tracking_code": tracking_code,
 
-    }
+            "group_chat_id": group_chat_id,
+
+            "message_id": message_id,
+
+        },
+
+    )
 
 
 # -------------------------------------------------
@@ -45,39 +105,37 @@ def set_waiting_reply(
 # -------------------------------------------------
 def get_state(
     chat_id: int,
-) -> Optional[dict]:
+) -> dict:
 
-    return _states.get(chat_id)
+    return _load_state(
+        chat_id,
+    )
 
 
 # -------------------------------------------------
-# Is Waiting Reply
+# Waiting Reply
 # -------------------------------------------------
 def is_waiting_reply(
     chat_id: int,
 ) -> bool:
 
-    state = _states.get(chat_id)
-
-    return bool(
-        state
-        and
-        state.get("state") == "WAITING_REPLY"
+    state = _load_state(
+        chat_id,
     )
+
+    return state.get("state") == "WAITING_REPLY"
 
 
 # -------------------------------------------------
-# Tracking Code
+# Tracking
 # -------------------------------------------------
 def get_tracking_code(
     chat_id: int,
-) -> Optional[str]:
+):
 
-    state = _states.get(chat_id)
-
-    if not state:
-
-        return None
+    state = _load_state(
+        chat_id,
+    )
 
     return state.get(
         "tracking_code",
@@ -85,17 +143,15 @@ def get_tracking_code(
 
 
 # -------------------------------------------------
-# Group Chat ID
+# Group Chat
 # -------------------------------------------------
 def get_group_chat_id(
     chat_id: int,
-) -> Optional[int]:
+):
 
-    state = _states.get(chat_id)
-
-    if not state:
-
-        return None
+    state = _load_state(
+        chat_id,
+    )
 
     return state.get(
         "group_chat_id",
@@ -103,17 +159,15 @@ def get_group_chat_id(
 
 
 # -------------------------------------------------
-# Request Message ID
+# Group Message
 # -------------------------------------------------
-def get_message_id(
+def get_group_message_id(
     chat_id: int,
-) -> Optional[int]:
+):
 
-    state = _states.get(chat_id)
-
-    if not state:
-
-        return None
+    state = _load_state(
+        chat_id,
+    )
 
     return state.get(
         "message_id",
@@ -127,7 +181,10 @@ def reset(
     chat_id: int,
 ) -> None:
 
-    _states.pop(
-        chat_id,
-        None,
-)
+    set_setting(
+
+        _state_key(chat_id),
+
+        "",
+
+    )
