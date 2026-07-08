@@ -76,6 +76,8 @@ def process_update(
 
                     message=message,
 
+                    reply_message_id=message_id,
+
                 )
 
                 reset(
@@ -281,4 +283,4 @@ def handle_update(
 
             traceback.format_exc(),
 
-            )
+        )
