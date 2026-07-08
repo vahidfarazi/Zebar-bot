@@ -5,8 +5,8 @@ Expert message handler.
 """
 
 from expert_state import (
-    get_state,
-    get_data,
+    is_waiting_reply,
+    get_tracking_code,
     reset,
 )
 
@@ -22,24 +22,30 @@ def handle_expert_message(
     chat_id: int,
     message: str,
 ):
-
-    state = get_state(chat_id)
+    """
+    Expert workflow.
+    """
 
     # ---------------------------------
     # Waiting Reply
     # ---------------------------------
-    if state == "WAITING_REPLY":
+    if is_waiting_reply(chat_id):
 
-        data = get_data(chat_id)
-
-        tracking = data.get("tracking_code")
+        tracking = get_tracking_code(
+            chat_id,
+        )
 
         if not tracking:
 
-            reset(chat_id)
+            reset(
+                chat_id,
+            )
 
             return {
-                "text": "اطلاعات درخواست یافت نشد.",
+
+                "text":
+                    "اطلاعات درخواست یافت نشد.",
+
             }
 
         result = reply(
@@ -52,30 +58,34 @@ def handle_expert_message(
 
         )
 
-        reset(chat_id)
+        reset(
+            chat_id,
+        )
 
         if result["success"]:
 
             return {
 
                 "text":
-                    "✅ پاسخ با موفقیت برای مشترک ارسال شد.\n"
+                    "✅ پاسخ برای مشترک ارسال شد.\n"
                     "درخواست نیز بسته شد.",
 
             }
 
         return {
 
-            "text": result["message"],
+            "text":
+                result["message"],
 
         }
 
     # ---------------------------------
     # Default
     # ---------------------------------
+
     return {
 
         "text":
-            "برای پاسخ به یک درخواست از دکمه «💬 پاسخ» استفاده کنید.",
+            "برای پاسخ به درخواست‌ها از دکمه «💬 پاسخ» در گروه کارشناسان استفاده کنید.",
 
     }
