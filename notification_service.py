@@ -14,9 +14,9 @@ from logger import (
 )
 
 
-# ---------------------------------
+# -------------------------------------------------
 # Expert Inline Keyboard
-# ---------------------------------
+# -------------------------------------------------
 def expert_keyboard(
     tracking_code: str,
 ):
@@ -25,18 +25,24 @@ def expert_keyboard(
 
         [
 
-            ("💬 پاسخ", f"reply:{tracking_code}"),
+            {
+                "text": "💬 پاسخ",
+                "callback_data": f"reply:{tracking_code}",
+            },
 
-            ("🔄 ارجاع", f"forward:{tracking_code}"),
+            {
+                "text": "🔄 ارجاع",
+                "callback_data": f"forward:{tracking_code}",
+            },
 
         ]
 
     ]
 
 
-# ---------------------------------
+# -------------------------------------------------
 # Notify Expert Group
-# ---------------------------------
+# -------------------------------------------------
 def notify_experts(
     tracking_code: str,
     message: str,
@@ -77,7 +83,7 @@ def notify_experts(
 
             "expert_group",
 
-            "sent",
+            tracking_code,
 
         )
 
@@ -96,9 +102,9 @@ def notify_experts(
     return result
 
 
-# ---------------------------------
+# -------------------------------------------------
 # Notify User
-# ---------------------------------
+# -------------------------------------------------
 def notify_user(
     chat_id: int,
     message: str,
