@@ -14,8 +14,10 @@ Supports:
 import requests
 
 from config import Config
-from logger import log_error, log_info
-
+from logger import (
+    log_info,
+    log_error,
+)
 
 # -------------------------------------------------
 # Config
@@ -32,28 +34,26 @@ BOT_TOKEN = Config.get_str(
 )
 
 
-def _url(method: str) -> str:
-
+def api_url(method: str) -> str:
     return f"{BASE_URL}/bot{BOT_TOKEN}/{method}"
 
 
 # -------------------------------------------------
 # Send Message
 # -------------------------------------------------
-
 def send_message(
     chat_id: int,
     text: str,
     keyboard=None,
     inline_keyboard=None,
-) -> bool:
+):
 
     if not BOT_TOKEN:
 
         log_error(
             "bale_client",
-            "missing_token",
-            "BALE_BOT_TOKEN is not set",
+            "token",
+            "BALE_BOT_TOKEN is empty",
         )
 
         return False
@@ -66,7 +66,7 @@ def send_message(
 
     }
 
-    # Reply Keyboard
+    # Reply keyboard
     if keyboard:
 
         payload["reply_markup"] = {
@@ -79,7 +79,7 @@ def send_message(
 
         }
 
-    # Inline Keyboard
+    # Inline keyboard
     elif inline_keyboard:
 
         payload["reply_markup"] = {
@@ -92,7 +92,7 @@ def send_message(
 
         response = requests.post(
 
-            _url("sendMessage"),
+            api_url("sendMessage"),
 
             json=payload,
 
@@ -106,7 +106,7 @@ def send_message(
 
                 "bale_client",
 
-                "send_failed",
+                "send",
 
                 response.text,
 
@@ -118,13 +118,13 @@ def send_message(
 
             "bale_client",
 
-            "send_message",
+            "send",
 
             str(chat_id),
 
         )
 
-        return True
+        return response.json()
 
     except Exception as e:
 
@@ -144,7 +144,6 @@ def send_message(
 # -------------------------------------------------
 # Edit Message
 # -------------------------------------------------
-
 def edit_message(
 
     chat_id: int,
@@ -179,7 +178,7 @@ def edit_message(
 
         requests.post(
 
-            _url("editMessageText"),
+            api_url("editMessageText"),
 
             json=payload,
 
@@ -207,7 +206,6 @@ def edit_message(
 # -------------------------------------------------
 # Delete Message
 # -------------------------------------------------
-
 def delete_message(
 
     chat_id: int,
@@ -220,7 +218,7 @@ def delete_message(
 
         requests.post(
 
-            _url("deleteMessage"),
+            api_url("deleteMessage"),
 
             json={
 
@@ -254,7 +252,6 @@ def delete_message(
 # -------------------------------------------------
 # Answer Callback
 # -------------------------------------------------
-
 def answer_callback(
 
     callback_query_id: str,
@@ -277,7 +274,7 @@ def answer_callback(
 
         requests.post(
 
-            _url("answerCallbackQuery"),
+            api_url("answerCallbackQuery"),
 
             json=payload,
 
