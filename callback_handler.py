@@ -6,7 +6,6 @@ Handle Bale callback queries.
 
 from bale_client import (
     answer_callback,
-    send_message,
 )
 
 from expert_state import (
@@ -29,7 +28,15 @@ def handle_callback(
 
     user = callback.get("from", {})
 
-    chat_id = user.get("id")
+    expert_id = user.get("id")
+
+    message = callback.get("message", {})
+
+    group_chat = message.get("chat", {})
+
+    group_chat_id = group_chat.get("id")
+
+    message_id = message.get("message_id")
 
     if callback_id:
 
@@ -37,7 +44,7 @@ def handle_callback(
             callback_id,
         )
 
-    if not chat_id:
+    if not expert_id:
 
         return
 
@@ -46,23 +53,7 @@ def handle_callback(
     # -----------------------------------------
     if data.startswith("reply:"):
 
-        if is_waiting_reply(chat_id):
-
-            tracking = get_tracking_code(
-                chat_id,
-            )
-
-            send_message(
-
-                chat_id=chat_id,
-
-                text=(
-                    "⚠️ شما در حال پاسخ به درخواست زیر هستید:\n\n"
-                    f"{tracking}\n\n"
-                    "ابتدا پاسخ آن را ارسال کنید."
-                ),
-
-            )
+        if is_waiting_reply(expert_id):
 
             return
 
@@ -73,21 +64,13 @@ def handle_callback(
 
         set_waiting_reply(
 
-            chat_id,
+            chat_id=expert_id,
 
-            tracking,
+            tracking_code=tracking,
 
-        )
+            group_chat_id=group_chat_id,
 
-        send_message(
-
-            chat_id=chat_id,
-
-            text=(
-                "✅ درخواست انتخاب شد.\n\n"
-                f"کد رهگیری: {tracking}\n\n"
-                "لطفاً پاسخ خود را ارسال کنید."
-            ),
+            message_id=message_id,
 
         )
 
@@ -98,20 +81,5 @@ def handle_callback(
     # -----------------------------------------
     if data.startswith("forward:"):
 
-        tracking = data.split(
-            ":",
-            1,
-        )[1]
-
-        send_message(
-
-            chat_id=chat_id,
-
-            text=(
-                f"ارجاع درخواست {tracking}\n\n"
-                "در مرحله بعدی پیاده‌سازی می‌شود."
-            ),
-
-        )
-
+        # مرحله بعدی پیاده‌سازی می‌شود
         return
