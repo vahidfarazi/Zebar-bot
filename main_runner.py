@@ -5,6 +5,7 @@ Core runtime processor for Azarakhsh system.
 """
 
 from router import route_message
+from callback_handler import handle_callback
 
 from logger import (
     log_error,
@@ -15,9 +16,6 @@ from database import create_user
 
 from bale_client import send_message
 
-# این را بعداً می‌سازیم
-from expert_handlers import handle_callback
-
 
 # -----------------------------
 # Process Update
@@ -27,6 +25,9 @@ def process_update(
     message: str,
     role: str = "USER",
 ) -> None:
+    """
+    Process incoming message.
+    """
 
     try:
 
@@ -46,7 +47,7 @@ def process_update(
             send_message(
                 chat_id,
                 result.get("text", ""),
-                result.get("keyboard"),
+                keyboard=result.get("keyboard"),
             )
 
         else:
@@ -82,6 +83,9 @@ def process_update(
 def handle_update(
     update: dict,
 ) -> None:
+    """
+    Entry point.
+    """
 
     try:
 
@@ -97,7 +101,6 @@ def handle_update(
         if callback:
 
             handle_callback(callback)
-
             return
 
         # -----------------------------
@@ -109,13 +112,10 @@ def handle_update(
 
         chat_id = chat.get("id")
 
-        print("CHAT ID:", chat_id)
+        text = message.get("text", "")
 
         if not chat_id:
-
             return
-
-        text = message.get("text", "")
 
         process_update(
             chat_id,
