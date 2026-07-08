@@ -20,7 +20,9 @@ from database import (
     is_admin,
 )
 
-from bale_client import send_message
+from bale_client import (
+    send_message,
+)
 
 from expert_state import (
     is_waiting_reply,
@@ -40,6 +42,7 @@ def process_update(
     sender_id: int,
     message: str,
     role: str = "USER",
+    message_id: int | None = None,
 ) -> None:
     """
     Process incoming message.
@@ -47,42 +50,49 @@ def process_update(
 
     try:
 
-        create_user(sender_id)
+        create_user(
+            sender_id,
+        )
 
         # -----------------------------------------
-        # Expert Waiting Reply
+        # Expert Reply
         # -----------------------------------------
-        if role == "EXPERT" and is_waiting_reply(sender_id):
 
-            tracking = get_tracking_code(
+        if role == "EXPERT":
+
+            if is_waiting_reply(
                 sender_id,
-            )
+            ):
 
-            result = reply(
+                tracking = get_tracking_code(
+                    sender_id,
+                )
 
-                tracking_code=tracking,
+                result = reply(
 
-                expert_id=sender_id,
+                    tracking_code=tracking,
 
-                message=message,
+                    expert_id=sender_id,
 
-            )
-
-            reset(
-                sender_id,
-            )
-
-            if not result["success"]:
-
-                send_message(
-
-                    chat_id=sender_id,
-
-                    text=result["message"],
+                    message=message,
 
                 )
 
-            return
+                reset(
+                    sender_id,
+                )
+
+                if not result["success"]:
+
+                    send_message(
+
+                        chat_id=sender_id,
+
+                        text=result["message"],
+
+                    )
+
+                return
 
         # -----------------------------------------
         # Router
@@ -181,6 +191,7 @@ def handle_update(
         # -----------------------------------------
         # Callback
         # -----------------------------------------
+
         callback = update.get(
             "callback_query",
         )
@@ -196,6 +207,7 @@ def handle_update(
         # -----------------------------------------
         # Message
         # -----------------------------------------
+
         message = update.get(
             "message",
             {},
@@ -223,27 +235,37 @@ def handle_update(
             "",
         )
 
+        message_id = message.get(
+            "message_id",
+        )
+
         # -----------------------------------------
         # Detect Role
         # -----------------------------------------
 
         role = "USER"
 
-        if is_admin(sender_id):
+        if is_admin(
+            sender_id,
+        ):
 
             role = "ADMIN"
 
-        elif get_expert(sender_id):
+        elif get_expert(
+            sender_id,
+        ):
 
             role = "EXPERT"
 
         process_update(
 
-            sender_id,
+            sender_id=sender_id,
 
-            text,
+            message=text,
 
-            role,
+            role=role,
+
+            message_id=message_id,
 
         )
 
@@ -259,4 +281,4 @@ def handle_update(
 
             traceback.format_exc(),
 
-        )
+            )
