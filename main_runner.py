@@ -68,6 +68,22 @@ def process_update(
                     sender_id,
                 )
 
+                if not tracking:
+
+                    reset(
+                        sender_id,
+                    )
+
+                    send_message(
+
+                        chat_id=sender_id,
+
+                        text="اطلاعات درخواست یافت نشد.",
+
+                    )
+
+                    return
+
                 result = reply(
 
                     tracking_code=tracking,
@@ -84,7 +100,17 @@ def process_update(
                     sender_id,
                 )
 
-                if not result["success"]:
+                if result["success"]:
+
+                    send_message(
+
+                        chat_id=sender_id,
+
+                        text="✅ پاسخ با موفقیت ثبت و برای مشترک ارسال شد.",
+
+                    )
+
+                else:
 
                     send_message(
 
@@ -257,7 +283,16 @@ def handle_update(
             sender_id,
         ):
 
-            role = "EXPERT"
+            # کارشناس فقط هنگام پاسخ به درخواست Expert است.
+            if is_waiting_reply(
+                sender_id,
+            ):
+
+                role = "EXPERT"
+
+            else:
+
+                role = "USER"
 
         process_update(
 
