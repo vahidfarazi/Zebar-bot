@@ -39,6 +39,7 @@ def reply(
     tracking_code: str,
     expert_id: int,
     message: str,
+    reply_message_id: int | None = None,
 ) -> Dict[str, Any]:
     """
     Save expert reply,
@@ -63,7 +64,7 @@ def reply(
             }
 
         # -------------------------
-        # Save Message
+        # Save Reply
         # -------------------------
 
         add_message(
@@ -104,24 +105,24 @@ def reply(
         )
 
         # -------------------------
-        # Update Group Message
+        # Edit Group Message
         # -------------------------
 
         group_chat_id = get_group_chat_id(
             expert_id,
         )
 
-        message_id = get_message_id(
+        request_message_id = get_message_id(
             expert_id,
         )
 
-        if group_chat_id and message_id:
+        if group_chat_id and request_message_id:
 
             edit_message(
 
                 chat_id=group_chat_id,
 
-                message_id=message_id,
+                message_id=request_message_id,
 
                 text=(
                     "✅ این درخواست پاسخ داده شد.\n\n"
@@ -133,8 +134,24 @@ def reply(
         # -------------------------
         # Delete Expert Reply
         # -------------------------
-        # در نسخه بعدی با داشتن message_id پیام
-        # کارشناس از گروه حذف خواهد شد.
+
+        if (
+
+            group_chat_id
+
+            and
+
+            reply_message_id
+
+        ):
+
+            delete_message(
+
+                chat_id=group_chat_id,
+
+                message_id=reply_message_id,
+
+            )
 
         log_info(
 
@@ -187,4 +204,4 @@ def assign_request(
 
         "message": "ارجاع در نسخه بعدی فعال می‌شود.",
 
-    }
+        }
