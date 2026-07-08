@@ -1,7 +1,7 @@
 """
 callback_handler.py
 
-Handle inline keyboard callbacks.
+Handle Bale callback queries.
 """
 
 from bale_client import answer_callback
@@ -11,102 +11,80 @@ from expert_state import (
     update_data,
 )
 
-from logger import (
-    log_info,
-)
+from bale_client import send_message
 
 
-# ---------------------------------
+# -------------------------------------------------
 # Handle Callback
-# ---------------------------------
-def handle_callback(callback: dict):
+# -------------------------------------------------
+def handle_callback(
+    callback: dict,
+):
 
     callback_id = callback.get("id")
 
     data = callback.get("data", "")
 
-    message = callback.get("message", {})
+    user = callback.get("from", {})
 
-    chat = message.get("chat", {})
-
-    chat_id = chat.get("id")
-
-    from_user = callback.get("from", {})
-
-    expert_id = from_user.get("id")
+    chat_id = user.get("id")
 
     if callback_id:
 
-        answer_callback(callback_id)
+        answer_callback(
+            callback_id,
+        )
 
-    if not data:
+    if not chat_id:
 
         return
 
-    # ---------------------------------
+    # -----------------------------------------
     # Reply
-    # ---------------------------------
+    # -----------------------------------------
     if data.startswith("reply:"):
 
         tracking = data.split(":", 1)[1]
 
         set_state(
-            expert_id,
+            chat_id,
             "WAITING_REPLY",
         )
 
         update_data(
-            expert_id,
+            chat_id,
             "tracking_code",
             tracking,
         )
 
-        from bale_client import send_message
-
         send_message(
 
-            chat_id=expert_id,
+            chat_id=chat_id,
 
             text=(
-                f"🎫 {tracking}\n\n"
                 "لطفاً پاسخ خود را برای مشترک ارسال کنید."
             ),
 
         )
 
-        log_info(
-            "callback",
-            "reply",
-            tracking,
-        )
-
         return
 
-    # ---------------------------------
+    # -----------------------------------------
     # Forward
-    # ---------------------------------
+    # -----------------------------------------
     if data.startswith("forward:"):
 
         tracking = data.split(":", 1)[1]
 
-        from bale_client import send_message
-
         send_message(
 
-            chat_id=expert_id,
+            chat_id=chat_id,
 
             text=(
-                f"ارجاع درخواست\n\n"
-                f"{tracking}\n\n"
-                "این بخش در نسخه بعدی فعال می‌شود."
+                f"ارجاع درخواست {tracking} "
+                "در نسخه بعدی فعال می‌شود."
             ),
 
-        )
-
-        log_info(
-            "callback",
-            "forward",
-            tracking,
         )
 
         return
