@@ -270,4 +270,4 @@ def handle_update(
 
             traceback.format_exc(),
 
-            )
+                    )
