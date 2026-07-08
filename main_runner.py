@@ -22,6 +22,16 @@ from database import (
 
 from bale_client import send_message
 
+from expert_state import (
+    is_waiting_reply,
+    get_tracking_code,
+    reset,
+)
+
+from expert_service import (
+    reply,
+)
+
 
 # -----------------------------
 # Process Update
@@ -39,56 +49,130 @@ def process_update(
 
         create_user(chat_id)
 
+        # ---------------------------------
+        # Expert Waiting Reply
+        # ---------------------------------
+
+        if role == "EXPERT":
+
+            if is_waiting_reply(chat_id):
+
+                tracking = get_tracking_code(
+                    chat_id,
+                )
+
+                result = reply(
+
+                    tracking,
+
+                    chat_id,
+
+                    message,
+
+                )
+
+                reset(
+                    chat_id,
+                )
+
+                if result["success"]:
+
+                    send_message(
+
+                        chat_id,
+
+                        "✅ پاسخ برای مشترک ارسال شد و درخواست بسته شد.",
+
+                    )
+
+                else:
+
+                    send_message(
+
+                        chat_id,
+
+                        result["message"],
+
+                    )
+
+                return
+
+        # ---------------------------------
+        # Normal Router
+        # ---------------------------------
+
         result = route_message(
+
             chat_id,
+
             message,
+
             role,
+
         )
 
         if result is None:
+
             return
 
         if isinstance(result, dict):
 
             send_message(
+
                 chat_id=chat_id,
-                text=result.get("text", ""),
-                keyboard=result.get("keyboard"),
+
+                text=result.get(
+                    "text",
+                    "",
+                ),
+
+                keyboard=result.get(
+                    "keyboard",
+                ),
+
             )
 
         else:
 
             send_message(
+
                 chat_id=chat_id,
+
                 text=str(result),
+
             )
 
         log_info(
+
             "runner",
+
             "process_update",
+
             str(chat_id),
+
         )
 
-    except Exception as e:
+    except Exception:
 
         traceback.print_exc()
 
         log_error(
+
             "runner",
+
             "process_update",
-            str(e),
+
+            traceback.format_exc(),
+
         )
 
-        try:
+        send_message(
 
-            send_message(
-                chat_id=chat_id,
-                text="خطایی رخ داد.",
-            )
+            chat_id,
 
-        except Exception:
+            "خطایی رخ داد.",
 
-            traceback.print_exc()
+        )
 
 
 # -----------------------------
@@ -108,32 +192,52 @@ def handle_update(
         print("============================")
 
         # -----------------------------
-        # Callback Query
+        # Callback
         # -----------------------------
-        callback = update.get("callback_query")
+
+        callback = update.get(
+            "callback_query",
+        )
 
         if callback:
 
-            handle_callback(callback)
+            handle_callback(
+                callback,
+            )
+
             return
 
         # -----------------------------
         # Message
         # -----------------------------
-        message = update.get("message", {})
 
-        chat = message.get("chat", {})
+        message = update.get(
+            "message",
+            {},
+        )
 
-        chat_id = chat.get("id")
+        chat = message.get(
+            "chat",
+            {},
+        )
 
-        text = message.get("text", "")
+        chat_id = chat.get(
+            "id",
+        )
+
+        text = message.get(
+            "text",
+            "",
+        )
 
         if not chat_id:
+
             return
 
         # -----------------------------
         # Detect Role
         # -----------------------------
+
         role = "USER"
 
         if is_admin(chat_id):
@@ -145,17 +249,25 @@ def handle_update(
             role = "EXPERT"
 
         process_update(
+
             chat_id,
+
             text,
+
             role,
+
         )
 
-    except Exception as e:
+    except Exception:
 
         traceback.print_exc()
 
         log_error(
+
             "runner",
+
             "handle_update",
-            str(e),
-        )
+
+            traceback.format_exc(),
+
+            )
