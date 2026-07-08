@@ -22,16 +22,6 @@ from database import (
 
 from bale_client import send_message
 
-from expert_state import (
-    is_waiting_reply,
-    get_tracking_code,
-    reset,
-)
-
-from expert_service import (
-    reply,
-)
-
 
 # -----------------------------
 # Process Update
@@ -48,58 +38,6 @@ def process_update(
     try:
 
         create_user(chat_id)
-
-        # ---------------------------------
-        # Expert Waiting Reply
-        # ---------------------------------
-
-        if role == "EXPERT":
-
-            if is_waiting_reply(chat_id):
-
-                tracking = get_tracking_code(
-                    chat_id,
-                )
-
-                result = reply(
-
-                    tracking,
-
-                    chat_id,
-
-                    message,
-
-                )
-
-                reset(
-                    chat_id,
-                )
-
-                if result["success"]:
-
-                    send_message(
-
-                        chat_id,
-
-                        "✅ پاسخ برای مشترک ارسال شد و درخواست بسته شد.",
-
-                    )
-
-                else:
-
-                    send_message(
-
-                        chat_id,
-
-                        result["message"],
-
-                    )
-
-                return
-
-        # ---------------------------------
-        # Normal Router
-        # ---------------------------------
 
         result = route_message(
 
@@ -194,7 +132,6 @@ def handle_update(
         # -----------------------------
         # Callback
         # -----------------------------
-
         callback = update.get(
             "callback_query",
         )
@@ -210,7 +147,6 @@ def handle_update(
         # -----------------------------
         # Message
         # -----------------------------
-
         message = update.get(
             "message",
             {},
@@ -237,7 +173,6 @@ def handle_update(
         # -----------------------------
         # Detect Role
         # -----------------------------
-
         role = "USER"
 
         if is_admin(chat_id):
@@ -270,4 +205,4 @@ def handle_update(
 
             traceback.format_exc(),
 
-                    )
+        )
