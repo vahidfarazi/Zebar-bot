@@ -9,9 +9,9 @@ from handlers.admin_handlers import handle_admin_message
 from handlers.expert_handlers import handle_expert_message
 
 
-# -----------------------------
+# -------------------------------------------------
 # Main Router
-# -----------------------------
+# -------------------------------------------------
 def route_message(
     chat_id: int,
     message: str,
@@ -26,9 +26,9 @@ def route_message(
 
     message = message.strip()
 
-    # -----------------------------
+    # -----------------------------------------
     # Admin
-    # -----------------------------
+    # -----------------------------------------
     if role == "ADMIN":
 
         return handle_admin_message(
@@ -36,9 +36,9 @@ def route_message(
             message,
         )
 
-    # -----------------------------
+    # -----------------------------------------
     # Expert
-    # -----------------------------
+    # -----------------------------------------
     if role == "EXPERT":
 
         return handle_expert_message(
@@ -46,9 +46,9 @@ def route_message(
             message,
         )
 
-    # -----------------------------
+    # -----------------------------------------
     # User
-    # -----------------------------
+    # -----------------------------------------
     return handle_user_message(
         chat_id,
         message,
