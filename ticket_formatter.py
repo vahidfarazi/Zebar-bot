@@ -142,47 +142,6 @@ def format_expert(
 
 
 # -----------------------------
-# Expert Reply
-# -----------------------------
-def format_expert_reply(
-    tracking: str,
-    service: str,
-    message: str,
-) -> str:
-
-    return "\n".join(
-
-        [
-
-            "📩 پاسخ کارشناس",
-
-            "",
-
-            f"🎫 {tracking}",
-
-            "",
-
-            "📌 خدمت:",
-
-            SERVICE_NAMES.get(
-                service,
-                service,
-            ),
-
-            "",
-
-            "━━━━━━━━━━━━━━",
-
-            "",
-
-            message,
-
-        ]
-
-    )
-
-
-# -----------------------------
 # User History
 # -----------------------------
 def format_user_history(
@@ -191,28 +150,71 @@ def format_user_history(
     messages: list[dict],
 ) -> str:
 
+    status_map = {
+
+        "OPEN": "در حال بررسی",
+
+        "ANSWERED": "پاسخ داده شده",
+
+        "CLOSED": "بسته شده",
+
+    }
+
     lines = [
+
+        "📋 پیگیری درخواست",
+
+        "",
 
         f"🎫 {tracking}",
 
         "",
 
-        f"وضعیت: {status}",
+        f"📌 وضعیت: {status_map.get(status, status)}",
 
         "",
 
-        "━━━━━━━━━━━━",
+        "━━━━━━━━━━━━━━",
 
     ]
 
     for item in messages:
 
-        sender = item["sender_type"]
+        if item["sender_type"] == "USER":
 
-        prefix = "👤" if sender == "USER" else "👨‍💼"
+            lines.extend([
 
-        lines.append("")
-        lines.append(f"{prefix} {item['message']}")
+                "",
+
+                "👤 درخواست",
+
+                "",
+
+                item["message"],
+
+                "",
+
+                "━━━━━━━━━━━━━━",
+
+            ])
+
+        else:
+
+            lines.extend([
+
+                "",
+
+                "👨‍💼 پاسخ کارشناس",
+
+                "",
+
+                item["message"],
+
+                "",
+
+                "━━━━━━━━━━━━━━",
+
+            ])
 
     return "\n".join(lines)
 
@@ -230,9 +232,9 @@ def format_success(
 
         "\n\n"
 
-        "🎫 کد پیگیری"
+        "کد پیگیری شما:"
 
-        "\n\n"
+        "\n"
 
         f"{tracking}"
 
