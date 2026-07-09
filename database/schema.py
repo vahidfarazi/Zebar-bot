@@ -128,6 +128,18 @@ def init_database() -> None:
         """)
 
         # -----------------------------
+        # Tracking Sequence
+        # -----------------------------
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS tracking_sequences (
+            year TEXT NOT NULL,
+            department_code TEXT NOT NULL,
+            last_number INTEGER NOT NULL DEFAULT 0,
+            PRIMARY KEY (year, department_code)
+        )
+        """)
+
+        # -----------------------------
         # System Logs
         # -----------------------------
         cursor.execute("""
