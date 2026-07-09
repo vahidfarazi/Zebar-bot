@@ -69,9 +69,11 @@ def notify_experts(
 
         text=message,
 
-        inline_keyboard=expert_keyboard(
+        keyboard=expert_keyboard(
             tracking_code,
         ),
+
+        keyboard_type="inline",
 
     )
 
@@ -118,6 +120,8 @@ def notify_user(
         text=message,
 
         keyboard=keyboard,
+
+        keyboard_type="reply",
 
     )
 
