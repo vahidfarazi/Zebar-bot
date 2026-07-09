@@ -82,6 +82,8 @@ def set_waiting_reply(
     """
 
     print("========== SAVE EXPERT STATE ==========")
+    print("CHAT ID =", chat_id)
+    print("TRACKING =", tracking_code)
 
     _save_state(
 
@@ -101,11 +103,8 @@ def set_waiting_reply(
 
     )
 
-    print(
-        get_setting(
-            _state_key(chat_id),
-        )
-    )
+    print("DATABASE VALUE =")
+    print(get_setting(_state_key(chat_id)))
 
     print("=======================================")
 
