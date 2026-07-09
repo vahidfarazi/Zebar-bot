@@ -92,6 +92,7 @@ def send_message(
     chat_id: int,
     text: str,
     keyboard: list | None = None,
+    keyboard_type: str = "reply",
 ):
 
     payload = {
@@ -104,11 +105,25 @@ def send_message(
 
     if keyboard:
 
-        payload["reply_markup"] = {
+        if keyboard_type == "inline":
 
-            "inline_keyboard": keyboard,
+            payload["reply_markup"] = {
 
-        }
+                "inline_keyboard": keyboard,
+
+            }
+
+        else:
+
+            payload["reply_markup"] = {
+
+                "keyboard": keyboard,
+
+                "resize_keyboard": True,
+
+                "one_time_keyboard": False,
+
+            }
 
     result = _post(
 
