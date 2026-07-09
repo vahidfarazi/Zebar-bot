@@ -26,7 +26,9 @@ def _data_key(chat_id: int) -> str:
 # -----------------------------
 # State
 # -----------------------------
-def get_state(chat_id: int) -> str:
+def get_state(
+    chat_id: int,
+) -> str:
 
     state = get_setting(
         _state_key(chat_id),
@@ -68,6 +70,7 @@ def get_data(
     )
 
     if not value:
+
         return {}
 
     try:
@@ -85,11 +88,14 @@ def save_data(
 ) -> None:
 
     set_setting(
+
         _data_key(chat_id),
+
         json.dumps(
             data,
             ensure_ascii=False,
         ),
+
     )
 
 
