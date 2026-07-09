@@ -8,8 +8,7 @@ from handlers.user.main_menu import handle_main_menu
 from handlers.user.request_menu import handle_request_menu
 from handlers.user.form_handler import handle_form
 
-from handlers.tracking_handler import (
-    handle_tracking,
+from handlers.tracking_handlers import (
     start_tracking,
 )
 
@@ -29,7 +28,7 @@ def handle_user_message(
     state = get_state(chat_id)
 
     # -----------------------------
-    # Form / Waiting State
+    # Form Mode
     # -----------------------------
     if state:
 
@@ -52,15 +51,6 @@ def handle_user_message(
         )
 
     # -----------------------------
-    # Tracking
-    # -----------------------------
-    if message == "📋 پیگیری درخواست":
-
-        return start_tracking(
-            chat_id,
-        )
-
-    # -----------------------------
     # Request Menu
     # -----------------------------
     request_result = handle_request_menu(
@@ -73,11 +63,17 @@ def handle_user_message(
         return request_result
 
     # -----------------------------
+    # Tracking
+    # -----------------------------
+    if message == "📋 پیگیری درخواست":
+
+        return start_tracking(
+            chat_id,
+        )
+
+    # -----------------------------
     # Invalid Message
     # -----------------------------
     return {
-
-        "text":
-            "لطفاً فقط از دکمه‌های موجود استفاده کنید.",
-
-    }
+        "text": "لطفاً فقط از دکمه‌های موجود استفاده کنید.",
+            }
