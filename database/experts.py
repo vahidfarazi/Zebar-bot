@@ -49,6 +49,21 @@ def get_expert(
     chat_id: int,
 ) -> Optional[dict]:
 
+    print("========== EXPERT LOOKUP ==========")
+    print("CHAT ID =", chat_id)
+
+    rows = fetch_all(
+        """
+        SELECT *
+        FROM experts
+        """
+    )
+
+    print("ALL EXPERTS:")
+
+    for row in rows:
+        print(dict(row))
+
     row = fetch_one(
         """
         SELECT *
@@ -57,6 +72,9 @@ def get_expert(
         """,
         (chat_id,),
     )
+
+    print("FOUND =", dict(row) if row else None)
+    print("===================================")
 
     return dict(row) if row else None
 
