@@ -13,9 +13,44 @@ from ticket_formatter import (
     format_user_history,
 )
 
+from user_state import (
+    set_state,
+)
+
 
 # -----------------------------
-# Handle Tracking
+# Start Tracking
+# -----------------------------
+def start_tracking(
+    chat_id: int,
+) -> dict:
+    """
+    Ask user to enter tracking code.
+    """
+
+    set_state(
+
+        chat_id,
+
+        {
+
+            "state": "WAITING_TRACKING_CODE",
+
+        },
+
+    )
+
+    return {
+
+        "text":
+
+            "🎫 لطفاً کد پیگیری درخواست را وارد کنید.",
+
+    }
+
+
+# -----------------------------
+# Handle Tracking Code
 # -----------------------------
 def handle_tracking(
     chat_id: int,
@@ -25,11 +60,16 @@ def handle_tracking(
     Return request history by tracking code.
     """
 
+    tracking_code = tracking_code.strip()
+
     # -------------------------
     # Find Request
     # -------------------------
+
     request = get_request_by_tracking(
+
         tracking_code,
+
     )
 
     if request is None:
@@ -37,6 +77,7 @@ def handle_tracking(
         return {
 
             "text":
+
                 "❌ درخواستی با این کد پیگیری یافت نشد.",
 
         }
@@ -44,25 +85,31 @@ def handle_tracking(
     # -------------------------
     # Ownership Check
     # -------------------------
+
     if request["chat_id"] != chat_id:
 
         return {
 
             "text":
+
                 "⛔ این کد پیگیری متعلق به شما نیست.",
 
         }
 
     # -------------------------
-    # Load Conversation
+    # Load Messages
     # -------------------------
+
     messages = get_messages(
+
         tracking_code,
+
     )
 
     # -------------------------
     # Build Response
     # -------------------------
+
     text = format_user_history(
 
         tracking=tracking_code,
