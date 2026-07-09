@@ -86,6 +86,42 @@ def init_database() -> None:
         """)
 
         # -----------------------------
+        # Request History
+        # -----------------------------
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS request_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+            tracking_code TEXT NOT NULL,
+
+            event_type TEXT NOT NULL,
+
+            actor_type TEXT NOT NULL,
+
+            actor_id INTEGER,
+
+            description TEXT,
+
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+        """)
+
+        # -----------------------------
+        # Tracking Sequences
+        # -----------------------------
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS tracking_sequences (
+            year TEXT NOT NULL,
+            department_code TEXT NOT NULL,
+            last_number INTEGER NOT NULL DEFAULT 0,
+            PRIMARY KEY (
+                year,
+                department_code
+            )
+        )
+        """)
+
+        # -----------------------------
         # Experts
         # -----------------------------
         cursor.execute("""
@@ -124,18 +160,6 @@ def init_database() -> None:
         CREATE TABLE IF NOT EXISTS holidays (
             holiday_date TEXT PRIMARY KEY,
             enabled INTEGER DEFAULT 1
-        )
-        """)
-
-        # -----------------------------
-        # Tracking Sequence
-        # -----------------------------
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS tracking_sequences (
-            year TEXT NOT NULL,
-            department_code TEXT NOT NULL,
-            last_number INTEGER NOT NULL DEFAULT 0,
-            PRIMARY KEY (year, department_code)
         )
         """)
 
