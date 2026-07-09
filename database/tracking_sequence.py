@@ -1,47 +1,34 @@
 """
 database/tracking_sequence.py
 
-Tracking sequence manager.
+Tracking sequence repository.
 """
 
-from datetime import datetime
-
 from .crud import (
-    fetch_one,
     execute,
+    fetch_one,
 )
 
 
 # ----------------------------------------
-# Department Codes
+# Get Next Tracking Number
 # ----------------------------------------
-DEPARTMENT_CODES = {
-    "CUSTOMER_SERVICE": "11",
-    "SAFETY": "22",
-    "ENGINEERING": "33",
-}
-
-
-# ----------------------------------------
-# Jalali Year
-# ----------------------------------------
-def get_current_year() -> str:
+def get_next_tracking_number(
+    year: str,
+    department_code: str,
+) -> int:
     """
-    فعلاً سال شمسی ثابت.
-    بعداً به jdatetime تبدیل می‌شود.
+    Returns next sequence number for
+    (year, department).
+
+    Example:
+
+    year = "1405"
+    department = "11"
+
+    first call -> 1
+    second -> 2
     """
-
-    return "1405"
-
-
-# ----------------------------------------
-# Next Tracking Number
-# ----------------------------------------
-def get_next_tracking_code(
-    department_code: str = "11",
-) -> str:
-
-    year = get_current_year()
 
     row = fetch_one(
         """
@@ -56,9 +43,8 @@ def get_next_tracking_code(
         ),
     )
 
+    # First record
     if row is None:
-
-        last_number = 1
 
         execute(
             """
@@ -68,31 +54,35 @@ def get_next_tracking_code(
                 department_code,
                 last_number
             )
-            VALUES (?, ?, ?)
+            VALUES
+            (
+                ?,
+                ?,
+                1
+            )
             """,
             (
-                year,
-                department_code,
-                last_number,
-            ),
-        )
-
-    else:
-
-        last_number = row["last_number"] + 1
-
-        execute(
-            """
-            UPDATE tracking_sequences
-            SET last_number = ?
-            WHERE year = ?
-            AND department_code = ?
-            """,
-            (
-                last_number,
                 year,
                 department_code,
             ),
         )
 
-    return f"{year}{department_code}{last_number:07d}"
+        return 1
+
+    next_number = row["last_number"] + 1
+
+    execute(
+        """
+        UPDATE tracking_sequences
+        SET last_number = ?
+        WHERE year = ?
+        AND department_code = ?
+        """,
+        (
+            next_number,
+            year,
+            department_code,
+        ),
+    )
+
+    return next_number
