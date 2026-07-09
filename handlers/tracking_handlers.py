@@ -15,6 +15,7 @@ from ticket_formatter import (
 
 from user_state import (
     set_state,
+    clear_state,
 )
 
 
@@ -54,14 +55,15 @@ def handle_tracking(
 
     tracking_code = tracking_code.strip()
 
+    # بعد از دریافت کد، از حالت انتظار خارج شو
+    clear_state(chat_id)
+
     # -------------------------
     # Find Request
     # -------------------------
 
     request = get_request_by_tracking(
-
         tracking_code,
-
     )
 
     if request is None:
@@ -69,7 +71,6 @@ def handle_tracking(
         return {
 
             "text":
-
                 "❌ درخواستی با این کد پیگیری یافت نشد.",
 
         }
@@ -83,7 +84,6 @@ def handle_tracking(
         return {
 
             "text":
-
                 "⛔ این کد پیگیری متعلق به شما نیست.",
 
         }
@@ -93,9 +93,7 @@ def handle_tracking(
     # -------------------------
 
     messages = get_messages(
-
         tracking_code,
-
     )
 
     # -------------------------
