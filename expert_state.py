@@ -81,6 +81,8 @@ def set_waiting_reply(
     Expert starts replying.
     """
 
+    print("========== SAVE EXPERT STATE ==========")
+
     _save_state(
 
         chat_id,
@@ -98,6 +100,14 @@ def set_waiting_reply(
         },
 
     )
+
+    print(
+        get_setting(
+            _state_key(chat_id),
+        )
+    )
+
+    print("=======================================")
 
 
 # -------------------------------------------------
@@ -122,6 +132,10 @@ def is_waiting_reply(
     state = _load_state(
         chat_id,
     )
+
+    print("========== LOADED EXPERT STATE ==========")
+    print(state)
+    print("=========================================")
 
     return state.get("state") == "WAITING_REPLY"
 
