@@ -10,6 +10,7 @@ from database import (
     get_request_by_tracking,
     add_message,
     close_request,
+    add_history,
 )
 
 from notification_service import (
@@ -86,6 +87,24 @@ def reply(
         )
 
         # -------------------------
+        # Save History
+        # -------------------------
+
+        add_history(
+
+            tracking_code=tracking_code,
+
+            event_type="EXPERT_REPLIED",
+
+            actor_type="EXPERT",
+
+            actor_id=expert_id,
+
+            description=message,
+
+        )
+
+        # -------------------------
         # Notify User
         # -------------------------
 
@@ -111,6 +130,24 @@ def reply(
 
         close_request(
             request["id"],
+        )
+
+        # -------------------------
+        # Save Close History
+        # -------------------------
+
+        add_history(
+
+            tracking_code=tracking_code,
+
+            event_type="REQUEST_CLOSED",
+
+            actor_type="SYSTEM",
+
+            actor_id=expert_id,
+
+            description="درخواست بسته شد",
+
         )
 
         # -------------------------
