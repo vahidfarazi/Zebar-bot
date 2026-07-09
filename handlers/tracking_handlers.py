@@ -1,5 +1,5 @@
 """
-handlers/tracking_handler.py
+handlers/tracking_handlers.py
 
 Request tracking handler.
 """
@@ -29,21 +29,13 @@ def start_tracking(
     """
 
     set_state(
-
         chat_id,
-
-        {
-
-            "state": "WAITING_TRACKING_CODE",
-
-        },
-
+        "WAITING_TRACKING_CODE",
     )
 
     return {
 
         "text":
-
             "🎫 لطفاً کد پیگیری درخواست را وارد کنید.",
 
     }
