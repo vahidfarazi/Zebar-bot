@@ -26,15 +26,19 @@ from expert_state import (
     get_group_message_id,
 )
 
+from ticket_formatter import (
+    format_expert_reply,
+)
+
 from logger import (
     log_info,
     log_error,
 )
 
 
-# -------------------------------------------------
+# -----------------------------
 # Reply
-# -------------------------------------------------
+# -----------------------------
 def reply(
     tracking_code: str,
     expert_id: int,
@@ -63,9 +67,9 @@ def reply(
 
             }
 
-        # -----------------------------------------
+        # -------------------------
         # Save Reply
-        # -----------------------------------------
+        # -------------------------
 
         add_message(
 
@@ -81,32 +85,37 @@ def reply(
 
         )
 
-        # -----------------------------------------
+        # -------------------------
         # Notify User
-        # -----------------------------------------
+        # -------------------------
 
         notify_user(
 
             chat_id=request["chat_id"],
 
-            message=(
-                "📩 پاسخ کارشناس\n\n"
-                f"{message}"
+            message=format_expert_reply(
+
+                tracking_code,
+
+                request["service"],
+
+                message,
+
             ),
 
         )
 
-        # -----------------------------------------
+        # -------------------------
         # Close Request
-        # -----------------------------------------
+        # -------------------------
 
         close_request(
             request["id"],
         )
 
-        # -----------------------------------------
-        # Update Group Message
-        # -----------------------------------------
+        # -------------------------
+        # Edit Group Message
+        # -------------------------
 
         group_chat_id = get_group_chat_id(
             expert_id,
@@ -118,44 +127,45 @@ def reply(
 
         if group_chat_id and request_message_id:
 
-            try:
+            edit_message(
 
-                edit_message(
+                chat_id=group_chat_id,
 
-                    chat_id=group_chat_id,
+                message_id=request_message_id,
 
-                    message_id=request_message_id,
+                text=(
 
-                    text=(
-                        "✅ این درخواست پاسخ داده شد.\n\n"
-                        f"کد رهگیری: {tracking_code}"
-                    ),
+                    "✅ این درخواست پاسخ داده شد."
 
-                )
+                    "\n\n"
 
-            except Exception:
+                    f"🎫 {tracking_code}"
 
-                pass
+                ),
 
-        # -----------------------------------------
-        # Delete Expert Reply From Group
-        # -----------------------------------------
+            )
 
-        if group_chat_id and reply_message_id:
+        # -------------------------
+        # Delete Expert Reply
+        # -------------------------
 
-            try:
+        if (
 
-                delete_message(
+            group_chat_id
 
-                    chat_id=group_chat_id,
+            and
 
-                    message_id=reply_message_id,
+            reply_message_id
 
-                )
+        ):
 
-            except Exception:
+            delete_message(
 
-                pass
+                chat_id=group_chat_id,
+
+                message_id=reply_message_id,
+
+            )
 
         log_info(
 
@@ -194,9 +204,9 @@ def reply(
         }
 
 
-# -------------------------------------------------
+# -----------------------------
 # Assign
-# -------------------------------------------------
+# -----------------------------
 def assign_request(
     tracking_code: str,
     expert_id: int,
