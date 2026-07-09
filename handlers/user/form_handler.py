@@ -24,6 +24,10 @@ from user_state import (
 
 from request_service import create_request
 
+from handlers.tracking_handler import (
+    handle_tracking,
+)
+
 
 # -----------------------------
 # Handle Form Message
@@ -33,6 +37,22 @@ def handle_form(
     message: str,
     state: str,
 ):
+
+    # -------------------------
+    # Tracking Code
+    # -------------------------
+    if state == "WAITING_TRACKING_CODE":
+
+        result = handle_tracking(
+            chat_id,
+            message,
+        )
+
+        reset(chat_id)
+
+        result["keyboard"] = MAIN_MENU
+
+        return result
 
     # -------------------------
     # Cancel
