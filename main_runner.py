@@ -6,6 +6,8 @@ Core runtime processor for Azarakhsh system.
 
 import traceback
 
+from config import Config
+
 from router import route_message
 from callback_handler import handle_callback
 
@@ -16,7 +18,6 @@ from logger import (
 
 from database import (
     create_user,
-    get_expert,
     is_admin,
 )
 
@@ -58,65 +59,43 @@ def process_update(
         # Expert Reply
         # -----------------------------------------
 
-        if role == "EXPERT" and is_waiting_reply(sender_id):
+        if role == "EXPERT":
 
-            tracking = get_tracking_code(
+            if is_waiting_reply(
                 sender_id,
-            )
+            ):
 
-            if not tracking:
+                tracking = get_tracking_code(
+                    sender_id,
+                )
+
+                result = reply(
+
+                    tracking_code=tracking,
+
+                    expert_id=sender_id,
+
+                    message=message,
+
+                    reply_message_id=message_id,
+
+                )
 
                 reset(
                     sender_id,
                 )
 
-                send_message(
+                if not result["success"]:
 
-                    chat_id=sender_id,
+                    send_message(
 
-                    text="اطلاعات درخواست یافت نشد.",
+                        chat_id=sender_id,
 
-                )
+                        text=result["message"],
+
+                    )
 
                 return
-
-            result = reply(
-
-                tracking_code=tracking,
-
-                expert_id=sender_id,
-
-                message=message,
-
-                reply_message_id=message_id,
-
-            )
-
-            reset(
-                sender_id,
-            )
-
-            if result["success"]:
-
-                send_message(
-
-                    chat_id=sender_id,
-
-                    text="✅ پاسخ با موفقیت ثبت و برای مشترک ارسال شد.",
-
-                )
-
-            else:
-
-                send_message(
-
-                    chat_id=sender_id,
-
-                    text=result["message"],
-
-                )
-
-            return
 
         # -----------------------------------------
         # Router
@@ -269,22 +248,33 @@ def handle_update(
 
         role = "USER"
 
+        chat = message.get(
+            "chat",
+            {},
+        )
+
+        group_id = chat.get(
+            "id",
+        )
+
+        expert_group_id = int(
+            Config.get_str(
+                "EXPERT_GROUP_ID",
+                "0",
+            )
+        )
+
+        # Admin
         if is_admin(
             sender_id,
         ):
 
             role = "ADMIN"
 
-        elif get_expert(
-            sender_id,
-        ):
+        # Every message inside expert group is EXPERT
+        elif group_id == expert_group_id:
 
-            # کارشناس فقط هنگام پاسخ دادن Expert است.
-            if is_waiting_reply(
-                sender_id,
-            ):
-
-                role = "EXPERT"
+            role = "EXPERT"
 
         process_update(
 
