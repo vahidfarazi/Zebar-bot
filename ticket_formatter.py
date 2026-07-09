@@ -220,6 +220,47 @@ def format_user_history(
 
 
 # -----------------------------
+# Expert Reply
+# -----------------------------
+def format_expert_reply(
+    tracking: str,
+    service: str,
+    message: str,
+) -> str:
+
+    return "\n".join(
+
+        [
+
+            "📩 پاسخ کارشناس",
+
+            "",
+
+            f"🎫 {tracking}",
+
+            "",
+
+            "📌 خدمت:",
+
+            SERVICE_NAMES.get(
+                service,
+                service,
+            ),
+
+            "",
+
+            "━━━━━━━━━━━━━━",
+
+            "",
+
+            message,
+
+        ]
+
+    )
+
+
+# -----------------------------
 # Success Message
 # -----------------------------
 def format_success(
@@ -242,4 +283,4 @@ def format_success(
 
         "این کد را برای پیگیری نزد خود نگه دارید."
 
-    )
+)
