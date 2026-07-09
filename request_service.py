@@ -4,10 +4,12 @@ request_service.py
 Request creation service.
 """
 
+from datetime import datetime
+
 from database import (
     insert_request,
-    get_last_tracking_number,
     add_message,
+    get_next_tracking_number,
 )
 
 from ticket_formatter import (
@@ -26,27 +28,71 @@ from logger import (
 )
 
 
-# -----------------------------
+# ----------------------------------------
+# Jalali Year (Temporary)
+# ----------------------------------------
+def get_current_jalali_year() -> str:
+    """
+    Temporary mapping.
+
+    2026 -> 1405
+
+    Later this will use jdatetime.
+    """
+
+    year = datetime.now().year
+
+    return str(year - 621)
+
+
+# ----------------------------------------
+# Department Code
+# ----------------------------------------
+def get_department_code(
+    service: str,
+) -> str:
+    """
+    Department codes.
+
+    11 = Customer Service
+    22 = Safety
+    33 = Engineering
+
+    Currently every request belongs to
+    Customer Service.
+    """
+
+    return "11"
+
+
+# ----------------------------------------
 # Generate Tracking Code
-# -----------------------------
-def generate_tracking_code() -> str:
+# ----------------------------------------
+def generate_tracking_code(
+    service: str,
+) -> str:
 
-    last = get_last_tracking_number()
+    year = get_current_jalali_year()
 
-    if last is None:
+    department = get_department_code(
+        service,
+    )
 
-        return "SR-2026-0000001"
+    number = get_next_tracking_number(
+        year,
+        department,
+    )
 
-    number = int(
-        last.split("-")[-1]
-    ) + 1
+    return (
+        f"{year}"
+        f"{department}"
+        f"{number:07d}"
+    )
 
-    return f"SR-2026-{number:07d}"
 
-
-# -----------------------------
+# ----------------------------------------
 # Create Request
-# -----------------------------
+# ----------------------------------------
 def create_request(
     chat_id: int,
     data: dict,
@@ -57,7 +103,9 @@ def create_request(
 
     try:
 
-        tracking = generate_tracking_code()
+        tracking = generate_tracking_code(
+            data["service"],
+        )
 
         # -------------------------
         # Save Request
