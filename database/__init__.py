@@ -49,12 +49,18 @@ from .messages import (
     delete_messages,
 )
 
+# Request History
+from .history import (
+    add_history,
+    get_history,
+    delete_history,
+)
+
 # Tracking
 from .tracking import (
     get_last_tracking_number,
 )
 
-# Tracking Sequence
 from .tracking_sequence import (
     get_next_tracking_number,
 )
@@ -123,17 +129,20 @@ __all__ = [
     "update_priority",
     "delete_request",
 
-    # Request Messages
+    # Messages
     "add_message",
     "get_message",
     "get_messages",
     "get_last_message",
     "delete_messages",
 
+    # History
+    "add_history",
+    "get_history",
+    "delete_history",
+
     # Tracking
     "get_last_tracking_number",
-
-    # Tracking Sequence
     "get_next_tracking_number",
 
     # Users
