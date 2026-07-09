@@ -54,6 +54,11 @@ from .tracking import (
     get_last_tracking_number,
 )
 
+# Tracking Sequence
+from .tracking_sequence import (
+    get_next_tracking_number,
+)
+
 # Users
 from .users import (
     get_user,
@@ -127,6 +132,9 @@ __all__ = [
 
     # Tracking
     "get_last_tracking_number",
+
+    # Tracking Sequence
+    "get_next_tracking_number",
 
     # Users
     "get_user",
