@@ -10,6 +10,7 @@ from handlers.user.form_handler import handle_form
 
 from handlers.tracking_handlers import (
     start_tracking,
+    handle_tracking,
 )
 
 from user_state import (
@@ -26,6 +27,16 @@ def handle_user_message(
 ):
 
     state = get_state(chat_id)
+
+    # -----------------------------
+    # Tracking Mode
+    # -----------------------------
+    if state == "WAITING_TRACKING_CODE":
+
+        return handle_tracking(
+            chat_id,
+            message,
+        )
 
     # -----------------------------
     # Form Mode
@@ -75,5 +86,8 @@ def handle_user_message(
     # Invalid Message
     # -----------------------------
     return {
-        "text": "لطفاً فقط از دکمه‌های موجود استفاده کنید.",
-            }
+
+        "text":
+            "لطفاً فقط از دکمه‌های موجود استفاده کنید.",
+
+    }
