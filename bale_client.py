@@ -7,7 +7,10 @@ Official Bale Bot API client.
 import requests
 
 from config import Config
-from logger import log_error, log_info
+from logger import (
+    log_error,
+    log_info,
+)
 
 
 # -----------------------------
@@ -54,6 +57,14 @@ def _post(
 
         )
 
+        print("========== BALE REQUEST ==========")
+        print(method)
+        print(payload)
+        print("========== BALE RESPONSE ==========")
+        print(response.status_code)
+        print(response.text)
+        print("===================================")
+
         if response.status_code != 200:
 
             log_error(
@@ -68,7 +79,21 @@ def _post(
 
             return None
 
-        return response.json()
+        result = response.json()
+
+        if not result.get("ok", False):
+
+            log_error(
+
+                "bale_client",
+
+                method,
+
+                str(result),
+
+            )
+
+        return result
 
     except Exception as e:
 
@@ -81,6 +106,8 @@ def _post(
             str(e),
 
         )
+
+        print(e)
 
         return None
 
