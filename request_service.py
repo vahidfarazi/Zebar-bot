@@ -4,11 +4,10 @@ request_service.py
 Request creation service.
 """
 
-from datetime import datetime
-
 from database import (
     insert_request,
     add_message,
+    add_history,
     get_next_tracking_number,
 )
 
@@ -28,71 +27,59 @@ from logger import (
 )
 
 
-# ----------------------------------------
-# Jalali Year (Temporary)
-# ----------------------------------------
-def get_current_jalali_year() -> str:
-    """
-    Temporary mapping.
+# -----------------------------
+# Department Codes
+# -----------------------------
+DEPARTMENT_CODES = {
 
-    2026 -> 1405
+    # خدمات مشترکین
+    "NEW_CONNECTION": "11",
 
-    Later this will use jdatetime.
-    """
+    "AFTER_SALES": "11",
 
-    year = datetime.now().year
+    "METER_TEST": "11",
 
-    return str(year - 621)
+    "BILL_INQUIRY": "11",
 
-
-# ----------------------------------------
-# Department Code
-# ----------------------------------------
-def get_department_code(
-    service: str,
-) -> str:
-    """
-    Department codes.
-
-    11 = Customer Service
-    22 = Safety
-    33 = Engineering
-
-    Currently every request belongs to
-    Customer Service.
-    """
-
-    return "11"
+}
 
 
-# ----------------------------------------
+# -----------------------------
 # Generate Tracking Code
-# ----------------------------------------
+# -----------------------------
 def generate_tracking_code(
     service: str,
 ) -> str:
 
-    year = get_current_jalali_year()
+    year = "1405"
 
-    department = get_department_code(
+    department = DEPARTMENT_CODES.get(
         service,
+        "11",
     )
 
-    number = get_next_tracking_number(
+    sequence = get_next_tracking_number(
+
         year,
+
         department,
+
     )
 
     return (
+
         f"{year}"
+
         f"{department}"
-        f"{number:07d}"
+
+        f"{sequence:07d}"
+
     )
 
 
-# ----------------------------------------
+# -----------------------------
 # Create Request
-# ----------------------------------------
+# -----------------------------
 def create_request(
     chat_id: int,
     data: dict,
@@ -104,7 +91,9 @@ def create_request(
     try:
 
         tracking = generate_tracking_code(
+
             data["service"],
+
         )
 
         # -------------------------
@@ -126,7 +115,7 @@ def create_request(
         )
 
         # -------------------------
-        # Save First User Message
+        # Save User Message
         # -------------------------
 
         add_message(
@@ -146,7 +135,25 @@ def create_request(
         )
 
         # -------------------------
-        # Expert Notification
+        # Save History
+        # -------------------------
+
+        add_history(
+
+            tracking_code=tracking,
+
+            event_type="REQUEST_CREATED",
+
+            actor_type="USER",
+
+            actor_id=chat_id,
+
+            description="درخواست ثبت شد",
+
+        )
+
+        # -------------------------
+        # Notify Experts
         # -------------------------
 
         expert_message = format_expert(
@@ -178,7 +185,7 @@ def create_request(
         )
 
         # -------------------------
-        # Result
+        # Return
         # -------------------------
 
         return {
