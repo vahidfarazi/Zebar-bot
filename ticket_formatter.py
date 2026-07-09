@@ -142,6 +142,47 @@ def format_expert(
 
 
 # -----------------------------
+# Expert Reply
+# -----------------------------
+def format_expert_reply(
+    tracking: str,
+    service: str,
+    message: str,
+) -> str:
+
+    return "\n".join(
+
+        [
+
+            "📩 پاسخ کارشناس",
+
+            "",
+
+            f"🎫 {tracking}",
+
+            "",
+
+            "📌 خدمت:",
+
+            SERVICE_NAMES.get(
+                service,
+                service,
+            ),
+
+            "",
+
+            "━━━━━━━━━━━━━━",
+
+            "",
+
+            message,
+
+        ]
+
+    )
+
+
+# -----------------------------
 # User History
 # -----------------------------
 def format_user_history(
@@ -168,21 +209,10 @@ def format_user_history(
 
         sender = item["sender_type"]
 
-        if sender == "USER":
-
-            prefix = "👤"
-
-        else:
-
-            prefix = "👨‍💼"
+        prefix = "👤" if sender == "USER" else "👨‍💼"
 
         lines.append("")
-
-        lines.append(
-
-            f"{prefix} {item['message']}"
-
-        )
+        lines.append(f"{prefix} {item['message']}")
 
     return "\n".join(lines)
 
@@ -200,9 +230,9 @@ def format_success(
 
         "\n\n"
 
-        "کد پیگیری شما:"
+        "🎫 کد پیگیری"
 
-        "\n"
+        "\n\n"
 
         f"{tracking}"
 
