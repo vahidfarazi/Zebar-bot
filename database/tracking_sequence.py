@@ -18,24 +18,15 @@ def get_next_tracking_number(
     department_code: str,
 ) -> int:
     """
-    Returns next sequence number for
-    (year, department).
-
-    Example:
-
-    year = "1405"
-    department = "11"
-
-    first call -> 1
-    second -> 2
+    Returns next sequence number.
     """
 
     row = fetch_one(
         """
         SELECT last_number
         FROM tracking_sequences
-        WHERE year = ?
-        AND department_code = ?
+        WHERE year = %s
+        AND department_code = %s
         """,
         (
             year,
@@ -56,8 +47,8 @@ def get_next_tracking_number(
             )
             VALUES
             (
-                ?,
-                ?,
+                %s,
+                %s,
                 1
             )
             """,
@@ -74,9 +65,9 @@ def get_next_tracking_number(
     execute(
         """
         UPDATE tracking_sequences
-        SET last_number = ?
-        WHERE year = ?
-        AND department_code = ?
+        SET last_number = %s
+        WHERE year = %s
+        AND department_code = %s
         """,
         (
             next_number,
