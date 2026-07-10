@@ -4,6 +4,15 @@ handlers/admin_handlers.py
 Admin command handler.
 """
 
+from database import (
+    is_admin,
+)
+
+from menus import (
+    ADMIN_MENU,
+    MAIN_MENU,
+)
+
 from admin_service import (
     create_expert_account,
     deactivate_expert,
@@ -23,39 +32,74 @@ from admin_service import (
 def handle_admin_message(
     chat_id: int,
     message: str,
-) -> str:
-    """
-    Admin command handler.
-    """
+):
+
+    # -------------------------
+    # Permission Check
+    # -------------------------
+    if not is_admin(chat_id):
+
+        return {
+            "text": "⛔ شما دسترسی به پنل مدیریت ندارید.",
+        }
+
+    # -------------------------
+    # Admin Menu
+    # -------------------------
+    if message == "/admin":
+
+        return {
+            "text": "پنل مدیریت",
+            "keyboard": ADMIN_MENU,
+        }
+
+    # -------------------------
+    # Main Menu
+    # -------------------------
+    if message == "🏠 منوی اصلی":
+
+        return {
+            "text": "منوی اصلی",
+            "keyboard": MAIN_MENU,
+        }
 
     if not message:
 
-        return "پیام نامعتبر است"
+        return {
+            "text": "پیام نامعتبر است",
+        }
 
     parts = message.split()
 
     cmd = parts[0].lower()
-
     # -------------------------
     # Dashboard
     # -------------------------
-    if cmd == "dashboard":
+    if cmd == "dashboard" or message == "📊 داشبورد":
 
         result = dashboard()
 
         if not result["success"]:
 
-            return result["message"]
+            return {
+                "text": result["message"],
+            }
 
         stats = result["statistics"]
 
-        return (
-            "📊 داشبورد سامانه\n\n"
-            f"📥 درخواست‌های باز: {stats['open']}\n"
-            f"✅ درخواست‌های بسته: {stats['closed']}\n"
-            f"🆕 درخواست‌های امروز: {stats['today']}\n"
-            f"👨‍💼 کارشناسان فعال: {stats['experts']}"
-        )
+        return {
+
+            "text": (
+                "📊 داشبورد سامانه\n\n"
+                f"📥 درخواست‌های باز: {stats['open']}\n"
+                f"✅ درخواست‌های بسته: {stats['closed']}\n"
+                f"🆕 درخواست‌های امروز: {stats['today']}\n"
+                f"👨‍💼 کارشناسان فعال: {stats['experts']}"
+            ),
+
+            "keyboard": ADMIN_MENU,
+
+        }
 
     # -------------------------
     # Statistics
@@ -66,33 +110,48 @@ def handle_admin_message(
 
         if not result["success"]:
 
-            return result["message"]
+            return {
+                "text": result["message"],
+                "keyboard": ADMIN_MENU,
+            }
 
         stats = result["statistics"]
 
-        return (
-            f"📥 باز: {stats['open']}\n"
-            f"✅ بسته: {stats['closed']}\n"
-            f"🆕 امروز: {stats['today']}\n"
-            f"👨‍💼 کارشناسان: {stats['experts']}"
-        )
+        return {
+
+            "text": (
+                f"📥 باز: {stats['open']}\n"
+                f"✅ بسته: {stats['closed']}\n"
+                f"🆕 امروز: {stats['today']}\n"
+                f"👨‍💼 کارشناسان: {stats['experts']}"
+            ),
+
+            "keyboard": ADMIN_MENU,
+
+        }
 
     # -------------------------
     # Recent Requests
     # -------------------------
-    if cmd == "recent":
+    if cmd == "recent" or message == "📋 درخواست‌های اخیر":
 
         result = get_recent_activity()
 
         if not result["success"]:
 
-            return result["message"]
+            return {
+                "text": result["message"],
+                "keyboard": ADMIN_MENU,
+            }
 
         rows = result["recent_requests"]
 
         if not rows:
 
-            return "درخواستی وجود ندارد."
+            return {
+                "text": "درخواستی وجود ندارد.",
+                "keyboard": ADMIN_MENU,
+            }
 
         text = "📋 آخرین درخواست‌ها\n\n"
 
@@ -104,8 +163,13 @@ def handle_admin_message(
                 f"{row['status']}\n"
             )
 
-        return text
+        return {
 
+            "text": text,
+
+            "keyboard": ADMIN_MENU,
+
+        }
     # -------------------------
     # Create Expert
     # -------------------------
@@ -113,7 +177,10 @@ def handle_admin_message(
 
         if len(parts) < 5:
 
-            return "فرمت: create_expert chat_id name username department"
+            return {
+                "text": "فرمت: create_expert chat_id name username department",
+                "keyboard": ADMIN_MENU,
+            }
 
         result = create_expert_account(
 
@@ -127,7 +194,13 @@ def handle_admin_message(
 
         )
 
-        return "انجام شد" if result["success"] else result["message"]
+        return {
+
+            "text": "انجام شد" if result["success"] else result["message"],
+
+            "keyboard": ADMIN_MENU,
+
+        }
 
     # -------------------------
     # Deactivate Expert
@@ -136,7 +209,10 @@ def handle_admin_message(
 
         if len(parts) < 2:
 
-            return "فرمت: deactivate_expert chat_id"
+            return {
+                "text": "فرمت: deactivate_expert chat_id",
+                "keyboard": ADMIN_MENU,
+            }
 
         result = deactivate_expert(
 
@@ -144,7 +220,13 @@ def handle_admin_message(
 
         )
 
-        return "انجام شد" if result["success"] else result["message"]
+        return {
+
+            "text": "انجام شد" if result["success"] else result["message"],
+
+            "keyboard": ADMIN_MENU,
+
+        }
 
     # -------------------------
     # Transfer Request
@@ -153,7 +235,10 @@ def handle_admin_message(
 
         if len(parts) < 3:
 
-            return "فرمت: transfer request_id expert_id"
+            return {
+                "text": "فرمت: transfer request_id expert_id",
+                "keyboard": ADMIN_MENU,
+            }
 
         result = transfer_request(
 
@@ -163,8 +248,13 @@ def handle_admin_message(
 
         )
 
-        return "انجام شد" if result["success"] else result["message"]
+        return {
 
+            "text": "انجام شد" if result["success"] else result["message"],
+
+            "keyboard": ADMIN_MENU,
+
+    }
     # -------------------------
     # Add Holiday
     # -------------------------
@@ -172,7 +262,10 @@ def handle_admin_message(
 
         if len(parts) < 2:
 
-            return "فرمت: add_holiday YYYY-MM-DD"
+            return {
+                "text": "فرمت: add_holiday YYYY-MM-DD",
+                "keyboard": ADMIN_MENU,
+            }
 
         result = add_system_holiday(
 
@@ -180,7 +273,13 @@ def handle_admin_message(
 
         )
 
-        return "انجام شد" if result["success"] else result["message"]
+        return {
+
+            "text": "انجام شد" if result["success"] else result["message"],
+
+            "keyboard": ADMIN_MENU,
+
+        }
 
     # -------------------------
     # Remove Holiday
@@ -189,7 +288,10 @@ def handle_admin_message(
 
         if len(parts) < 2:
 
-            return "فرمت: remove_holiday YYYY-MM-DD"
+            return {
+                "text": "فرمت: remove_holiday YYYY-MM-DD",
+                "keyboard": ADMIN_MENU,
+            }
 
         result = delete_system_holiday(
 
@@ -197,7 +299,13 @@ def handle_admin_message(
 
         )
 
-        return "انجام شد" if result["success"] else result["message"]
+        return {
+
+            "text": "انجام شد" if result["success"] else result["message"],
+
+            "keyboard": ADMIN_MENU,
+
+        }
 
     # -------------------------
     # Update Settings
@@ -206,7 +314,10 @@ def handle_admin_message(
 
         if len(parts) < 3:
 
-            return "فرمت: set key value"
+            return {
+                "text": "فرمت: set key value",
+                "keyboard": ADMIN_MENU,
+            }
 
         result = update_settings(
 
@@ -216,6 +327,21 @@ def handle_admin_message(
 
         )
 
-        return "انجام شد" if result["success"] else result["message"]
+        return {
 
-    return "دستور نامعتبر است"
+            "text": "انجام شد" if result["success"] else result["message"],
+
+            "keyboard": ADMIN_MENU,
+
+        }
+
+    # -------------------------
+    # Invalid Command
+    # -------------------------
+    return {
+
+        "text": "دستور نامعتبر است.",
+
+        "keyboard": ADMIN_MENU,
+
+    }
