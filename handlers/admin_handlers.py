@@ -1,5 +1,7 @@
 """
-admin_handlers.py
+handlers/admin_handlers.py
+
+Admin command handler.
 """
 
 from admin_service import (
