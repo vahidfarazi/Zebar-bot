@@ -38,7 +38,7 @@ def insert_request(
             service,
             sub_service
         )
-        VALUES (?, ?, ?, ?)
+        VALUES (%s, %s, %s, %s)
         """,
         (
             tracking_code,
@@ -60,7 +60,7 @@ def get_request(
         """
         SELECT *
         FROM requests
-        WHERE id = ?
+        WHERE id = %s
         """,
         (request_id,),
     )
@@ -79,7 +79,7 @@ def get_request_by_tracking(
         """
         SELECT *
         FROM requests
-        WHERE tracking_code = ?
+        WHERE tracking_code = %s
         """,
         (tracking_code,),
     )
@@ -98,7 +98,7 @@ def get_user_requests(
         """
         SELECT *
         FROM requests
-        WHERE chat_id = ?
+        WHERE chat_id = %s
         ORDER BY created_at DESC
         """,
         (chat_id,),
@@ -119,9 +119,9 @@ def update_request_status(
         """
         UPDATE requests
         SET
-            status = ?,
+            status = %s,
             updated_at = CURRENT_TIMESTAMP
-        WHERE id = ?
+        WHERE id = %s
         """,
         (
             status,
@@ -142,9 +142,9 @@ def assign_expert(
         """
         UPDATE requests
         SET
-            expert_id = ?,
+            expert_id = %s,
             updated_at = CURRENT_TIMESTAMP
-        WHERE id = ?
+        WHERE id = %s
         """,
         (
             expert_id,
@@ -166,10 +166,10 @@ def save_expert_message(
         """
         UPDATE requests
         SET
-            expert_chat_id = ?,
-            expert_message_id = ?,
+            expert_chat_id = %s,
+            expert_message_id = %s,
             updated_at = CURRENT_TIMESTAMP
-        WHERE id = ?
+        WHERE id = %s
         """,
         (
             expert_chat_id,
@@ -193,11 +193,10 @@ def close_request(
             status = 'CLOSED',
             closed_at = CURRENT_TIMESTAMP,
             updated_at = CURRENT_TIMESTAMP
-        WHERE id = ?
+        WHERE id = %s
         """,
         (request_id,),
     )
-
 
 # -----------------------------
 # Change Priority
@@ -211,9 +210,9 @@ def update_priority(
         """
         UPDATE requests
         SET
-            priority = ?,
+            priority = %s,
             updated_at = CURRENT_TIMESTAMP
-        WHERE id = ?
+        WHERE id = %s
         """,
         (
             priority,
@@ -232,11 +231,13 @@ def delete_request(
     execute(
         """
         DELETE FROM requests
-        WHERE id = ?
+        WHERE id = %s
         """,
         (request_id,),
     )
-    # -----------------------------
+
+
+# -----------------------------
 # Dashboard Statistics
 # -----------------------------
 def get_dashboard_statistics() -> dict:
@@ -261,7 +262,7 @@ def get_dashboard_statistics() -> dict:
         """
         SELECT COUNT(*) AS count
         FROM requests
-        WHERE DATE(created_at)=DATE('now','localtime')
+        WHERE DATE(created_at) = CURRENT_DATE
         """
     )["count"]
 
@@ -269,7 +270,7 @@ def get_dashboard_statistics() -> dict:
         """
         SELECT COUNT(*) AS count
         FROM experts
-        WHERE is_active = 1
+        WHERE is_active = TRUE
         """
     )["count"]
 
@@ -296,12 +297,9 @@ def get_recent_requests(
     rows = fetch_all(
         """
         SELECT *
-
         FROM requests
-
         ORDER BY id DESC
-
-        LIMIT ?
+        LIMIT %s
         """,
         (limit,),
     )
