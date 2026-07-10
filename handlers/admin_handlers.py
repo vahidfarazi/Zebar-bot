@@ -248,13 +248,13 @@ def handle_admin_message(
 
         )
 
-                return {
+        return {
 
             "text": "انجام شد" if result["success"] else result["message"],
 
             "keyboard": ADMIN_MENU,
 
-                }
+        }
     # -------------------------
     # Add Holiday
     # -------------------------
