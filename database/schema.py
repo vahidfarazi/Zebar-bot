@@ -176,7 +176,7 @@ def init_database() -> None:
             cursor.execute("""
             CREATE TABLE IF NOT EXISTS holidays (
 
-                holiday_date DATE PRIMARY KEY,
+                holiday_date TEXT PRIMARY KEY,
 
                 enabled BOOLEAN DEFAULT TRUE
             )
