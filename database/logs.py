@@ -29,7 +29,7 @@ def insert_log(
             action,
             description
         )
-        VALUES (?, ?, ?, ?)
+        VALUES (%s, %s, %s, %s)
         """,
         (
             level,
@@ -57,9 +57,9 @@ def get_logs(
             """
             SELECT *
             FROM system_logs
-            WHERE level = ?
+            WHERE level = %s
             ORDER BY id DESC
-            LIMIT ?
+            LIMIT %s
             """,
             (
                 level,
@@ -74,9 +74,11 @@ def get_logs(
             SELECT *
             FROM system_logs
             ORDER BY id DESC
-            LIMIT ?
+            LIMIT %s
             """,
-            (limit,),
+            (
+                limit,
+            ),
         )
 
     return [dict(row) for row in rows]
