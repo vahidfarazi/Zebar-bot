@@ -24,25 +24,17 @@ load_dotenv()
 # -----------------------------
 DEFAULTS = {
     "BOT_VERSION": "1.0",
-
     "TIMEZONE": "Asia/Tehran",
-
     "WORK_START": "07:00",
     "WORK_END": "13:00",
-
     "SYSTEM_MODE": "NORMAL",
-
     "ALLOW_NEW_REQUEST": "1",
     "ALLOW_TRACKING": "1",
     "ALLOW_CHAT": "1",
-
     "DEFAULT_PRIORITY": "NORMAL",
-
     "MAX_UPLOAD_SIZE": "20971520",
     "MAX_MESSAGE_LENGTH": "3000",
-
     "BALE_API_URL": "https://tapi.bale.ai",
-
     "DEBUG_MODE": "0",
 }
 
@@ -138,29 +130,29 @@ class Config:
         )
 
     @staticmethod
-   def set(
-       key: str,
-       value: Any,
-       ) -> None:
+    def set(
+        key: str,
+        value: Any,
+    ) -> None:
 
-    from database.crud import execute
+        from database.crud import execute
 
-    execute(
-        """
-        INSERT INTO settings
-        (key, value)
-        VALUES (%s, %s)
-        ON CONFLICT(key)
-        DO UPDATE SET
-        value = EXCLUDED.value
-        """,
-        (
-            key,
-            str(value),
-        ),
-    )
+        execute(
+            """
+            INSERT INTO settings
+            (key, value)
+            VALUES (%s, %s)
+            ON CONFLICT(key)
+            DO UPDATE SET
+                value = EXCLUDED.value
+            """,
+            (
+                key,
+                str(value),
+            ),
+        )
 
-    _CACHE[key] = value
+        _CACHE[key] = value
 
     @staticmethod
     def refresh() -> None:
