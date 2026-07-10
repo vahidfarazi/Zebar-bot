@@ -24,14 +24,15 @@ def create_user(
 
     execute(
         """
-        INSERT OR IGNORE INTO users
+        INSERT INTO users
         (
             chat_id,
             username,
             full_name,
             role
         )
-        VALUES (?, ?, ?, ?)
+        VALUES (%s, %s, %s, %s)
+        ON CONFLICT (chat_id) DO NOTHING
         """,
         (
             chat_id,
@@ -53,7 +54,7 @@ def get_user(
         """
         SELECT *
         FROM users
-        WHERE chat_id = ?
+        WHERE chat_id = %s
         """,
         (chat_id,),
     )
@@ -72,8 +73,8 @@ def update_username(
     execute(
         """
         UPDATE users
-        SET username = ?
-        WHERE chat_id = ?
+        SET username = %s
+        WHERE chat_id = %s
         """,
         (
             username,
@@ -93,8 +94,8 @@ def update_full_name(
     execute(
         """
         UPDATE users
-        SET full_name = ?
-        WHERE chat_id = ?
+        SET full_name = %s
+        WHERE chat_id = %s
         """,
         (
             full_name,
@@ -114,8 +115,8 @@ def update_role(
     execute(
         """
         UPDATE users
-        SET role = ?
-        WHERE chat_id = ?
+        SET role = %s
+        WHERE chat_id = %s
         """,
         (
             role,
