@@ -38,6 +38,9 @@ from .requests import (
     close_request,
     update_priority,
     delete_request,
+
+    get_dashboard_statistics,
+    get_recent_requests,
 )
 
 # Request Messages
@@ -129,7 +132,9 @@ __all__ = [
     "update_priority",
     "delete_request",
 
-    # Messages
+    "get_dashboard_statistics",
+    "get_recent_requests",
+        # Messages
     "add_message",
     "get_message",
     "get_messages",
