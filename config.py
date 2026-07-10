@@ -59,24 +59,23 @@ class Config:
     def _env(key: str) -> Optional[str]:
         return os.getenv(key)
 
-   @staticmethod
-def _db(key: str) -> Optional[str]:
+    @staticmethod
+    def _db(key: str) -> Optional[str]:
+        from database.crud import fetch_one
 
-    from database.crud import fetch_one
+        row = fetch_one(
+            """
+            SELECT value
+            FROM settings
+            WHERE key = %s
+            """,
+            (key,),
+        )
 
-    row = fetch_one(
-        """
-        SELECT value
-        FROM settings
-        WHERE key = %s
-        """,
-        (key,),
-    )
+        if row:
+            return row["value"]
 
-    if row:
-        return row["value"]
-
-    return None
+        return None
 
     @staticmethod
     def get(
