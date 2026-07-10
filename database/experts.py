@@ -24,14 +24,15 @@ def create_expert(
 
     execute(
         """
-        INSERT OR IGNORE INTO experts
+        INSERT INTO experts
         (
             chat_id,
             name,
             username,
             department
         )
-        VALUES (?, ?, ?, ?)
+        VALUES (%s, %s, %s, %s)
+        ON CONFLICT (chat_id) DO NOTHING
         """,
         (
             chat_id,
@@ -49,32 +50,14 @@ def get_expert(
     chat_id: int,
 ) -> Optional[dict]:
 
-    print("========== EXPERT LOOKUP ==========")
-    print("CHAT ID =", chat_id)
-
-    rows = fetch_all(
-        """
-        SELECT *
-        FROM experts
-        """
-    )
-
-    print("ALL EXPERTS:")
-
-    for row in rows:
-        print(dict(row))
-
     row = fetch_one(
         """
         SELECT *
         FROM experts
-        WHERE chat_id = ?
+        WHERE chat_id = %s
         """,
         (chat_id,),
     )
-
-    print("FOUND =", dict(row) if row else None)
-    print("===================================")
 
     return dict(row) if row else None
 
@@ -88,7 +71,7 @@ def list_active_experts() -> list[dict]:
         """
         SELECT *
         FROM experts
-        WHERE is_active = 1
+        WHERE is_active = TRUE
         ORDER BY name
         """
     )
@@ -107,8 +90,8 @@ def update_department(
     execute(
         """
         UPDATE experts
-        SET department = ?
-        WHERE chat_id = ?
+        SET department = %s
+        WHERE chat_id = %s
         """,
         (
             department,
@@ -128,11 +111,11 @@ def set_active(
     execute(
         """
         UPDATE experts
-        SET is_active = ?
-        WHERE chat_id = ?
+        SET is_active = %s
+        WHERE chat_id = %s
         """,
         (
-            1 if active else 0,
+            active,
             chat_id,
         ),
     )
@@ -148,7 +131,7 @@ def delete_expert(
     execute(
         """
         DELETE FROM experts
-        WHERE chat_id = ?
+        WHERE chat_id = %s
         """,
         (chat_id,),
     )
