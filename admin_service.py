@@ -263,3 +263,162 @@ def update_settings(
             "success": False,
             "message": "خطا در بروزرسانی تنظیمات",
         }
+# -----------------------------
+# Dashboard Statistics
+# -----------------------------
+def get_dashboard_statistics() -> Dict[str, Any]:
+    """
+    Return dashboard statistics.
+    """
+
+    try:
+
+        from database import (
+            get_dashboard_statistics,
+        )
+
+        return {
+
+            "success": True,
+
+            "data": get_dashboard_statistics(),
+
+        }
+
+    except Exception as e:
+
+        log_error(
+
+            "admin_service",
+
+            "dashboard_statistics",
+
+            str(e),
+
+        )
+
+        return {
+
+            "success": False,
+
+            "message": "خطا در دریافت آمار",
+
+        }
+
+
+# -----------------------------
+# Recent Requests
+# -----------------------------
+def get_recent_requests(
+    limit: int = 20,
+) -> Dict[str, Any]:
+    """
+    Return latest requests.
+    """
+
+    try:
+
+        from database import (
+            get_recent_requests,
+        )
+
+        return {
+
+            "success": True,
+
+            "data": get_recent_requests(limit),
+
+        }
+
+    except Exception as e:
+
+        log_error(
+
+            "admin_service",
+
+            "recent_requests",
+
+            str(e),
+
+        )
+
+        return {
+
+            "success": False,
+
+            "message": "خطا در دریافت درخواست‌ها",
+
+        }
+
+
+# -----------------------------
+# Request Details
+# -----------------------------
+def get_request_details(
+    tracking_code: str,
+) -> Dict[str, Any]:
+    """
+    Return complete request details.
+    """
+
+    try:
+
+        from database import (
+
+            get_request_by_tracking,
+
+            get_messages,
+
+            get_history,
+
+        )
+
+        request = get_request_by_tracking(
+            tracking_code,
+        )
+
+        if not request:
+
+            return {
+
+                "success": False,
+
+                "message": "درخواست یافت نشد.",
+
+            }
+
+        return {
+
+            "success": True,
+
+            "request": request,
+
+            "messages": get_messages(
+                tracking_code,
+            ),
+
+            "history": get_history(
+                tracking_code,
+            ),
+
+        }
+
+    except Exception as e:
+
+        log_error(
+
+            "admin_service",
+
+            "request_details",
+
+            str(e),
+
+        )
+
+        return {
+
+            "success": False,
+
+            "message": "خطا در دریافت اطلاعات",
+
+    }
