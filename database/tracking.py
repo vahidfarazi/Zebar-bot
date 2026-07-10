@@ -25,13 +25,9 @@ def get_last_tracking_number() -> str | None:
     row = fetch_one(
         """
         SELECT tracking_code
-
         FROM requests
-
-        WHERE tracking_code LIKE ?
-
+        WHERE tracking_code LIKE %s
         ORDER BY id DESC
-
         LIMIT 1
         """,
         (
@@ -40,7 +36,6 @@ def get_last_tracking_number() -> str | None:
     )
 
     if not row:
-
         return None
 
     return row["tracking_code"]
