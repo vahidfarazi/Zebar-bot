@@ -22,7 +22,6 @@ def add_history(
     """
 
     execute(
-
         """
         INSERT INTO request_history
         (
@@ -33,23 +32,15 @@ def add_history(
             description
         )
         VALUES
-        (?, ?, ?, ?, ?)
+        (%s, %s, %s, %s, %s)
         """,
-
         (
-
             tracking_code,
-
             event_type,
-
             actor_type,
-
             actor_id,
-
             description,
-
         ),
-
     )
 
 
@@ -64,31 +55,20 @@ def get_history(
     """
 
     rows = fetch_all(
-
         """
         SELECT *
-
         FROM request_history
-
-        WHERE tracking_code = ?
-
+        WHERE tracking_code = %s
         ORDER BY id
         """,
-
         (
-
             tracking_code,
-
         ),
-
     )
 
     return [
-
         dict(row)
-
         for row in rows
-
     ]
 
 
@@ -103,17 +83,11 @@ def delete_history(
     """
 
     execute(
-
         """
         DELETE FROM request_history
-
-        WHERE tracking_code = ?
+        WHERE tracking_code = %s
         """,
-
         (
-
             tracking_code,
-
         ),
-
-  )
+    )
