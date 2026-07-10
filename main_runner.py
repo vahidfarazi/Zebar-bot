@@ -247,6 +247,8 @@ def handle_update(
         # -----------------------------------------
 
         role = "USER"
+        print("SENDER:", sender_id)
+        print("IS_ADMIN:", is_admin(sender_id))
 
         chat = message.get(
             "chat",
