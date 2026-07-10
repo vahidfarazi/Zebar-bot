@@ -13,8 +13,6 @@ from typing import Any, Optional
 
 from dotenv import load_dotenv
 
-from database import fetch_one, execute
-
 # -----------------------------
 # Load .env
 # -----------------------------
@@ -61,22 +59,24 @@ class Config:
     def _env(key: str) -> Optional[str]:
         return os.getenv(key)
 
-    @staticmethod
-    def _db(key: str) -> Optional[str]:
+   @staticmethod
+def _db(key: str) -> Optional[str]:
 
-        row = fetch_one(
-            """
-            SELECT value
-            FROM settings
-            WHERE key = ?
-            """,
-            (key,),
-        )
+    from database.crud import fetch_one
 
-        if row:
-            return row["value"]
+    row = fetch_one(
+        """
+        SELECT value
+        FROM settings
+        WHERE key = %s
+        """,
+        (key,),
+    )
 
-        return None
+    if row:
+        return row["value"]
+
+    return None
 
     @staticmethod
     def get(
@@ -139,27 +139,29 @@ class Config:
         )
 
     @staticmethod
-    def set(
-        key: str,
-        value: Any,
-    ) -> None:
+   def set(
+       key: str,
+       value: Any,
+       ) -> None:
 
-        execute(
-            """
-            INSERT INTO settings
-            (key, value)
-            VALUES (?, ?)
-            ON CONFLICT(key)
-            DO UPDATE SET
-            value = excluded.value
-            """,
-            (
-                key,
-                str(value),
-            ),
-        )
+    from database.crud import execute
 
-        _CACHE[key] = value
+    execute(
+        """
+        INSERT INTO settings
+        (key, value)
+        VALUES (%s, %s)
+        ON CONFLICT(key)
+        DO UPDATE SET
+        value = EXCLUDED.value
+        """,
+        (
+            key,
+            str(value),
+        ),
+    )
+
+    _CACHE[key] = value
 
     @staticmethod
     def refresh() -> None:
