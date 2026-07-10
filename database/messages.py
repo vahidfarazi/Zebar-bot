@@ -40,7 +40,7 @@ def add_message(
             message_type,
             message
         )
-        VALUES (?, ?, ?, ?, ?)
+        VALUES (%s, %s, %s, %s, %s)
         """,
         (
             tracking_code,
@@ -63,7 +63,7 @@ def get_message(
         """
         SELECT *
         FROM request_messages
-        WHERE id = ?
+        WHERE id = %s
         """,
         (message_id,),
     )
@@ -82,7 +82,7 @@ def get_messages(
         """
         SELECT *
         FROM request_messages
-        WHERE tracking_code = ?
+        WHERE tracking_code = %s
         ORDER BY created_at ASC, id ASC
         """,
         (tracking_code,),
@@ -102,7 +102,7 @@ def get_last_message(
         """
         SELECT *
         FROM request_messages
-        WHERE tracking_code = ?
+        WHERE tracking_code = %s
         ORDER BY created_at DESC, id DESC
         LIMIT 1
         """,
@@ -122,7 +122,7 @@ def delete_messages(
     execute(
         """
         DELETE FROM request_messages
-        WHERE tracking_code = ?
+        WHERE tracking_code = %s
         """,
         (tracking_code,),
     )
