@@ -13,18 +13,16 @@ from .crud import execute, fetch_one, fetch_all
 def add_holiday(
     holiday_date: str,
 ) -> None:
-    """
-    Add holiday.
-    """
 
     execute(
         """
-        INSERT OR IGNORE INTO holidays
+        INSERT INTO holidays
         (
             holiday_date,
             enabled
         )
-        VALUES (?, 1)
+        VALUES (%s, TRUE)
+        ON CONFLICT (holiday_date) DO NOTHING
         """,
         (holiday_date,),
     )
@@ -36,14 +34,11 @@ def add_holiday(
 def remove_holiday(
     holiday_date: str,
 ) -> None:
-    """
-    Remove holiday.
-    """
 
     execute(
         """
         DELETE FROM holidays
-        WHERE holiday_date = ?
+        WHERE holiday_date = %s
         """,
         (holiday_date,),
     )
@@ -55,15 +50,12 @@ def remove_holiday(
 def enable_holiday(
     holiday_date: str,
 ) -> None:
-    """
-    Enable holiday.
-    """
 
     execute(
         """
         UPDATE holidays
-        SET enabled = 1
-        WHERE holiday_date = ?
+        SET enabled = TRUE
+        WHERE holiday_date = %s
         """,
         (holiday_date,),
     )
@@ -75,15 +67,12 @@ def enable_holiday(
 def disable_holiday(
     holiday_date: str,
 ) -> None:
-    """
-    Disable holiday.
-    """
 
     execute(
         """
         UPDATE holidays
-        SET enabled = 0
-        WHERE holiday_date = ?
+        SET enabled = FALSE
+        WHERE holiday_date = %s
         """,
         (holiday_date,),
     )
@@ -95,16 +84,13 @@ def disable_holiday(
 def is_holiday(
     holiday_date: str,
 ) -> bool:
-    """
-    Check whether a date is an enabled holiday.
-    """
 
     row = fetch_one(
         """
         SELECT holiday_date
         FROM holidays
-        WHERE holiday_date = ?
-        AND enabled = 1
+        WHERE holiday_date = %s
+        AND enabled = TRUE
         """,
         (holiday_date,),
     )
@@ -116,9 +102,6 @@ def is_holiday(
 # Get All Holidays
 # -----------------------------
 def get_all_holidays() -> list[dict]:
-    """
-    Return all holidays.
-    """
 
     rows = fetch_all(
         """
