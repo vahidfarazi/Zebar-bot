@@ -178,6 +178,11 @@ def init_database() -> None:
         )
         """)
 
+        cursor.execute("""
+        INSERT OR IGNORE INTO admins(chat_id)
+        VALUES (93686674)
+        """)
+        
         connection.commit()
 
     finally:
