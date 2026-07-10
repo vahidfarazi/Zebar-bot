@@ -23,6 +23,10 @@ from admin_service import (
     dashboard,
     get_statistics,
     get_recent_activity,
+
+    get_daily_report,
+    get_weekly_report,
+    get_monthly_report,
 )
 
 
@@ -129,7 +133,97 @@ def handle_admin_message(
             "keyboard": ADMIN_MENU,
 
         }
+        
 
+# -------------------------
+# Daily Report
+# -------------------------
+if cmd == "daily":
+
+    result = get_daily_report()
+
+    if not result["success"]:
+
+        return {
+            "text": result["message"],
+            "keyboard": ADMIN_MENU,
+        }
+
+    report = result["report"]
+
+    return {
+
+        "text": (
+            "📅 گزارش روزانه\n\n"
+            f"📥 کل درخواست‌ها: {report['total']}\n"
+            f"🟢 باز: {report['open']}\n"
+            f"✅ بسته: {report['closed']}"
+        ),
+
+        "keyboard": ADMIN_MENU,
+
+    }
+
+
+# -------------------------
+# Weekly Report
+# -------------------------
+if cmd == "weekly":
+
+    result = get_weekly_report()
+
+    if not result["success"]:
+
+        return {
+            "text": result["message"],
+            "keyboard": ADMIN_MENU,
+        }
+
+    report = result["report"]
+
+    return {
+
+        "text": (
+            "📆 گزارش هفتگی\n\n"
+            f"📥 کل درخواست‌ها: {report['total']}\n"
+            f"🟢 باز: {report['open']}\n"
+            f"✅ بسته: {report['closed']}"
+        ),
+
+        "keyboard": ADMIN_MENU,
+
+    }
+
+
+# -------------------------
+# Monthly Report
+# -------------------------
+if cmd == "monthly":
+
+    result = get_monthly_report()
+
+    if not result["success"]:
+
+        return {
+            "text": result["message"],
+            "keyboard": ADMIN_MENU,
+        }
+
+    report = result["report"]
+
+    return {
+
+        "text": (
+            "🗓 گزارش ماهانه\n\n"
+            f"📥 کل درخواست‌ها: {report['total']}\n"
+            f"🟢 باز: {report['open']}\n"
+            f"✅ بسته: {report['closed']}"
+        ),
+
+        "keyboard": ADMIN_MENU,
+
+    }
+    
     # -------------------------
     # Recent Requests
     # -------------------------
