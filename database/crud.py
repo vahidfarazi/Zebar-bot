@@ -1,11 +1,10 @@
 """
 database/crud.py
 
-Generic CRUD helpers for Azarakhsh database.
+Generic CRUD helpers for PostgreSQL.
 """
 
-import sqlite3
-from typing import Optional
+from typing import Any
 
 from .connection import get_connection
 
@@ -20,21 +19,30 @@ def execute(
     """
     Execute INSERT, UPDATE or DELETE query.
 
-    Returns:
-        lastrowid if available, otherwise 0.
+    Returns inserted id if RETURNING is used,
+    otherwise 0.
     """
 
     connection = get_connection()
 
     try:
 
-        cursor = connection.cursor()
+        with connection.cursor() as cursor:
 
-        cursor.execute(query, params)
+            cursor.execute(query, params)
 
-        connection.commit()
+            result = None
 
-        return cursor.lastrowid
+            if cursor.description:
+                result = cursor.fetchone()
+
+            connection.commit()
+
+            if result:
+
+                return list(result.values())[0]
+
+            return 0
 
     finally:
 
@@ -47,7 +55,7 @@ def execute(
 def fetch_one(
     query: str,
     params: tuple = (),
-) -> Optional[sqlite3.Row]:
+) -> dict[str, Any] | None:
     """
     Execute SELECT and return one row.
     """
@@ -56,11 +64,11 @@ def fetch_one(
 
     try:
 
-        cursor = connection.cursor()
+        with connection.cursor() as cursor:
 
-        cursor.execute(query, params)
+            cursor.execute(query, params)
 
-        return cursor.fetchone()
+            return cursor.fetchone()
 
     finally:
 
@@ -73,7 +81,7 @@ def fetch_one(
 def fetch_all(
     query: str,
     params: tuple = (),
-) -> list[sqlite3.Row]:
+) -> list[dict[str, Any]]:
     """
     Execute SELECT and return all rows.
     """
@@ -82,11 +90,11 @@ def fetch_all(
 
     try:
 
-        cursor = connection.cursor()
+        with connection.cursor() as cursor:
 
-        cursor.execute(query, params)
+            cursor.execute(query, params)
 
-        return cursor.fetchall()
+            return cursor.fetchall()
 
     finally:
 
@@ -108,11 +116,11 @@ def execute_many(
 
     try:
 
-        cursor = connection.cursor()
+        with connection.cursor() as cursor:
 
-        cursor.executemany(query, params)
+            cursor.executemany(query, params)
 
-        connection.commit()
+            connection.commit()
 
     finally:
 
@@ -122,17 +130,19 @@ def execute_many(
 # -----------------------------
 # Table Exists
 # -----------------------------
-def table_exists(table_name: str) -> bool:
+def table_exists(
+    table_name: str,
+) -> bool:
     """
     Check whether a table exists.
     """
 
     row = fetch_one(
         """
-        SELECT name
-        FROM sqlite_master
-        WHERE type='table'
-        AND name=?
+        SELECT table_name
+        FROM information_schema.tables
+        WHERE table_schema='public'
+        AND table_name=%s
         """,
         (table_name,),
     )
