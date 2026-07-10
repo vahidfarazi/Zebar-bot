@@ -22,7 +22,7 @@ def get_daily_statistics():
             SUM(CASE WHEN status='OPEN' THEN 1 ELSE 0 END) AS open,
             SUM(CASE WHEN status='CLOSED' THEN 1 ELSE 0 END) AS closed
         FROM requests
-        WHERE DATE(created_at)=DATE('now','localtime')
+        WHERE DATE(created_at)=CURRENT_DATE
         """
     )
 
@@ -53,7 +53,7 @@ def get_weekly_statistics():
             SUM(CASE WHEN status='OPEN' THEN 1 ELSE 0 END) AS open,
             SUM(CASE WHEN status='CLOSED' THEN 1 ELSE 0 END) AS closed
         FROM requests
-        WHERE DATE(created_at)>=DATE('now','-6 day','localtime')
+        WHERE created_at >= CURRENT_DATE - INTERVAL '6 days'
         """
     )
 
@@ -84,7 +84,7 @@ def get_monthly_statistics():
             SUM(CASE WHEN status='OPEN' THEN 1 ELSE 0 END) AS open,
             SUM(CASE WHEN status='CLOSED' THEN 1 ELSE 0 END) AS closed
         FROM requests
-        WHERE DATE(created_at)>=DATE('now','-29 day','localtime')
+        WHERE created_at >= CURRENT_DATE - INTERVAL '29 days'
         """
     )
 
