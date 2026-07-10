@@ -43,6 +43,13 @@ from .requests import (
     get_recent_requests,
 )
 
+# Reports
+from .reports import (
+    get_daily_statistics,
+    get_weekly_statistics,
+    get_monthly_statistics,
+)
+
 # Request Messages
 from .messages import (
     add_message,
@@ -134,7 +141,12 @@ __all__ = [
 
     "get_dashboard_statistics",
     "get_recent_requests",
-        # Messages
+    
+    "get_daily_statistics",
+    "get_weekly_statistics",
+    "get_monthly_statistics", 
+    
+    # Messages
     "add_message",
     "get_message",
     "get_messages",
