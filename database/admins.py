@@ -17,11 +17,12 @@ def add_admin(chat_id: int) -> None:
 
     execute(
         """
-        INSERT OR IGNORE INTO admins
+        INSERT INTO admins
         (
             chat_id
         )
-        VALUES (?)
+        VALUES (%s)
+        ON CONFLICT (chat_id) DO NOTHING
         """,
         (chat_id,),
     )
@@ -38,7 +39,7 @@ def remove_admin(chat_id: int) -> None:
     execute(
         """
         DELETE FROM admins
-        WHERE chat_id = ?
+        WHERE chat_id = %s
         """,
         (chat_id,),
     )
@@ -48,19 +49,18 @@ def remove_admin(chat_id: int) -> None:
 # Is Admin
 # -----------------------------
 def is_admin(chat_id: int) -> bool:
-
-    print("CHECK ADMIN:", chat_id)
+    """
+    Check whether user is admin.
+    """
 
     row = fetch_one(
         """
         SELECT chat_id
         FROM admins
-        WHERE chat_id = ?
+        WHERE chat_id = %s
         """,
         (chat_id,),
     )
-
-    print("ROW:", row)
 
     return row is not None
 
