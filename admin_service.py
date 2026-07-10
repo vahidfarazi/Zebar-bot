@@ -13,12 +13,60 @@ from database import (
     add_holiday,
     remove_holiday,
     set_setting,
+
+    get_dashboard_statistics,
+    get_recent_requests,
 )
 
 from logger import (
     log_info,
     log_error,
 )
+
+
+# -----------------------------
+# Dashboard
+# -----------------------------
+def dashboard() -> Dict[str, Any]:
+    """
+    Return dashboard statistics.
+    """
+
+    try:
+
+        stats = get_dashboard_statistics()
+
+        recent = get_recent_requests(10)
+
+        return {
+
+            "success": True,
+
+            "statistics": stats,
+
+            "recent_requests": recent,
+
+        }
+
+    except Exception as e:
+
+        log_error(
+
+            "admin_service",
+
+            "dashboard",
+
+            str(e),
+
+        )
+
+        return {
+
+            "success": False,
+
+            "message": "خطا در دریافت اطلاعات داشبورد",
+
+        }
 
 
 # -----------------------------
@@ -65,9 +113,7 @@ def create_expert_account(
             "success": False,
             "message": "خطا در ایجاد کارشناس",
         }
-
-
-# -----------------------------
+        # -----------------------------
 # Deactivate Expert
 # -----------------------------
 def deactivate_expert(
@@ -221,9 +267,7 @@ def delete_system_holiday(
             "success": False,
             "message": "خطا در حذف تعطیلی",
         }
-
-
-# -----------------------------
+        # -----------------------------
 # Settings
 # -----------------------------
 def update_settings(
@@ -263,162 +307,72 @@ def update_settings(
             "success": False,
             "message": "خطا در بروزرسانی تنظیمات",
         }
-# -----------------------------
-# Dashboard Statistics
-# -----------------------------
-def get_dashboard_statistics() -> Dict[str, Any]:
-    """
-    Return dashboard statistics.
-    """
-
-    try:
-
-        from database import (
-            get_dashboard_statistics,
-        )
-
-        return {
-
-            "success": True,
-
-            "data": get_dashboard_statistics(),
-
-        }
-
-    except Exception as e:
-
-        log_error(
-
-            "admin_service",
-
-            "dashboard_statistics",
-
-            str(e),
-
-        )
-
-        return {
-
-            "success": False,
-
-            "message": "خطا در دریافت آمار",
-
-        }
 
 
 # -----------------------------
-# Recent Requests
+# Dashboard Helpers
 # -----------------------------
-def get_recent_requests(
-    limit: int = 20,
-) -> Dict[str, Any]:
+def get_dashboard() -> Dict[str, Any]:
     """
-    Return latest requests.
+    Return dashboard information.
     """
 
-    try:
-
-        from database import (
-            get_recent_requests,
-        )
-
-        return {
-
-            "success": True,
-
-            "data": get_recent_requests(limit),
-
-        }
-
-    except Exception as e:
-
-        log_error(
-
-            "admin_service",
-
-            "recent_requests",
-
-            str(e),
-
-        )
-
-        return {
-
-            "success": False,
-
-            "message": "خطا در دریافت درخواست‌ها",
-
-        }
+    return dashboard()
 
 
-# -----------------------------
-# Request Details
-# -----------------------------
-def get_request_details(
-    tracking_code: str,
-) -> Dict[str, Any]:
+def get_statistics() -> Dict[str, Any]:
     """
-    Return complete request details.
+    Return only dashboard statistics.
     """
 
-    try:
+    result = dashboard()
 
-        from database import (
+    if not result["success"]:
 
-            get_request_by_tracking,
+        return result
 
-            get_messages,
+    return {
 
-            get_history,
+        "success": True,
 
-        )
-
-        request = get_request_by_tracking(
-            tracking_code,
-        )
-
-        if not request:
-
-            return {
-
-                "success": False,
-
-                "message": "درخواست یافت نشد.",
-
-            }
-
-        return {
-
-            "success": True,
-
-            "request": request,
-
-            "messages": get_messages(
-                tracking_code,
-            ),
-
-            "history": get_history(
-                tracking_code,
-            ),
-
-        }
-
-    except Exception as e:
-
-        log_error(
-
-            "admin_service",
-
-            "request_details",
-
-            str(e),
-
-        )
-
-        return {
-
-            "success": False,
-
-            "message": "خطا در دریافت اطلاعات",
+        "statistics": result["statistics"],
 
     }
+
+
+def get_recent_activity(
+    limit: int = 10,
+) -> Dict[str, Any]:
+    """
+    Return recent requests.
+    """
+
+    try:
+
+        return {
+
+            "success": True,
+
+            "recent_requests": get_recent_requests(limit),
+
+        }
+
+    except Exception as e:
+
+        log_error(
+
+            "admin_service",
+
+            "recent_activity",
+
+            str(e),
+
+        )
+
+        return {
+
+            "success": False,
+
+            "message": "خطا در دریافت فعالیت‌های اخیر",
+
+        }
