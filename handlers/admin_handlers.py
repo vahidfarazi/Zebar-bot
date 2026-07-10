@@ -334,20 +334,14 @@ if cmd == "monthly" or message == "🗓 گزارش ماهانه":
                 "keyboard": ADMIN_MENU,
             }
 
-        result = transfer_request(
-
+                result = transfer_request(
             int(parts[1]),
-
             int(parts[2]),
-
         )
 
         return {
-
             "text": "انجام شد" if result["success"] else result["message"],
-
             "keyboard": ADMIN_MENU,
-
         }
     # -------------------------
     # Add Holiday
