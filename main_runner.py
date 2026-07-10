@@ -247,8 +247,6 @@ def handle_update(
         # -----------------------------------------
 
         role = "USER"
-        print("SENDER:", sender_id)
-        print("IS_ADMIN:", is_admin(sender_id))
 
         chat = message.get(
             "chat",
@@ -259,6 +257,11 @@ def handle_update(
             "id",
         )
 
+        chat_type = chat.get(
+            "type",
+            "private",
+        )
+
         expert_group_id = int(
             Config.get_str(
                 "EXPERT_GROUP_ID",
@@ -266,18 +269,32 @@ def handle_update(
             )
         )
 
-        # Admin
-        if is_admin(
-            sender_id,
-        ):
+        print("SENDER:", sender_id)
+        print("GROUP:", group_id)
+        print("CHAT TYPE:", chat_type)
+        print("IS_ADMIN:", is_admin(sender_id))
+
+        # -------------------------------------------------
+        # داخل گروه کارشناسان همیشه کارشناس است
+        # -------------------------------------------------
+
+        if group_id == expert_group_id:
+
+            role = "EXPERT"
+
+        # -------------------------------------------------
+        # فقط در چت خصوصی مدیر است
+        # -------------------------------------------------
+
+        elif chat_type == "private" and is_admin(sender_id):
 
             role = "ADMIN"
 
-        # Every message inside expert group is EXPERT
-        elif group_id == expert_group_id:
+        else:
 
-            role = "EXPERT"
-            print("ROLE:", role)
+            role = "USER"
+
+        print("ROLE:", role)
 
         process_update(
 
@@ -303,4 +320,4 @@ def handle_update(
 
             traceback.format_exc(),
 
-)
+        )
