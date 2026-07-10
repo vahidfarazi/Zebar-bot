@@ -13,6 +13,7 @@ def init_database() -> None:
     """
 
     connection = get_connection()
+    print("DATABASE INITIALIZED")
 
     try:
 
