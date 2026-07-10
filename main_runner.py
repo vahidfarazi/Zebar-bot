@@ -277,6 +277,7 @@ def handle_update(
         elif group_id == expert_group_id:
 
             role = "EXPERT"
+            print("ROLE:", role)
 
         process_update(
 
