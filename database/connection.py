@@ -1,33 +1,25 @@
 """
 database/connection.py
 
-Database connection manager for Azarakhsh.
+PostgreSQL connection manager.
 """
 
-import os
-import sqlite3
-
-DB_DIRECTORY = "database"
-DB_NAME = "azarakhsh.db"
-DB_PATH = os.path.join(DB_DIRECTORY, DB_NAME)
+from config import Config
+import psycopg
+from psycopg.rows import dict_row
 
 
-def get_connection() -> sqlite3.Connection:
+def get_connection():
     """
-    Return SQLite connection.
+    Return PostgreSQL connection.
     """
 
-    os.makedirs(DB_DIRECTORY, exist_ok=True)
-
-    print("DB PATH:", DB_PATH)
-    
-    connection = sqlite3.connect(
-        DB_PATH,
-        check_same_thread=False,
+    return psycopg.connect(
+        host=Config.get_str("PGHOST"),
+        port=Config.get_str("PGPORT"),
+        dbname=Config.get_str("PGDATABASE"),
+        user=Config.get_str("PGUSER"),
+        password=Config.get_str("PGPASSWORD"),
+        sslmode="require",
+        row_factory=dict_row,
     )
-
-    connection.row_factory = sqlite3.Row
-
-    connection.execute("PRAGMA foreign_keys = ON")
-
-    return connection
