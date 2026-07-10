@@ -48,9 +48,7 @@ def remove_admin(chat_id: int) -> None:
 # Is Admin
 # -----------------------------
 def is_admin(chat_id: int) -> bool:
-    """
-    Check whether user is admin.
-    """
+    print("CHECK ADMIN:", chat_id)
 
     row = fetch_one(
         """
@@ -60,6 +58,8 @@ def is_admin(chat_id: int) -> bool:
         """,
         (chat_id,),
     )
+
+    print("ROW =", row)
 
     return row is not None
 
