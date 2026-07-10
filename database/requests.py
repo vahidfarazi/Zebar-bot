@@ -236,3 +236,80 @@ def delete_request(
         """,
         (request_id,),
     )
+    # -----------------------------
+# Dashboard Statistics
+# -----------------------------
+def get_dashboard_statistics() -> dict:
+
+    open_count = fetch_one(
+        """
+        SELECT COUNT(*) AS count
+        FROM requests
+        WHERE status = 'OPEN'
+        """
+    )["count"]
+
+    closed_count = fetch_one(
+        """
+        SELECT COUNT(*) AS count
+        FROM requests
+        WHERE status = 'CLOSED'
+        """
+    )["count"]
+
+    today_count = fetch_one(
+        """
+        SELECT COUNT(*) AS count
+        FROM requests
+        WHERE DATE(created_at)=DATE('now','localtime')
+        """
+    )["count"]
+
+    expert_count = fetch_one(
+        """
+        SELECT COUNT(*) AS count
+        FROM experts
+        WHERE is_active = 1
+        """
+    )["count"]
+
+    return {
+
+        "open": open_count,
+
+        "closed": closed_count,
+
+        "today": today_count,
+
+        "experts": expert_count,
+
+    }
+
+
+# -----------------------------
+# Recent Requests
+# -----------------------------
+def get_recent_requests(
+    limit: int = 20,
+) -> list[dict]:
+
+    rows = fetch_all(
+        """
+        SELECT *
+
+        FROM requests
+
+        ORDER BY id DESC
+
+        LIMIT ?
+        """,
+        (limit,),
+    )
+
+    return [
+
+        dict(row)
+
+        for row in rows
+
+    ]
