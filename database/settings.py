@@ -21,7 +21,7 @@ def get_setting(key: str) -> Optional[str]:
         """
         SELECT value
         FROM settings
-        WHERE key = ?
+        WHERE key = %s
         """,
         (key,),
     )
@@ -50,10 +50,10 @@ def set_setting(
             key,
             value
         )
-        VALUES (?, ?)
-        ON CONFLICT(key)
+        VALUES (%s, %s)
+        ON CONFLICT (key)
         DO UPDATE SET
-            value = excluded.value
+            value = EXCLUDED.value
         """,
         (
             key,
