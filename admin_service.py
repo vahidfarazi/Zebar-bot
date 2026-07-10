@@ -16,6 +16,10 @@ from database import (
 
     get_dashboard_statistics,
     get_recent_requests,
+
+    get_daily_statistics,
+    get_weekly_statistics,
+    get_monthly_statistics,
 )
 
 from logger import (
@@ -377,4 +381,81 @@ def get_recent_activity(
 
             "message": "خطا در دریافت فعالیت‌های اخیر",
 
+        }
+
+# -----------------------------
+# Daily Report
+# -----------------------------
+def get_daily_report():
+
+    try:
+
+        return {
+            "success": True,
+            "report": get_daily_statistics(),
+        }
+
+    except Exception as e:
+
+        log_error(
+            "admin_service",
+            "daily_report",
+            str(e),
+        )
+
+        return {
+            "success": False,
+            "message": "خطا در گزارش روزانه",
+        }
+
+
+# -----------------------------
+# Weekly Report
+# -----------------------------
+def get_weekly_report():
+
+    try:
+
+        return {
+            "success": True,
+            "report": get_weekly_statistics(),
+        }
+
+    except Exception as e:
+
+        log_error(
+            "admin_service",
+            "weekly_report",
+            str(e),
+        )
+
+        return {
+            "success": False,
+            "message": "خطا در گزارش هفتگی",
+        }
+
+
+# -----------------------------
+# Monthly Report
+# -----------------------------
+def get_monthly_report():
+
+    try:
+
+        return {
+            "success": True,
+            "report": get_monthly_statistics(),
+        }
+
+    except Exception as e:
+
+        log_error(
+            "admin_service",
+            "monthly_report",
+            str(e),
+        )
+
+        return {
+            "success": False,
+            "message": "خطا در گزارش ماهانه",
         }
