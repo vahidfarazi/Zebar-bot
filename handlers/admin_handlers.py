@@ -108,7 +108,7 @@ def handle_admin_message(
     # -------------------------
     # Statistics
     # -------------------------
-    if cmd == "stats":
+    if cmd == "stats" or message == "📈 آمار":
 
         result = get_statistics()
 
@@ -138,7 +138,7 @@ def handle_admin_message(
 # -------------------------
 # Daily Report
 # -------------------------
-if cmd == "daily":
+if cmd == "daily" or message == "📅 گزارش روزانه":
 
     result = get_daily_report()
 
@@ -168,7 +168,7 @@ if cmd == "daily":
 # -------------------------
 # Weekly Report
 # -------------------------
-if cmd == "weekly":
+if cmd == "weekly" or message == "📆 گزارش هفتگی":
 
     result = get_weekly_report()
 
@@ -198,7 +198,7 @@ if cmd == "weekly":
 # -------------------------
 # Monthly Report
 # -------------------------
-if cmd == "monthly":
+if cmd == "monthly" or message == "🗓 گزارش ماهانه":
 
     result = get_monthly_report()
 
