@@ -34,11 +34,8 @@ DEPARTMENT_CODES = {
 
     # خدمات مشترکین
     "NEW_CONNECTION": "11",
-
     "AFTER_SALES": "11",
-
     "METER_TEST": "11",
-
     "BILL_INQUIRY": "11",
 
 }
@@ -59,21 +56,14 @@ def generate_tracking_code(
     )
 
     sequence = get_next_tracking_number(
-
         year,
-
         department,
-
     )
 
     return (
-
         f"{year}"
-
         f"{department}"
-
         f"{sequence:07d}"
-
     )
 
 
@@ -91,9 +81,7 @@ def create_request(
     try:
 
         tracking = generate_tracking_code(
-
             data["service"],
-
         )
 
         # -------------------------
@@ -101,37 +89,33 @@ def create_request(
         # -------------------------
 
         insert_request(
-
             tracking_code=tracking,
-
             chat_id=chat_id,
-
             service=data["service"],
-
             sub_service=data.get(
                 "sub_service",
             ),
-
         )
 
         # -------------------------
         # Save User Message
         # -------------------------
 
+        request_text = format_request(data)
+
+        if data.get("description"):
+            request_text += (
+                "\n\n"
+                "📝 توضیحات تکمیلی:\n"
+                f"{data['description']}"
+            )
+
         add_message(
-
             tracking_code=tracking,
-
             sender_type="USER",
-
             sender_id=chat_id,
-
             message_type="REQUEST",
-
-            message=format_request(
-                data,
-            ),
-
+            message=request_text,
         )
 
         # -------------------------
@@ -139,17 +123,11 @@ def create_request(
         # -------------------------
 
         add_history(
-
             tracking_code=tracking,
-
             event_type="REQUEST_CREATED",
-
             actor_type="USER",
-
             actor_id=chat_id,
-
             description="درخواست ثبت شد",
-
         )
 
         # -------------------------
@@ -157,36 +135,28 @@ def create_request(
         # -------------------------
 
         expert_message = format_expert(
-
             tracking,
-
             chat_id,
-
             data,
-
         )
 
+        if data.get("description"):
+            expert_message += (
+                "\n\n"
+                "📝 توضیحات تکمیلی:\n"
+                f"{data['description']}"
+            )
+
         notify_experts(
-
             tracking,
-
             expert_message,
-
         )
 
         log_info(
-
             "request_service",
-
             "create_request",
-
             tracking,
-
         )
-
-        # -------------------------
-        # Return
-        # -------------------------
 
         return {
 
@@ -201,13 +171,9 @@ def create_request(
     except Exception as e:
 
         log_error(
-
             "request_service",
-
             "create_request",
-
             str(e),
-
         )
 
         raise
