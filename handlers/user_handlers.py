@@ -10,6 +10,11 @@ from handlers.user.form_handler import handle_form
 
 from handlers.user.edit_request import (
     save_edit,
+    start_edit,
+)
+
+from handlers.user.request_summary import (
+    show_summary,
 )
 
 from handlers.tracking_handlers import (
@@ -19,6 +24,7 @@ from handlers.tracking_handlers import (
 
 from user_state import (
     get_state,
+    set_state,
 )
 
 
@@ -43,7 +49,28 @@ def handle_user_message(
         )
 
     # -----------------------------
-    # Edit Mode
+    # Edit Menu
+    # -----------------------------
+    if state == "WAITING_EDIT_MENU":
+
+        if message == "✅ بازگشت به خلاصه":
+
+            set_state(
+                chat_id,
+                "WAITING_CONFIRM",
+            )
+
+            return show_summary(
+                chat_id,
+            )
+
+        return start_edit(
+            chat_id,
+            message,
+        )
+
+    # -----------------------------
+    # Edit Field
     # -----------------------------
     if state and state.startswith("EDIT_"):
 
@@ -105,4 +132,4 @@ def handle_user_message(
         "text":
             "لطفاً فقط از دکمه‌های موجود استفاده کنید.",
 
-        }
+    }
