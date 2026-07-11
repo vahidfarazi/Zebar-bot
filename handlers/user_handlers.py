@@ -8,9 +8,8 @@ from handlers.user.main_menu import handle_main_menu
 from handlers.user.request_menu import handle_request_menu
 from handlers.user.form_handler import handle_form
 
-from handlers.user.description_handler import (
-    handle_description,
-    handle_confirm,
+from handlers.user.edit_request import (
+    save_edit,
 )
 
 from handlers.tracking_handlers import (
@@ -34,7 +33,7 @@ def handle_user_message(
     state = get_state(chat_id)
 
     # -----------------------------
-    # Tracking
+    # Tracking Mode
     # -----------------------------
     if state == "WAITING_TRACKING_CODE":
 
@@ -44,27 +43,18 @@ def handle_user_message(
         )
 
     # -----------------------------
-    # Description
+    # Edit Mode
     # -----------------------------
-    if state == "WAITING_DESCRIPTION":
+    if state and state.startswith("EDIT_"):
 
-        return handle_description(
+        return save_edit(
             chat_id,
+            state,
             message,
         )
 
     # -----------------------------
-    # Confirmation
-    # -----------------------------
-    if state == "WAITING_CONFIRM":
-
-        return handle_confirm(
-            chat_id,
-            message,
-        )
-
-    # -----------------------------
-    # Form
+    # Form Mode
     # -----------------------------
     if state:
 
@@ -108,11 +98,11 @@ def handle_user_message(
         )
 
     # -----------------------------
-    # Invalid Message
+    # Invalid
     # -----------------------------
     return {
 
         "text":
             "لطفاً فقط از دکمه‌های موجود استفاده کنید.",
 
-    }
+        }
