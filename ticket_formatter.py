@@ -69,9 +69,9 @@ SUB_SERVICE_NAMES = {
 }
 
 
-# -----------------------------
+# ---------------------------------------------------
 # Request Body
-# -----------------------------
+# ---------------------------------------------------
 def format_request(
     data: dict,
 ) -> str:
@@ -106,12 +106,93 @@ def format_request(
                 f"{title}: {value}"
             )
 
+    # -------------------------
+    # Description
+    # -------------------------
+
+    description = data.get("description")
+
+    if description:
+
+        lines.append("")
+        lines.append("توضیحات تکمیلی:")
+        lines.append(description)
+
     return "\n".join(lines)
 
 
-# -----------------------------
+# ---------------------------------------------------
+# Summary Before Final ثبت
+# ---------------------------------------------------
+def format_summary(
+    data: dict,
+) -> str:
+
+    lines = [
+
+        "📋 خلاصه درخواست",
+        "",
+
+    ]
+
+    service = data.get("service")
+
+    if service:
+
+        lines.append(
+            f"🔹 خدمت: {SERVICE_NAMES.get(service, service)}"
+        )
+
+    sub = data.get("sub_service")
+
+    if sub:
+
+        lines.append(
+            f"🔹 زیرخدمت: {SUB_SERVICE_NAMES.get(sub, sub)}"
+        )
+
+    for key, title in FIELD_NAMES.items():
+
+        value = data.get(key)
+
+        if value:
+
+            lines.append(
+                f"• {title}: {value}"
+            )
+
+    description = data.get("description")
+
+    if description:
+
+        lines.extend([
+
+            "",
+
+            "📝 توضیحات تکمیلی:",
+
+            description,
+
+        ])
+
+    lines.extend([
+
+        "",
+
+        "━━━━━━━━━━━━━━",
+
+        "",
+
+        "در صورت تأیید، درخواست ثبت خواهد شد.",
+
+    ])
+
+    return "\n".join(lines)
+
+
+# ---------------------------------------------------
 # Expert Message
-# -----------------------------
+# ---------------------------------------------------
 def format_expert(
     tracking: str,
     chat_id: int,
@@ -141,9 +222,9 @@ def format_expert(
     )
 
 
-# -----------------------------
+# ---------------------------------------------------
 # User History
-# -----------------------------
+# ---------------------------------------------------
 def format_user_history(
     tracking: str,
     status: str,
@@ -219,9 +300,9 @@ def format_user_history(
     return "\n".join(lines)
 
 
-# -----------------------------
+# ---------------------------------------------------
 # Expert Reply
-# -----------------------------
+# ---------------------------------------------------
 def format_expert_reply(
     tracking: str,
     service: str,
@@ -260,9 +341,9 @@ def format_expert_reply(
     )
 
 
-# -----------------------------
+# ---------------------------------------------------
 # Success Message
-# -----------------------------
+# ---------------------------------------------------
 def format_success(
     tracking: str,
 ) -> str:
@@ -283,4 +364,4 @@ def format_success(
 
         "این کد را برای پیگیری نزد خود نگه دارید."
 
-)
+    )
