@@ -1,5 +1,7 @@
 """
 handlers/user/edit_request.py
+
+Professional request editor.
 """
 
 from user_state import (
@@ -9,6 +11,13 @@ from user_state import (
 )
 
 from handlers.user.request_summary import show_summary
+
+from validators import (
+    validate_mobile,
+    validate_national_code,
+    validate_bill_id,
+    validate_computer_code,
+)
 
 EDIT_FIELDS = {
 
@@ -37,6 +46,8 @@ FIELD_TITLES = {
     "description": "توضیحات تکمیلی",
 
 }
+
+MAX_DESCRIPTION = 300
 
 
 def edit_menu(chat_id):
@@ -78,7 +89,7 @@ def start_edit(chat_id, message):
 
     field = EDIT_FIELDS.get(message)
 
-    if not field:
+    if field is None:
 
         return {
 
@@ -110,6 +121,67 @@ def save_edit(chat_id, state, message):
         "",
 
     ).lower()
+
+    # -------------------------
+    # Validation
+    # -------------------------
+
+    if field == "mobile":
+
+        if not validate_mobile(message):
+
+            return {
+
+                "text": "❌ شماره همراه معتبر نیست.",
+
+            }
+
+    elif field == "national_code":
+
+        if not validate_national_code(message):
+
+            return {
+
+                "text": "❌ کد ملی معتبر نیست.",
+
+            }
+
+    elif field == "bill_id":
+
+        if not validate_bill_id(message):
+
+            return {
+
+                "text": "❌ شناسه قبض معتبر نیست.",
+
+            }
+
+    elif field == "computer_code":
+
+        if not validate_computer_code(message):
+
+            return {
+
+                "text": "❌ رمز رایانه معتبر نیست.",
+
+            }
+
+    elif field == "description":
+
+        message = message.strip()
+
+        if len(message) > MAX_DESCRIPTION:
+
+            return {
+
+                "text":
+                    f"❌ توضیحات نباید بیشتر از {MAX_DESCRIPTION} کاراکتر باشد.",
+
+            }
+
+    # -------------------------
+    # Save
+    # -------------------------
 
     update_data(
 
