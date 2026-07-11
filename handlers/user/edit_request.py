@@ -10,7 +10,9 @@ from user_state import (
     update_data,
 )
 
-from handlers.user.request_summary import show_summary
+from handlers.user.request_summary import (
+    show_summary,
+)
 
 from validators import (
     validate_mobile,
@@ -85,7 +87,9 @@ def start_edit(chat_id, message):
 
     if message == "⬅️ بازگشت":
 
-        return show_summary(chat_id)
+        return show_summary(
+            chat_id,
+        )
 
     field = EDIT_FIELDS.get(message)
 
@@ -93,7 +97,8 @@ def start_edit(chat_id, message):
 
         return {
 
-            "text": "لطفاً یکی از گزینه‌های موجود را انتخاب کنید.",
+            "text":
+                "لطفاً یکی از گزینه‌های موجود را انتخاب کنید.",
 
         }
 
@@ -107,7 +112,8 @@ def start_edit(chat_id, message):
 
     return {
 
-        "text": f"{FIELD_TITLES[field]} جدید را وارد کنید.",
+        "text":
+            f"{FIELD_TITLES[field]} جدید را وارد کنید.",
 
     }
 
@@ -115,11 +121,8 @@ def start_edit(chat_id, message):
 def save_edit(chat_id, state, message):
 
     field = state.replace(
-
         "EDIT_",
-
         "",
-
     ).lower()
 
     # -------------------------
@@ -132,7 +135,8 @@ def save_edit(chat_id, state, message):
 
             return {
 
-                "text": "❌ شماره همراه معتبر نیست.",
+                "text":
+                    "❌ شماره همراه معتبر نیست.",
 
             }
 
@@ -142,7 +146,8 @@ def save_edit(chat_id, state, message):
 
             return {
 
-                "text": "❌ کد ملی معتبر نیست.",
+                "text":
+                    "❌ کد ملی معتبر نیست.",
 
             }
 
@@ -152,7 +157,8 @@ def save_edit(chat_id, state, message):
 
             return {
 
-                "text": "❌ شناسه قبض معتبر نیست.",
+                "text":
+                    "❌ شناسه قبض معتبر نیست.",
 
             }
 
@@ -162,7 +168,8 @@ def save_edit(chat_id, state, message):
 
             return {
 
-                "text": "❌ رمز رایانه معتبر نیست.",
+                "text":
+                    "❌ رمز رایانه معتبر نیست.",
 
             }
 
@@ -193,12 +200,38 @@ def save_edit(chat_id, state, message):
 
     )
 
+    # -------------------------
+    # Return To Edit Menu
+    # -------------------------
+
     set_state(
-
         chat_id,
-
-        "WAITING_CONFIRM",
-
+        "WAITING_EDIT_MENU",
     )
 
-    return show_summary(chat_id)
+    return {
+
+        "text": (
+            "✅ اطلاعات با موفقیت ویرایش شد.\n\n"
+            "در صورت نیاز، بخش دیگری را نیز ویرایش کنید."
+        ),
+
+        "keyboard": [
+
+            ["⚡ رمز رایانه"],
+
+            ["🧾 شناسه قبض"],
+
+            ["🪪 کد ملی"],
+
+            ["📱 شماره همراه"],
+
+            ["📝 توضیحات"],
+
+            ["✅ بازگشت به خلاصه"],
+
+            ["❌ انصراف"],
+
+        ],
+
+    }
