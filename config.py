@@ -64,7 +64,7 @@ class Config:
             (key,),
         )
 
-        if row:
+        if row is not None:
             return row["value"]
 
         return None
@@ -109,7 +109,7 @@ class Config:
 
         try:
             return int(Config.get(key, default))
-        except Exception:
+        except (TypeError, ValueError):
             return default
 
     @staticmethod
@@ -142,7 +142,7 @@ class Config:
             INSERT INTO settings
             (key, value)
             VALUES (%s, %s)
-            ON CONFLICT(key)
+            ON CONFLICT (key)
             DO UPDATE SET
                 value = EXCLUDED.value
             """,
