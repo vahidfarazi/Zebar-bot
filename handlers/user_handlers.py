@@ -29,7 +29,7 @@ def handle_user_message(
     state = get_state(chat_id)
 
     # -----------------------------
-    # Tracking Mode
+    # Tracking
     # -----------------------------
     if state == "WAITING_TRACKING_CODE":
 
@@ -39,9 +39,9 @@ def handle_user_message(
         )
 
     # -----------------------------
-    # Form Mode
+    # Form
     # -----------------------------
-    if state:
+    if state and state.startswith("WAITING_"):
 
         return handle_form(
             chat_id,
@@ -83,7 +83,7 @@ def handle_user_message(
         )
 
     # -----------------------------
-    # Invalid Message
+    # Invalid
     # -----------------------------
     return {
 
