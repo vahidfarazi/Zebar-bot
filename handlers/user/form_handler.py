@@ -1,7 +1,7 @@
 """
 handlers/user/form_handler.py
 
-Generic request form handler (v4).
+Generic request form handler (v5).
 """
 
 from menus import (
@@ -22,25 +22,23 @@ from user_state import (
     reset,
 )
 
-from request_service import create_request
-
 from handlers.tracking_handlers import (
     handle_tracking,
 )
 
 
-# -----------------------------
+# ------------------------------------
 # Handle Form Message
-# -----------------------------
+# ------------------------------------
 def handle_form(
     chat_id: int,
     message: str,
     state: str,
 ):
 
-    # -------------------------
+    # --------------------------------
     # Tracking
-    # -------------------------
+    # --------------------------------
     if state == "WAITING_TRACKING_CODE":
 
         result = handle_tracking(
@@ -54,9 +52,9 @@ def handle_form(
 
         return result
 
-    # -------------------------
+    # --------------------------------
     # Cancel
-    # -------------------------
+    # --------------------------------
     if message == "❌ انصراف":
 
         reset(chat_id)
@@ -66,9 +64,9 @@ def handle_form(
             "keyboard": MAIN_MENU,
         }
 
-    # -------------------------
+    # --------------------------------
     # Main Menu
-    # -------------------------
+    # --------------------------------
     if message == "🏠 منوی اصلی":
 
         reset(chat_id)
@@ -83,9 +81,9 @@ def handle_form(
             "keyboard": MAIN_MENU,
         }
 
-    # -------------------------
+    # --------------------------------
     # Back
-    # -------------------------
+    # --------------------------------
     if message == "⬅️ بازگشت":
 
         reset(chat_id)
@@ -95,9 +93,9 @@ def handle_form(
             "keyboard": REQUEST_MENU,
         }
 
-    # -------------------------
-    # Load user data
-    # -------------------------
+    # --------------------------------
+    # Load Data
+    # --------------------------------
     data = get_data(chat_id)
 
     service = data.get("service")
@@ -109,9 +107,9 @@ def handle_form(
             "keyboard": REQUEST_MENU,
         }
 
-    # -------------------------
-    # Load form
-    # -------------------------
+    # --------------------------------
+    # Load Form
+    # --------------------------------
     form = get_form(service)
 
     if not form:
@@ -123,11 +121,14 @@ def handle_form(
 
     engine = FormEngine(form)
 
-    # -------------------------
-    # ONE_OF validator
-    # -------------------------
+    # --------------------------------
+    # Current Step
+    # --------------------------------
     step = engine.current_step(state)
 
+    # --------------------------------
+    # ONE_OF
+    # --------------------------------
     if step["validator"] == "ONE_OF":
 
         identifier_type = detect_identifier(message)
@@ -148,33 +149,30 @@ def handle_form(
             message,
         )
 
-        data = get_data(chat_id)
-
+    # --------------------------------
+    # Normal Validator
+    # --------------------------------
     else:
 
         if not engine.validate(state, message):
 
             return {
                 "text": (
-                    f"❌ مقدار وارد شده برای «{engine.title(state)}» نامعتبر است.\n\n"
+                    f"❌ مقدار وارد شده برای «{engine.title(state)}» معتبر نیست.\n\n"
                     "لطفاً دوباره وارد کنید."
                 ),
                 "keyboard": FORM_MENU,
             }
 
-        field = engine.field_name(state)
-
         update_data(
             chat_id,
-            field,
+            engine.field_name(state),
             message,
         )
 
-        data = get_data(chat_id)
-
-    # -------------------------
+    # --------------------------------
     # Next Step
-    # -------------------------
+    # --------------------------------
     next_step = engine.next_step(state)
 
     if next_step:
@@ -189,17 +187,34 @@ def handle_form(
             "keyboard": FORM_MENU,
         }
 
-    # -------------------------
-    # Finish
-    # -------------------------
-    result = create_request(
+    # =====================================================
+    # فرم کامل شد
+    # مرحله بعد:
+    # توضیحات اختیاری
+    # =====================================================
+
+    set_state(
         chat_id,
-        data,
+        "WAITING_DESCRIPTION",
     )
 
-    reset(chat_id)
-
     return {
-        "text": result["user_message"],
-        "keyboard": MAIN_MENU,
+        "text": (
+            "📝 **توضیحات تکمیلی (اختیاری)**\n\n"
+            "در صورت تمایل، توضیحات تکمیلی یا هر نکته‌ای که "
+            "به بررسی سریع‌تر درخواست شما کمک می‌کند را وارد کنید.\n\n"
+            "حداکثر ۳۰۰ کاراکتر.\n\n"
+            "اگر توضیحی ندارید، گزینه «بدون توضیح» را انتخاب کنید."
+        ),
+        "keyboard": [
+            [
+                "📝 ثبت توضیحات",
+            ],
+            [
+                "⏭ بدون توضیح",
+            ],
+            [
+                "❌ انصراف",
+            ],
+        ],
     }
