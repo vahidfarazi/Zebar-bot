@@ -11,52 +11,90 @@ from user_state import (
     reset,
 )
 
-from menus import MAIN_MENU
+from menus import (
+    MAIN_MENU,
+    REQUEST_MENU,
+)
+
 from request_service import create_request
 
 
 MAX_DESCRIPTION = 300
 
 
-def build_summary(data: dict) -> str:
-    """
-    Build request summary.
-    """
+# -----------------------------
+# عنوان فیلدها
+# -----------------------------
+FIELD_TITLES = {
+    "bill_id": "شناسه قبض",
+    "meter_serial": "شماره سریال کنتور",
+    "computer_code": "رمز رایانه",
+    "national_code": "کد ملی",
+    "mobile": "شماره همراه",
+    "phone": "تلفن ثابت",
+    "address": "نشانی",
+    "tracking_code": "کد رهگیری",
+}
 
-    text = "📋 خلاصه درخواست\n\n"
+
+# -----------------------------
+# Summary Builder
+# -----------------------------
+def build_summary(data: dict) -> str:
+
+    lines = []
+
+    lines.append("📋 خلاصه درخواست")
+    lines.append("")
 
     service = data.get("service")
+
     if service:
-        text += f"🔹 خدمت: {service}\n"
+        lines.append(f"🔹 خدمت: {service}")
+        lines.append("")
 
     for key, value in data.items():
 
-        if key == "service":
+        if key in (
+            "service",
+            "description",
+        ):
             continue
 
-        if key == "description":
+        if value in (
+            None,
+            "",
+        ):
             continue
 
-        text += f"• {key}: {value}\n"
+        title = FIELD_TITLES.get(
+            key,
+            key,
+        )
+
+        lines.append(f"• {title}: {value}")
 
     description = data.get("description")
 
     if description:
 
-        text += "\n📝 توضیحات تکمیلی:\n"
-        text += description
+        lines.append("")
+        lines.append("📝 توضیحات تکمیلی:")
+        lines.append(description)
 
-    return text
+    lines.append("")
+    lines.append("در صورت تأیید، درخواست ثبت خواهد شد.")
+
+    return "\n".join(lines)
 
 
+# -----------------------------
+# Description Step
+# -----------------------------
 def handle_description(
     chat_id: int,
     message: str,
 ):
-
-    # -----------------------------
-    # بدون توضیح
-    # -----------------------------
 
     if message == "⏭ بدون توضیح":
 
@@ -74,12 +112,17 @@ def handle_description(
 
             return {
 
-                "text":
-                    f"❌ توضیحات نباید بیشتر از {MAX_DESCRIPTION} کاراکتر باشد.",
+                "text": (
+                    f"❌ توضیحات نباید بیشتر از "
+                    f"{MAX_DESCRIPTION} کاراکتر باشد."
+                ),
 
                 "keyboard": [
+
                     ["⏭ بدون توضیح"],
+
                     ["❌ انصراف"],
+
                 ],
 
             }
@@ -99,11 +142,7 @@ def handle_description(
 
     return {
 
-        "text": (
-            build_summary(data)
-            + "\n\n"
-            + "در صورت تأیید، درخواست ثبت خواهد شد."
-        ),
+        "text": build_summary(data),
 
         "keyboard": [
 
@@ -118,11 +157,17 @@ def handle_description(
     }
 
 
+# -----------------------------
+# Final Confirmation
+# -----------------------------
 def handle_confirm(
     chat_id: int,
     message: str,
 ):
 
+    # -------------------------
+    # Cancel
+    # -------------------------
     if message == "❌ انصراف":
 
         reset(chat_id)
@@ -135,18 +180,27 @@ def handle_confirm(
 
         }
 
+    # -------------------------
+    # Edit
+    # -------------------------
     if message == "✏️ ویرایش درخواست":
 
         reset(chat_id)
 
         return {
 
-            "text": "لطفاً درخواست را دوباره ثبت کنید.",
+            "text": (
+                "درخواست قبلی لغو شد.\n\n"
+                "لطفاً خدمت موردنظر را دوباره انتخاب کنید."
+            ),
 
-            "keyboard": MAIN_MENU,
+            "keyboard": REQUEST_MENU,
 
         }
 
+    # -------------------------
+    # Invalid
+    # -------------------------
     if message != "✅ ثبت نهایی":
 
         return {
@@ -154,8 +208,21 @@ def handle_confirm(
             "text":
                 "لطفاً یکی از گزینه‌های موجود را انتخاب کنید.",
 
+            "keyboard": [
+
+                ["✅ ثبت نهایی"],
+
+                ["✏️ ویرایش درخواست"],
+
+                ["❌ انصراف"],
+
+            ],
+
         }
 
+    # -------------------------
+    # Save Request
+    # -------------------------
     data = get_data(chat_id)
 
     result = create_request(
