@@ -26,10 +26,9 @@ from handlers.tracking_handlers import (
     handle_tracking,
 )
 
+MAX_DESCRIPTION = 300
 
-# -----------------------------
-# Handle Form Message
-# -----------------------------
+
 def handle_form(
     chat_id: int,
     message: str,
@@ -51,6 +50,34 @@ def handle_form(
         result["keyboard"] = MAIN_MENU
 
         return result
+
+    # -------------------------
+    # توضیحات تکمیلی
+    # -------------------------
+    if state == "WAITING_DESCRIPTION":
+
+        from handlers.user.description_handler import (
+            handle_description,
+        )
+
+        return handle_description(
+            chat_id,
+            message,
+        )
+
+    # -------------------------
+    # تأیید نهایی
+    # -------------------------
+    if state == "WAITING_CONFIRM":
+
+        from handlers.user.description_handler import (
+            handle_confirm,
+        )
+
+        return handle_confirm(
+            chat_id,
+            message,
+        )
 
     # -------------------------
     # Cancel
@@ -149,12 +176,12 @@ def handle_form(
             message,
         )
 
-    # -------------------------
-    # Normal validator
-    # -------------------------
     else:
 
-        if not engine.validate(state, message):
+        if not engine.validate(
+            state,
+            message,
+        ):
 
             return {
                 "text": (
@@ -164,9 +191,11 @@ def handle_form(
                 "keyboard": FORM_MENU,
             }
 
+        field = engine.field_name(state)
+
         update_data(
             chat_id,
-            engine.field_name(state),
+            field,
             message,
         )
 
@@ -193,7 +222,7 @@ def handle_form(
         }
 
     # =====================================================
-    # فرم تکمیل شد
+    # فرم کامل شده است
     # ورود به مرحله توضیحات اختیاری
     # =====================================================
 
@@ -208,7 +237,7 @@ def handle_form(
             "📝 توضیحات تکمیلی (اختیاری)\n\n"
             "در صورت تمایل، توضیحات تکمیلی یا هر نکته‌ای که "
             "به بررسی سریع‌تر درخواست شما کمک می‌کند را وارد کنید.\n\n"
-            "حداکثر ۳۰۰ کاراکتر\n\n"
+            f"حداکثر {MAX_DESCRIPTION} کاراکتر.\n\n"
             "اگر توضیحی ندارید، گزینه «بدون توضیح» را انتخاب کنید."
         ),
 
