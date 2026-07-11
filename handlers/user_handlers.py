@@ -8,19 +8,22 @@ from handlers.user.main_menu import handle_main_menu
 from handlers.user.request_menu import handle_request_menu
 from handlers.user.form_handler import handle_form
 
+from handlers.user.description_handler import (
+    handle_description,
+    handle_confirm,
+)
+
 from handlers.tracking_handlers import (
     start_tracking,
     handle_tracking,
 )
 
-from user_state import (
-    get_state,
-)
+from user_state import get_state
 
 
-# -----------------------------
+# -------------------------------------------------
 # Handle User
-# -----------------------------
+# -------------------------------------------------
 def handle_user_message(
     chat_id: int,
     message: str,
@@ -28,9 +31,10 @@ def handle_user_message(
 
     state = get_state(chat_id)
 
-    # -----------------------------
+    # -----------------------------------------
     # Tracking
-    # -----------------------------
+    # -----------------------------------------
+
     if state == "WAITING_TRACKING_CODE":
 
         return handle_tracking(
@@ -38,10 +42,33 @@ def handle_user_message(
             message,
         )
 
-    # -----------------------------
+    # -----------------------------------------
+    # Optional Description
+    # -----------------------------------------
+
+    if state == "WAITING_DESCRIPTION":
+
+        return handle_description(
+            chat_id,
+            message,
+        )
+
+    # -----------------------------------------
+    # Final Confirmation
+    # -----------------------------------------
+
+    if state == "WAITING_CONFIRM":
+
+        return handle_confirm(
+            chat_id,
+            message,
+        )
+
+    # -----------------------------------------
     # Form
-    # -----------------------------
-    if state and state.startswith("WAITING_"):
+    # -----------------------------------------
+
+    if state:
 
         return handle_form(
             chat_id,
@@ -49,9 +76,10 @@ def handle_user_message(
             state,
         )
 
-    # -----------------------------
+    # -----------------------------------------
     # Main Menu
-    # -----------------------------
+    # -----------------------------------------
+
     if (
         message == "/start"
         or message == "🏠 منوی اصلی"
@@ -61,9 +89,10 @@ def handle_user_message(
             chat_id,
         )
 
-    # -----------------------------
+    # -----------------------------------------
     # Request Menu
-    # -----------------------------
+    # -----------------------------------------
+
     request_result = handle_request_menu(
         chat_id,
         message,
@@ -73,18 +102,20 @@ def handle_user_message(
 
         return request_result
 
-    # -----------------------------
+    # -----------------------------------------
     # Tracking
-    # -----------------------------
+    # -----------------------------------------
+
     if message == "📋 پیگیری درخواست":
 
         return start_tracking(
             chat_id,
         )
 
-    # -----------------------------
+    # -----------------------------------------
     # Invalid
-    # -----------------------------
+    # -----------------------------------------
+
     return {
 
         "text":
