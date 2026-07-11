@@ -4,9 +4,14 @@ database/connection.py
 PostgreSQL connection manager.
 """
 
-from config import Config
+import os
+
 import psycopg
+from dotenv import load_dotenv
 from psycopg.rows import dict_row
+
+# بارگذاری .env
+load_dotenv()
 
 
 def get_connection():
@@ -15,11 +20,11 @@ def get_connection():
     """
 
     return psycopg.connect(
-        host=Config.get_str("PGHOST"),
-        port=Config.get_str("PGPORT"),
-        dbname=Config.get_str("PGDATABASE"),
-        user=Config.get_str("PGUSER"),
-        password=Config.get_str("PGPASSWORD"),
+        host=os.getenv("PGHOST"),
+        port=os.getenv("PGPORT"),
+        dbname=os.getenv("PGDATABASE"),
+        user=os.getenv("PGUSER"),
+        password=os.getenv("PGPASSWORD"),
         sslmode="require",
         row_factory=dict_row,
     )
