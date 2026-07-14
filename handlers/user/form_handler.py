@@ -1,7 +1,13 @@
 """
 handlers/user/form_handler.py
 
-Generic request form handler (v5).
+Generic request form handler (v6).
+
+Features:
+- Working hours control
+- Holiday control
+- Tracking always available
+- Request creation only during working time
 """
 
 from menus import (
@@ -26,6 +32,13 @@ from handlers.tracking_handlers import (
     handle_tracking,
 )
 
+from working_hours import (
+    can_create_request,
+    is_working_time,
+    is_holiday,
+)
+
+
 MAX_DESCRIPTION = 300
 
 
@@ -37,6 +50,7 @@ def handle_form(
 
     # -------------------------
     # Tracking
+    # Always available
     # -------------------------
     if state == "WAITING_TRACKING_CODE":
 
@@ -51,8 +65,39 @@ def handle_form(
 
         return result
 
+
     # -------------------------
-    # توضیحات تکمیلی
+    # Outside working hours
+    # Only tracking allowed
+    # -------------------------
+    if state not in (
+        "WAITING_TRACKING_CODE",
+        "WAITING_CONFIRM",
+    ):
+
+        if not can_create_request():
+
+            reset(chat_id)
+
+            return {
+
+                "text": (
+                    "⏰ در حال حاضر امکان ثبت درخواست وجود ندارد.\n\n"
+                    "ثبت درخواست فقط در ساعات کاری انجام می‌شود.\n\n"
+                    "ساعات کاری:\n"
+                    "شنبه تا چهارشنبه ۷ تا ۱۳\n"
+                    "پنجشنبه ۷ تا ۱۲\n\n"
+                    "برای پیگیری درخواست قبلی می‌توانید از گزینه "
+                    "«📋 پیگیری درخواست» استفاده کنید."
+                ),
+
+                "keyboard": MAIN_MENU,
+
+            }
+
+
+    # -------------------------
+    # Description
     # -------------------------
     if state == "WAITING_DESCRIPTION":
 
@@ -65,8 +110,9 @@ def handle_form(
             message,
         )
 
+
     # -------------------------
-    # تأیید نهایی
+    # Confirm
     # -------------------------
     if state == "WAITING_CONFIRM":
 
@@ -79,6 +125,7 @@ def handle_form(
             message,
         )
 
+
     # -------------------------
     # Cancel
     # -------------------------
@@ -87,9 +134,15 @@ def handle_form(
         reset(chat_id)
 
         return {
-            "text": "ثبت درخواست لغو شد.",
-            "keyboard": MAIN_MENU,
+
+            "text":
+                "ثبت درخواست لغو شد.",
+
+            "keyboard":
+                MAIN_MENU,
+
         }
+
 
     # -------------------------
     # Main Menu
@@ -99,14 +152,20 @@ def handle_form(
         reset(chat_id)
 
         return {
-            "text": (
-                "به سامانه هوشمند خدمات مشترکین "
-                "شرکت توزیع نیروی برق استان خراسان رضوی "
-                "(آذرخش) خوش آمدید.\n\n"
-                "لطفاً یکی از گزینه‌های زیر را انتخاب کنید."
-            ),
-            "keyboard": MAIN_MENU,
+
+            "text":
+                (
+                    "به سامانه هوشمند خدمات مشترکین "
+                    "شرکت توزیع نیروی برق استان خراسان رضوی "
+                    "(آذرخش) خوش آمدید.\n\n"
+                    "لطفاً یکی از گزینه‌های زیر را انتخاب کنید."
+                ),
+
+            "keyboard":
+                MAIN_MENU,
+
         }
+
 
     # -------------------------
     # Back
@@ -116,59 +175,85 @@ def handle_form(
         reset(chat_id)
 
         return {
-            "text": "لطفاً خدمت موردنظر را انتخاب کنید.",
-            "keyboard": REQUEST_MENU,
+
+            "text":
+                "لطفاً خدمت موردنظر را انتخاب کنید.",
+
+            "keyboard":
+                REQUEST_MENU,
+
         }
 
+
     # -------------------------
-    # Load user data
+    # Load data
     # -------------------------
     data = get_data(chat_id)
 
     service = data.get("service")
 
+
     if not service:
 
         return {
-            "text": "ابتدا سرویس را انتخاب کنید.",
-            "keyboard": REQUEST_MENU,
+
+            "text":
+                "ابتدا سرویس را انتخاب کنید.",
+
+            "keyboard":
+                REQUEST_MENU,
+
         }
+
 
     # -------------------------
     # Load form
     # -------------------------
     form = get_form(service)
 
+
     if not form:
 
         return {
-            "text": "فرم برای این سرویس تعریف نشده است.",
-            "keyboard": REQUEST_MENU,
+
+            "text":
+                "فرم برای این سرویس تعریف نشده است.",
+
+            "keyboard":
+                REQUEST_MENU,
+
         }
+
 
     engine = FormEngine(form)
 
-    # -------------------------
-    # Current Step
-    # -------------------------
+
     step = engine.current_step(state)
 
+
     # -------------------------
-    # ONE_OF validator
+    # Identifier
     # -------------------------
     if step["validator"] == "ONE_OF":
 
         identifier_type = detect_identifier(message)
 
+
         if identifier_type is None:
 
             return {
-                "text": (
-                    "❌ اطلاعات وارد شده معتبر نیست.\n\n"
-                    "لطفاً یکی از شناسه‌های مجاز را وارد کنید."
-                ),
-                "keyboard": FORM_MENU,
+
+                "text":
+                    (
+                        "❌ اطلاعات وارد شده معتبر نیست.\n\n"
+                        "لطفاً یکی از شناسه‌های مجاز را وارد کنید."
+                    ),
+
+                "keyboard":
+                    FORM_MENU,
+
             }
+
 
         update_data(
             chat_id,
@@ -176,7 +261,9 @@ def handle_form(
             message,
         )
 
+
     else:
+
 
         if not engine.validate(
             state,
@@ -184,14 +271,22 @@ def handle_form(
         ):
 
             return {
-                "text": (
-                    f"❌ مقدار وارد شده برای «{engine.title(state)}» نامعتبر است.\n\n"
-                    "لطفاً دوباره وارد کنید."
-                ),
-                "keyboard": FORM_MENU,
+
+                "text":
+                    (
+                        f"❌ مقدار وارد شده برای "
+                        f"«{engine.title(state)}» معتبر نیست.\n\n"
+                        "لطفاً دوباره وارد کنید."
+                    ),
+
+                "keyboard":
+                    FORM_MENU,
+
             }
 
+
         field = engine.field_name(state)
+
 
         update_data(
             chat_id,
@@ -199,15 +294,12 @@ def handle_form(
             message,
         )
 
-    # -------------------------
-    # Reload data
-    # -------------------------
-    data = get_data(chat_id)
 
     # -------------------------
-    # Next Step
+    # Next step
     # -------------------------
     next_step = engine.next_step(state)
+
 
     if next_step:
 
@@ -216,37 +308,45 @@ def handle_form(
             next_step["state"],
         )
 
+
         return {
-            "text": f"لطفاً {next_step['title']} را وارد کنید.",
-            "keyboard": FORM_MENU,
+
+            "text":
+                f"لطفاً {next_step['title']} را وارد کنید.",
+
+            "keyboard":
+                FORM_MENU,
+
         }
 
-    # =====================================================
-    # فرم کامل شده است
-    # ورود به مرحله توضیحات اختیاری
-    # =====================================================
 
+
+    # -------------------------
+    # Complete Form
+    # -------------------------
     set_state(
         chat_id,
         "WAITING_DESCRIPTION",
     )
 
+
     return {
 
-        "text": (
-            "📝 توضیحات تکمیلی (اختیاری)\n\n"
-            "در صورت تمایل، توضیحات تکمیلی یا هر نکته‌ای که "
-            "به بررسی سریع‌تر درخواست شما کمک می‌کند را وارد کنید.\n\n"
-            f"حداکثر {MAX_DESCRIPTION} کاراکتر.\n\n"
-            "اگر توضیحی ندارید، گزینه «بدون توضیح» را انتخاب کنید."
-        ),
+        "text":
+            (
+                "📝 توضیحات تکمیلی (اختیاری)\n\n"
+                "در صورت تمایل توضیحات خود را وارد کنید.\n\n"
+                f"حداکثر {MAX_DESCRIPTION} کاراکتر.\n\n"
+                "اگر توضیحی ندارید گزینه زیر را انتخاب کنید."
+            ),
 
-        "keyboard": [
+        "keyboard":
+            [
 
-            ["⏭ بدون توضیح"],
+                ["⏭ بدون توضیح"],
 
-            ["❌ انصراف"],
+                ["❌ انصراف"],
 
-        ],
+            ],
 
     }
