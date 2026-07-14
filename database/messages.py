@@ -13,9 +13,9 @@ from .crud import (
 )
 
 
-# -----------------------------
+# -------------------------------------------------
 # Add Message
-# -----------------------------
+# -------------------------------------------------
 def add_message(
     tracking_code: str,
     sender_type: str,
@@ -23,12 +23,6 @@ def add_message(
     message_type: str,
     message: str,
 ) -> int:
-    """
-    Save a request message.
-
-    Returns:
-        Message ID
-    """
 
     return execute(
         """
@@ -40,7 +34,15 @@ def add_message(
             message_type,
             message
         )
-        VALUES (%s, %s, %s, %s, %s)
+
+        VALUES
+        (
+            %s,
+            %s,
+            %s,
+            %s,
+            %s
+        )
         """,
         (
             tracking_code,
@@ -52,9 +54,9 @@ def add_message(
     )
 
 
-# -----------------------------
+# -------------------------------------------------
 # Get Message
-# -----------------------------
+# -------------------------------------------------
 def get_message(
     message_id: int,
 ) -> Optional[dict]:
@@ -62,18 +64,22 @@ def get_message(
     row = fetch_one(
         """
         SELECT *
+
         FROM request_messages
-        WHERE id = %s
+
+        WHERE id=%s
         """,
-        (message_id,),
+        (
+            message_id,
+        ),
     )
 
     return dict(row) if row else None
 
 
-# -----------------------------
+# -------------------------------------------------
 # Get Request Messages
-# -----------------------------
+# -------------------------------------------------
 def get_messages(
     tracking_code: str,
 ) -> list[dict]:
@@ -81,19 +87,27 @@ def get_messages(
     rows = fetch_all(
         """
         SELECT *
+
         FROM request_messages
-        WHERE tracking_code = %s
-        ORDER BY created_at ASC, id ASC
+
+        WHERE tracking_code=%s
+
+        ORDER BY created_at ASC,id ASC
         """,
-        (tracking_code,),
+        (
+            tracking_code,
+        ),
     )
 
-    return [dict(row) for row in rows]
+    return [
+        dict(row)
+        for row in rows
+    ]
 
 
-# -----------------------------
+# -------------------------------------------------
 # Last Message
-# -----------------------------
+# -------------------------------------------------
 def get_last_message(
     tracking_code: str,
 ) -> Optional[dict]:
@@ -101,20 +115,109 @@ def get_last_message(
     row = fetch_one(
         """
         SELECT *
+
         FROM request_messages
-        WHERE tracking_code = %s
-        ORDER BY created_at DESC, id DESC
+
+        WHERE tracking_code=%s
+
+        ORDER BY created_at DESC,id DESC
+
         LIMIT 1
         """,
-        (tracking_code,),
+        (
+            tracking_code,
+        ),
     )
 
     return dict(row) if row else None
 
 
-# -----------------------------
+# -------------------------------------------------
+# Messages Count
+# -------------------------------------------------
+def count_messages(
+    tracking_code: str,
+) -> int:
+
+    row = fetch_one(
+        """
+        SELECT COUNT(*) AS total
+
+        FROM request_messages
+
+        WHERE tracking_code=%s
+        """,
+        (
+            tracking_code,
+        ),
+    )
+
+    return row["total"] or 0
+
+
+# -------------------------------------------------
+# Expert Messages
+# -------------------------------------------------
+def get_expert_messages(
+    tracking_code: str,
+) -> list[dict]:
+
+    rows = fetch_all(
+        """
+        SELECT *
+
+        FROM request_messages
+
+        WHERE tracking_code=%s
+
+        AND sender_type='EXPERT'
+
+        ORDER BY created_at ASC
+        """,
+        (
+            tracking_code,
+        ),
+    )
+
+    return [
+        dict(row)
+        for row in rows
+    ]
+
+
+# -------------------------------------------------
+# User Messages
+# -------------------------------------------------
+def get_user_messages(
+    tracking_code: str,
+) -> list[dict]:
+
+    rows = fetch_all(
+        """
+        SELECT *
+
+        FROM request_messages
+
+        WHERE tracking_code=%s
+
+        AND sender_type='USER'
+
+        ORDER BY created_at ASC
+        """,
+        (
+            tracking_code,
+        ),
+    )
+
+    return [
+        dict(row)
+        for row in rows
+    ]
+
+
+# -------------------------------------------------
 # Delete Messages
-# -----------------------------
+# -------------------------------------------------
 def delete_messages(
     tracking_code: str,
 ) -> None:
@@ -122,7 +225,10 @@ def delete_messages(
     execute(
         """
         DELETE FROM request_messages
-        WHERE tracking_code = %s
+
+        WHERE tracking_code=%s
         """,
-        (tracking_code,),
+        (
+            tracking_code,
+        ),
     )
