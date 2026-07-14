@@ -1,10 +1,20 @@
 """
 handlers/admin_handlers.py
 
-Admin command handler.
+Advanced admin panel handler (Phase 1 Dashboard Base).
+
+Features:
+- Dashboard
+- Daily / Weekly / Monthly statistics
+- Expert management
+- Request transfer
+- Holiday management
+- Working hours settings
 """
 
-from database import is_admin
+from database import (
+    is_admin,
+)
 
 from menus import (
     ADMIN_MENU,
@@ -12,333 +22,556 @@ from menus import (
 )
 
 from admin_service import (
-    create_expert_account,
-    deactivate_expert,
-    transfer_request,
-    add_system_holiday,
-    delete_system_holiday,
-    update_settings,
     dashboard,
+
     get_statistics,
-    get_recent_activity,
     get_daily_report,
     get_weekly_report,
     get_monthly_report,
+
+    create_expert_account,
+    activate_expert,
+    deactivate_expert,
+
+    transfer_request,
+
+    add_system_holiday,
+    delete_system_holiday,
+
+    update_settings,
+
+    get_recent_activity,
 )
 
 
+# ----------------------------------
+# Admin Handler
+# ----------------------------------
 def handle_admin_message(
     chat_id: int,
     message: str,
 ):
 
     if not is_admin(chat_id):
+
         return {
             "text": "⛔ شما دسترسی به پنل مدیریت ندارید.",
         }
 
+
     if message == "/admin":
+
         return {
-            "text": "پنل مدیریت",
+
+            "text": "🛠 پنل مدیریت سامانه",
+
             "keyboard": ADMIN_MENU,
+
         }
+
 
     if message == "🏠 منوی اصلی":
+
         return {
+
             "text": "منوی اصلی",
+
             "keyboard": MAIN_MENU,
+
         }
+
 
     if not message:
+
         return {
+
             "text": "پیام نامعتبر است",
+
+            "keyboard": ADMIN_MENU,
+
         }
 
+
     parts = message.split()
+
     cmd = parts[0].lower()
 
-    # -------------------------
+
+
+    # ===============================
     # Dashboard
-    # -------------------------
+    # ===============================
+
     if cmd == "dashboard" or message == "📊 داشبورد":
+
 
         result = dashboard()
 
+
         if not result["success"]:
+
             return {
+
                 "text": result["message"],
+
+                "keyboard": ADMIN_MENU,
+
             }
+
 
         stats = result["statistics"]
 
+
         return {
-            "text": (
+
+            "text":
+
+            (
+
                 "📊 داشبورد سامانه\n\n"
-                f"📥 درخواست‌های باز: {stats['open']}\n"
-                f"✅ درخواست‌های بسته: {stats['closed']}\n"
-                f"🆕 درخواست‌های امروز: {stats['today']}\n"
+
+                f"📥 درخواست باز: {stats['open']}\n"
+
+                f"✅ بسته شده: {stats['closed']}\n"
+
+                f"🆕 امروز: {stats['today']}\n"
+
                 f"👨‍💼 کارشناسان فعال: {stats['experts']}"
+
             ),
+
             "keyboard": ADMIN_MENU,
+
         }
 
-    # -------------------------
+
+
+    # ===============================
     # Statistics
-    # -------------------------
+    # ===============================
+
     if cmd == "stats" or message == "📈 آمار":
+
 
         result = get_statistics()
 
+
         if not result["success"]:
+
             return {
+
                 "text": result["message"],
+
                 "keyboard": ADMIN_MENU,
+
             }
+
 
         stats = result["statistics"]
 
+
         return {
-            "text": (
-                f"📥 باز: {stats['open']}\n"
+
+            "text":
+
+            (
+
+                "📈 آمار کلی\n\n"
+
+                f"🟢 باز: {stats['open']}\n"
+
                 f"✅ بسته: {stats['closed']}\n"
-                f"🆕 امروز: {stats['today']}\n"
+
+                f"📅 امروز: {stats['today']}\n"
+
                 f"👨‍💼 کارشناسان: {stats['experts']}"
+
             ),
+
             "keyboard": ADMIN_MENU,
+
         }
 
-    # -------------------------
-    # Daily Report
-    # -------------------------
-    if cmd == "daily" or message == "📅 گزارش روزانه":
+
+
+    # ===============================
+    # Reports
+    # ===============================
+
+    if message == "📅 گزارش روزانه":
+
 
         result = get_daily_report()
 
-        if not result["success"]:
-            return {
-                "text": result["message"],
-                "keyboard": ADMIN_MENU,
-            }
+        return format_report(
 
-        report = result["report"]
+            "📅 گزارش روزانه",
 
-        return {
-            "text": (
-                "📅 گزارش روزانه\n\n"
-                f"📥 کل درخواست‌ها: {report['total']}\n"
-                f"🟢 باز: {report['open']}\n"
-                f"✅ بسته: {report['closed']}"
-            ),
-            "keyboard": ADMIN_MENU,
-        }
+            result,
 
-    # -------------------------
-    # Weekly Report
-    # -------------------------
-    if cmd == "weekly" or message == "📆 گزارش هفتگی":
+        )
+
+
+
+    if message == "📆 گزارش هفتگی":
+
 
         result = get_weekly_report()
 
-        if not result["success"]:
-            return {
-                "text": result["message"],
-                "keyboard": ADMIN_MENU,
-            }
+        return format_report(
 
-        report = result["report"]
+            "📆 گزارش هفتگی",
 
-        return {
-            "text": (
-                "📆 گزارش هفتگی\n\n"
-                f"📥 کل درخواست‌ها: {report['total']}\n"
-                f"🟢 باز: {report['open']}\n"
-                f"✅ بسته: {report['closed']}"
-            ),
-            "keyboard": ADMIN_MENU,
-        }
+            result,
 
-    # -------------------------
-    # Monthly Report
-    # -------------------------
-    if cmd == "monthly" or message == "🗓 گزارش ماهانه":
+        )
+
+
+
+    if message == "🗓 گزارش ماهانه":
+
 
         result = get_monthly_report()
 
-        if not result["success"]:
-            return {
-                "text": result["message"],
-                "keyboard": ADMIN_MENU,
-            }
+        return format_report(
 
-        report = result["report"]
+            "🗓 گزارش ماهانه",
 
-        return {
-            "text": (
-                "🗓 گزارش ماهانه\n\n"
-                f"📥 کل درخواست‌ها: {report['total']}\n"
-                f"🟢 باز: {report['open']}\n"
-                f"✅ بسته: {report['closed']}"
-            ),
-            "keyboard": ADMIN_MENU,
-        }
+            result,
 
-    # -------------------------
+        )
+
+
+
+    # ===============================
     # Recent Requests
-    # -------------------------
-    if cmd == "recent" or message == "📋 درخواست‌های اخیر":
+    # ===============================
+
+    if message == "📋 درخواست‌های اخیر":
+
 
         result = get_recent_activity()
 
+
         if not result["success"]:
+
             return {
+
                 "text": result["message"],
+
                 "keyboard": ADMIN_MENU,
+
             }
 
-        rows = result["recent_requests"]
-
-        if not rows:
-            return {
-                "text": "درخواستی وجود ندارد.",
-                "keyboard": ADMIN_MENU,
-            }
 
         text = "📋 آخرین درخواست‌ها\n\n"
 
-        for row in rows:
+
+        for item in result["recent_requests"]:
+
             text += (
-                f"{row['tracking_code']} | "
-                f"{row['service']} | "
-                f"{row['status']}\n"
+
+                f"🎫 {item['tracking_code']}\n"
+
+                f"📌 وضعیت: {item['status']}\n"
+
+                f"🛠 خدمت: {item['service']}\n"
+
+                "────────────\n"
+
             )
 
+
         return {
+
             "text": text,
+
             "keyboard": ADMIN_MENU,
+
         }
 
-    # -------------------------
+
+
+    # ===============================
     # Create Expert
-    # -------------------------
+    # ===============================
+
     if cmd == "create_expert":
 
+
         if len(parts) < 5:
+
             return {
-                "text": "فرمت: create_expert chat_id name username department",
+
+                "text":
+
+                "فرمت:\n"
+                "create_expert chat_id name username department",
+
                 "keyboard": ADMIN_MENU,
+
             }
+
 
         result = create_expert_account(
+
             int(parts[1]),
+
             parts[2],
+
             parts[3],
+
             parts[4],
+
         )
 
+
         return {
-            "text": "انجام شد" if result["success"] else result["message"],
+
+            "text":
+
+            "✅ کارشناس ثبت شد"
+
+            if result["success"]
+
+            else result["message"],
+
             "keyboard": ADMIN_MENU,
+
         }
 
-    # -------------------------
+
+
+    # ===============================
+    # Activate Expert
+    # ===============================
+
+    if cmd == "activate_expert":
+
+
+        result = activate_expert(
+
+            int(parts[1]),
+
+        )
+
+
+        return {
+
+            "text":
+
+            "✅ فعال شد"
+
+            if result["success"]
+
+            else result["message"],
+
+            "keyboard": ADMIN_MENU,
+
+        }
+
+
+
+    # ===============================
     # Deactivate Expert
-    # -------------------------
+    # ===============================
+
     if cmd == "deactivate_expert":
 
-        if len(parts) < 2:
-            return {
-                "text": "فرمت: deactivate_expert chat_id",
-                "keyboard": ADMIN_MENU,
-            }
 
         result = deactivate_expert(
+
             int(parts[1]),
+
         )
 
+
         return {
-            "text": "انجام شد" if result["success"] else result["message"],
+
+            "text":
+
+            "❌ غیرفعال شد"
+
+            if result["success"]
+
+            else result["message"],
+
             "keyboard": ADMIN_MENU,
+
         }
 
-    # -------------------------
-    # Transfer Request
-    # -------------------------
+
+
+    # ===============================
+    # Transfer
+    # ===============================
+
     if cmd == "transfer":
 
+
         if len(parts) < 3:
+
             return {
-                "text": "فرمت: transfer request_id expert_id",
+
+                "text":
+
+                "فرمت:\ntransfer request_id expert_id",
+
                 "keyboard": ADMIN_MENU,
+
             }
+
 
         result = transfer_request(
+
             int(parts[1]),
+
             int(parts[2]),
+
         )
 
+
         return {
-            "text": "انجام شد" if result["success"] else result["message"],
+
+            "text":
+
+            "📤 درخواست منتقل شد"
+
+            if result["success"]
+
+            else result["message"],
+
             "keyboard": ADMIN_MENU,
+
         }
 
-    # -------------------------
-    # Add Holiday
-    # -------------------------
+
+
+    # ===============================
+    # Holidays
+    # ===============================
+
     if cmd == "add_holiday":
 
-        if len(parts) < 2:
-            return {
-                "text": "فرمت: add_holiday YYYY-MM-DD",
-                "keyboard": ADMIN_MENU,
-            }
 
-        result = add_system_holiday(parts[1])
+        result = add_system_holiday(
 
-        return {
-            "text": "انجام شد" if result["success"] else result["message"],
-            "keyboard": ADMIN_MENU,
-        }
-
-    # -------------------------
-    # Remove Holiday
-    # -------------------------
-    if cmd == "remove_holiday":
-
-        if len(parts) < 2:
-            return {
-                "text": "فرمت: remove_holiday YYYY-MM-DD",
-                "keyboard": ADMIN_MENU,
-            }
-
-        result = delete_system_holiday(parts[1])
-
-        return {
-            "text": "انجام شد" if result["success"] else result["message"],
-            "keyboard": ADMIN_MENU,
-        }
-
-    # -------------------------
-    # Update Settings
-    # -------------------------
-    if cmd == "set":
-
-        if len(parts) < 3:
-            return {
-                "text": "فرمت: set key value",
-                "keyboard": ADMIN_MENU,
-            }
-
-        result = update_settings(
             parts[1],
-            " ".join(parts[2:]),
+
         )
 
+
         return {
-            "text": "انجام شد" if result["success"] else result["message"],
+
+            "text": "📅 تعطیلی ثبت شد",
+
             "keyboard": ADMIN_MENU,
+
         }
 
+
+
+    if cmd == "remove_holiday":
+
+
+        result = delete_system_holiday(
+
+            parts[1],
+
+        )
+
+
+        return {
+
+            "text": "📅 تعطیلی حذف شد",
+
+            "keyboard": ADMIN_MENU,
+
+        }
+
+
+
+    # ===============================
+    # Settings
+    # ===============================
+
+    if cmd == "set":
+
+
+        result = update_settings(
+
+            parts[1],
+
+            " ".join(parts[2:]),
+
+        )
+
+
+        return {
+
+            "text":
+
+            "⚙️ تنظیم شد"
+
+            if result["success"]
+
+            else result["message"],
+
+            "keyboard": ADMIN_MENU,
+
+        }
+
+
+
     return {
-        "text": "دستور نامعتبر است.",
+
+        "text": "❌ دستور نامعتبر است.",
+
         "keyboard": ADMIN_MENU,
-            }
+
+    }
+
+
+
+# ----------------------------------
+# Report Formatter
+# ----------------------------------
+
+def format_report(
+    title: str,
+    result: dict,
+):
+
+    if not result["success"]:
+
+        return {
+
+            "text": result["message"],
+
+            "keyboard": ADMIN_MENU,
+
+        }
+
+
+    report = result["report"]
+
+
+    return {
+
+        "text":
+
+        (
+
+            f"{title}\n\n"
+
+            f"📥 کل درخواست‌ها: {report['total']}\n"
+
+            f"🟢 باز: {report['open']}\n"
+
+            f"✅ بسته: {report['closed']}"
+
+        ),
+
+        "keyboard": ADMIN_MENU,
+
+    }
