@@ -65,6 +65,12 @@ from .requests import (
 
     assign_expert,
 
+    transfer_request,
+
+    get_transferred_requests,
+
+    get_expert_requests,
+
     save_expert_message,
 
     close_request,
@@ -72,8 +78,6 @@ from .requests import (
     update_priority,
 
     delete_request,
-
-    get_dashboard_statistics,
 
     get_recent_requests,
 
@@ -91,6 +95,14 @@ from .reports import (
     get_weekly_statistics,
 
     get_monthly_statistics,
+
+    get_daily_chart_data,
+
+    get_service_statistics,
+
+    get_expert_statistics,
+
+    get_dashboard_report,
 
 )
 
@@ -130,11 +142,17 @@ from .history import (
 
     get_history,
 
+    count_history,
+
     add_transfer_history,
 
     add_status_history,
 
     add_assignment_history,
+
+    add_admin_history,
+
+    add_expert_history,
 
     get_latest_history,
 
@@ -276,17 +294,23 @@ __all__ = [
     "get_user_requests",
     "update_request_status",
     "assign_expert",
+    "transfer_request",
+    "get_transferred_requests",
+    "get_expert_requests",
     "save_expert_message",
     "close_request",
     "update_priority",
     "delete_request",
-    "get_dashboard_statistics",
     "get_recent_requests",
 
     # Reports
     "get_daily_statistics",
     "get_weekly_statistics",
     "get_monthly_statistics",
+    "get_daily_chart_data",
+    "get_service_statistics",
+    "get_expert_statistics",
+    "get_dashboard_report",
 
     # Messages
     "add_message",
@@ -301,9 +325,12 @@ __all__ = [
     # History
     "add_history",
     "get_history",
+    "count_history",
     "add_transfer_history",
     "add_status_history",
     "add_assignment_history",
+    "add_admin_history",
+    "add_expert_history",
     "get_latest_history",
     "delete_history",
 
