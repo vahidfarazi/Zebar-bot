@@ -11,6 +11,11 @@ from database import (
     set_setting,
 )
 
+from logger import (
+    log_info,
+    log_error,
+)
+
 
 # -------------------------------------------------
 # Keys
@@ -30,16 +35,28 @@ def _save_state(
     state: dict,
 ) -> None:
 
-    set_setting(
+    try:
 
-        _state_key(chat_id),
+        set_setting(
 
-        json.dumps(
-            state,
-            ensure_ascii=False,
-        ),
+            _state_key(chat_id),
 
-    )
+            json.dumps(
+                state,
+                ensure_ascii=False,
+            ),
+
+        )
+
+    except Exception as e:
+
+        log_error(
+            "expert_state",
+            "save_state",
+            str(e),
+        )
+
+        raise
 
 
 # -------------------------------------------------
@@ -63,7 +80,13 @@ def _load_state(
 
         return json.loads(value)
 
-    except Exception:
+    except Exception as e:
+
+        log_error(
+            "expert_state",
+            "load_state",
+            str(e),
+        )
 
         return {}
 
@@ -81,32 +104,37 @@ def set_waiting_reply(
     Expert starts replying.
     """
 
-    print("========== SAVE EXPERT STATE ==========")
-    print("CHAT ID =", chat_id)
-    print("TRACKING =", tracking_code)
+    state = {
+
+        "state": "WAITING_REPLY",
+
+        "tracking_code": tracking_code,
+
+        "group_chat_id": group_chat_id,
+
+        "message_id": message_id,
+
+    }
+
 
     _save_state(
 
         chat_id,
 
-        {
-
-            "state": "WAITING_REPLY",
-
-            "tracking_code": tracking_code,
-
-            "group_chat_id": group_chat_id,
-
-            "message_id": message_id,
-
-        },
+        state,
 
     )
 
-    print("DATABASE VALUE =")
-    print(get_setting(_state_key(chat_id)))
 
-    print("=======================================")
+    log_info(
+
+        "expert_state",
+
+        "set_waiting_reply",
+
+        f"{chat_id}:{tracking_code}",
+
+    )
 
 
 # -------------------------------------------------
@@ -132,11 +160,11 @@ def is_waiting_reply(
         chat_id,
     )
 
-    print("========== LOADED EXPERT STATE ==========")
-    print(state)
-    print("=========================================")
-
-    return state.get("state") == "WAITING_REPLY"
+    return (
+        state.get("state")
+        ==
+        "WAITING_REPLY"
+    )
 
 
 # -------------------------------------------------
@@ -199,5 +227,16 @@ def reset(
         _state_key(chat_id),
 
         "",
+
+    )
+
+
+    log_info(
+
+        "expert_state",
+
+        "reset",
+
+        str(chat_id),
 
     )
