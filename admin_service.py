@@ -10,8 +10,10 @@ from database import (
     create_expert,
     set_active,
     assign_expert,
+
     add_holiday,
     remove_holiday,
+
     set_setting,
 
     get_dashboard_statistics,
@@ -28,63 +30,52 @@ from logger import (
 )
 
 
-# -----------------------------
+# -------------------------------------------------
 # Dashboard
-# -----------------------------
+# -------------------------------------------------
 def dashboard() -> Dict[str, Any]:
-    """
-    Return dashboard statistics.
-    """
 
     try:
-
-        stats = get_dashboard_statistics()
-
-        recent = get_recent_requests(10)
 
         return {
 
             "success": True,
 
-            "statistics": stats,
+            "statistics":
+                get_dashboard_statistics(),
 
-            "recent_requests": recent,
+            "recent_requests":
+                get_recent_requests(10),
 
         }
 
     except Exception as e:
 
         log_error(
-
             "admin_service",
-
             "dashboard",
-
             str(e),
-
         )
 
         return {
 
             "success": False,
 
-            "message": "خطا در دریافت اطلاعات داشبورد",
+            "message":
+                "خطا در دریافت اطلاعات داشبورد",
 
         }
 
 
-# -----------------------------
+# -------------------------------------------------
 # Expert Management
-# -----------------------------
+# -------------------------------------------------
 def create_expert_account(
     chat_id: int,
     name: str,
     username: str,
     department: str,
-) -> Dict[str, Any]:
-    """
-    Create or update expert account.
-    """
+):
 
     try:
 
@@ -114,61 +105,78 @@ def create_expert_account(
         )
 
         return {
+
             "success": False,
-            "message": "خطا در ایجاد کارشناس",
+
+            "message":
+                "خطا در ایجاد کارشناس",
+
         }
-        
-# -----------------------------
-# Deactivate Expert
-# -----------------------------
+
+
+def activate_expert(
+    chat_id: int,
+):
+
+    return change_expert_status(
+        chat_id,
+        True,
+    )
+
+
 def deactivate_expert(
     chat_id: int,
-) -> Dict[str, Any]:
-    """
-    Deactivate expert.
-    """
+):
+
+    return change_expert_status(
+        chat_id,
+        False,
+    )
+
+
+def change_expert_status(
+    chat_id: int,
+    active: bool,
+):
 
     try:
 
         set_active(
             chat_id,
-            False,
-        )
-
-        log_info(
-            "admin_service",
-            "deactivate_expert",
-            str(chat_id),
+            active,
         )
 
         return {
+
             "success": True,
+
         }
 
     except Exception as e:
 
         log_error(
             "admin_service",
-            "deactivate_expert",
+            "expert_status",
             str(e),
         )
 
         return {
+
             "success": False,
-            "message": "خطا در غیرفعال‌سازی کارشناس",
+
+            "message":
+                "خطا در تغییر وضعیت کارشناس",
+
         }
 
 
-# -----------------------------
+# -------------------------------------------------
 # Transfer Request
-# -----------------------------
+# -------------------------------------------------
 def transfer_request(
     request_id: int,
     expert_id: int,
-) -> Dict[str, Any]:
-    """
-    Transfer request to expert.
-    """
+):
 
     try:
 
@@ -180,11 +188,13 @@ def transfer_request(
         log_info(
             "admin_service",
             "transfer_request",
-            f"{request_id} -> {expert_id}",
+            f"{request_id}->{expert_id}",
         )
 
         return {
+
             "success": True,
+
         }
 
     except Exception as e:
@@ -196,33 +206,32 @@ def transfer_request(
         )
 
         return {
+
             "success": False,
-            "message": "خطا در انتقال درخواست",
+
+            "message":
+                "خطا در انتقال درخواست",
+
         }
 
 
-# -----------------------------
+# -------------------------------------------------
 # Holiday Management
-# -----------------------------
+# -------------------------------------------------
 def add_system_holiday(
     date: str,
-) -> Dict[str, Any]:
-    """
-    Add holiday.
-    """
+):
 
     try:
 
-        add_holiday(date)
-
-        log_info(
-            "admin_service",
-            "add_holiday",
+        add_holiday(
             date,
         )
 
         return {
+
             "success": True,
+
         }
 
     except Exception as e:
@@ -234,30 +243,29 @@ def add_system_holiday(
         )
 
         return {
+
             "success": False,
-            "message": "خطا در ثبت تعطیلی",
+
+            "message":
+                "خطا در ثبت تعطیلی",
+
         }
 
 
 def delete_system_holiday(
     date: str,
-) -> Dict[str, Any]:
-    """
-    Remove holiday.
-    """
+):
 
     try:
 
-        remove_holiday(date)
-
-        log_info(
-            "admin_service",
-            "remove_holiday",
+        remove_holiday(
             date,
         )
 
         return {
+
             "success": True,
+
         }
 
     except Exception as e:
@@ -269,20 +277,22 @@ def delete_system_holiday(
         )
 
         return {
+
             "success": False,
-            "message": "خطا در حذف تعطیلی",
+
+            "message":
+                "خطا در حذف تعطیلی",
+
         }
-        
-# -----------------------------
+
+
+# -------------------------------------------------
 # Settings
-# -----------------------------
+# -------------------------------------------------
 def update_settings(
     key: str,
     value: str,
-) -> Dict[str, Any]:
-    """
-    Update system settings.
-    """
+):
 
     try:
 
@@ -291,14 +301,10 @@ def update_settings(
             value,
         )
 
-        log_info(
-            "admin_service",
-            "update_settings",
-            f"{key}={value}",
-        )
-
         return {
+
             "success": True,
+
         }
 
     except Exception as e:
@@ -310,26 +316,19 @@ def update_settings(
         )
 
         return {
+
             "success": False,
-            "message": "خطا در بروزرسانی تنظیمات",
+
+            "message":
+                "خطا در بروزرسانی تنظیمات",
+
         }
 
 
-# -----------------------------
-# Dashboard Helpers
-# -----------------------------
-def get_dashboard() -> Dict[str, Any]:
-    """
-    Return dashboard information.
-    """
-
-    return dashboard()
-
-
-def get_statistics() -> Dict[str, Any]:
-    """
-    Return only dashboard statistics.
-    """
+# -------------------------------------------------
+# Statistics
+# -------------------------------------------------
+def get_statistics():
 
     result = dashboard()
 
@@ -341,17 +340,15 @@ def get_statistics() -> Dict[str, Any]:
 
         "success": True,
 
-        "statistics": result["statistics"],
+        "statistics":
+            result["statistics"],
 
     }
 
 
 def get_recent_activity(
     limit: int = 10,
-) -> Dict[str, Any]:
-    """
-    Return recent requests.
-    """
+):
 
     try:
 
@@ -359,103 +356,102 @@ def get_recent_activity(
 
             "success": True,
 
-            "recent_requests": get_recent_requests(limit),
+            "recent_requests":
+                get_recent_requests(limit),
 
         }
 
     except Exception as e:
 
         log_error(
-
             "admin_service",
-
             "recent_activity",
-
             str(e),
-
         )
 
         return {
 
             "success": False,
 
-            "message": "خطا در دریافت فعالیت‌های اخیر",
+            "message":
+                "خطا در دریافت درخواست‌ها",
 
         }
 
-# -----------------------------
-# Daily Report
-# -----------------------------
+
+# -------------------------------------------------
+# Reports
+# -------------------------------------------------
 def get_daily_report():
 
     try:
 
         return {
+
             "success": True,
-            "report": get_daily_statistics(),
+
+            "report":
+                get_daily_statistics(),
+
         }
 
     except Exception as e:
 
-        log_error(
-            "admin_service",
-            "daily_report",
-            str(e),
-        )
-
         return {
+
             "success": False,
-            "message": "خطا در گزارش روزانه",
+
+            "message":
+                "خطا در گزارش روزانه",
+
         }
 
 
-# -----------------------------
-# Weekly Report
-# -----------------------------
 def get_weekly_report():
 
     try:
 
         return {
+
             "success": True,
-            "report": get_weekly_statistics(),
+
+            "report":
+                get_weekly_statistics(),
+
         }
 
-    except Exception as e:
-
-        log_error(
-            "admin_service",
-            "weekly_report",
-            str(e),
-        )
+    except Exception:
 
         return {
+
             "success": False,
-            "message": "خطا در گزارش هفتگی",
+
+            "message":
+                "خطا در گزارش هفتگی",
+
         }
 
 
-# -----------------------------
-# Monthly Report
-# -----------------------------
 def get_monthly_report():
 
     try:
 
         return {
+
             "success": True,
-            "report": get_monthly_statistics(),
+
+            "report":
+                get_monthly_statistics(),
+
         }
 
-    except Exception as e:
-
-        log_error(
-            "admin_service",
-            "monthly_report",
-            str(e),
-        )
+    except Exception:
 
         return {
+
             "success": False,
-            "message": "خطا در گزارش ماهانه",
-        }
+
+            "message":
+                "خطا در گزارش ماهانه",
+
+    }
