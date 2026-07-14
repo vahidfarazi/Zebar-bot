@@ -23,6 +23,9 @@ def insert_request(
     service: str,
     sub_service: str | None = None,
 ) -> int:
+    """
+    Create new request.
+    """
 
     return execute(
         """
@@ -36,6 +39,7 @@ def insert_request(
             created_at,
             updated_at
         )
+
         VALUES
         (
             %s,
@@ -46,6 +50,8 @@ def insert_request(
             CURRENT_TIMESTAMP,
             CURRENT_TIMESTAMP
         )
+
+        RETURNING id
         """,
         (
             tracking_code,
@@ -57,7 +63,7 @@ def insert_request(
 
 
 # =================================================
-# Get Request By ID
+# Get By ID
 # =================================================
 
 def get_request(
@@ -111,8 +117,11 @@ def get_user_requests(
     rows = fetch_all(
         """
         SELECT *
+
         FROM requests
+
         WHERE chat_id=%s
+
         ORDER BY created_at DESC
         """,
         (
@@ -168,7 +177,7 @@ def assign_expert(
         SET
             expert_id=%s,
             assigned_at=CURRENT_TIMESTAMP,
-            status='OPEN',
+            status='PENDING',
             updated_at=CURRENT_TIMESTAMP
 
         WHERE id=%s
@@ -268,7 +277,7 @@ def get_expert_requests(
 
 
 # =================================================
-# Save Expert Message
+# Save Expert Message Info
 # =================================================
 
 def save_expert_message(
@@ -287,7 +296,7 @@ def save_expert_message(
 
             expert_message_id=%s,
 
-            first_response_at=
+            first_response_at =
                 COALESCE(
                     first_response_at,
                     CURRENT_TIMESTAMP
@@ -391,7 +400,7 @@ def get_recent_requests(
 
 
 # =================================================
-# SLA Report Data
+# SLA Statistics
 # =================================================
 
 def get_sla_statistics() -> dict:
@@ -400,29 +409,30 @@ def get_sla_statistics() -> dict:
         """
         SELECT
 
-        COUNT(*) AS total,
+            COUNT(*) AS total,
 
-        AVG(
-            EXTRACT(
-                EPOCH FROM
-                (
-                    first_response_at - created_at
-                )
-            ) / 60
-        ) AS avg_response,
+            AVG(
+                EXTRACT(
+                    EPOCH FROM
+                    (
+                        first_response_at - created_at
+                    )
+                ) / 60
+            ) AS avg_response,
 
-        AVG(
-            EXTRACT(
-                EPOCH FROM
-                (
-                    closed_at - created_at
-                )
-            ) / 60
-        ) AS avg_close
+            AVG(
+                EXTRACT(
+                    EPOCH FROM
+                    (
+                        closed_at - created_at
+                    )
+                ) / 60
+            ) AS avg_close
 
         FROM requests
         """
     )
+
 
     if not row:
 
@@ -440,29 +450,18 @@ def get_sla_statistics() -> dict:
     return {
 
         "total":
-
-            row["total"] or 0,
-
+            row.get("total", 0) or 0,
 
         "avg_response":
-
             round(
-
-                row["avg_response"] or 0,
-
+                row.get("avg_response", 0) or 0,
                 2,
-
             ),
-
 
         "avg_close":
-
             round(
-
-                row["avg_close"] or 0,
-
+                row.get("avg_close", 0) or 0,
                 2,
-
             ),
 
-        }
+    }
