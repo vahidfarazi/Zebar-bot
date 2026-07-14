@@ -1,20 +1,10 @@
 """
 handlers/admin_handlers.py
 
-Advanced admin panel handler (Phase 1 Dashboard Base).
-
-Features:
-- Dashboard
-- Daily / Weekly / Monthly statistics
-- Expert management
-- Request transfer
-- Holiday management
-- Working hours settings
+Advanced admin panel handler.
 """
 
-from database import (
-    is_admin,
-)
+from database import is_admin
 
 from menus import (
     ADMIN_MENU,
@@ -23,11 +13,13 @@ from menus import (
 
 from admin_service import (
     dashboard,
-
     get_statistics,
+
     get_daily_report,
     get_weekly_report,
     get_monthly_report,
+
+    get_recent_activity,
 
     create_expert_account,
     activate_expert,
@@ -39,56 +31,40 @@ from admin_service import (
     delete_system_holiday,
 
     update_settings,
-
-    get_recent_activity,
 )
 
 
-# ----------------------------------
-# Admin Handler
-# ----------------------------------
 def handle_admin_message(
     chat_id: int,
     message: str,
 ):
 
     if not is_admin(chat_id):
-
         return {
             "text": "⛔ شما دسترسی به پنل مدیریت ندارید.",
         }
 
 
     if message == "/admin":
-
         return {
-
             "text": "🛠 پنل مدیریت سامانه",
-
             "keyboard": ADMIN_MENU,
-
         }
 
 
     if message == "🏠 منوی اصلی":
 
         return {
-
             "text": "منوی اصلی",
-
             "keyboard": MAIN_MENU,
-
         }
 
 
     if not message:
 
         return {
-
             "text": "پیام نامعتبر است",
-
             "keyboard": ADMIN_MENU,
-
         }
 
 
@@ -98,157 +74,91 @@ def handle_admin_message(
 
 
 
-    # ===============================
     # Dashboard
-    # ===============================
-
     if cmd == "dashboard" or message == "📊 داشبورد":
-
 
         result = dashboard()
 
-
         if not result["success"]:
 
             return {
-
                 "text": result["message"],
-
                 "keyboard": ADMIN_MENU,
-
             }
 
 
         stats = result["statistics"]
 
-
         return {
 
             "text":
-
             (
-
                 "📊 داشبورد سامانه\n\n"
-
                 f"📥 درخواست باز: {stats['open']}\n"
-
                 f"✅ بسته شده: {stats['closed']}\n"
-
                 f"🆕 امروز: {stats['today']}\n"
-
                 f"👨‍💼 کارشناسان فعال: {stats['experts']}"
-
             ),
 
             "keyboard": ADMIN_MENU,
-
         }
 
 
 
-    # ===============================
     # Statistics
-    # ===============================
-
     if cmd == "stats" or message == "📈 آمار":
-
 
         result = get_statistics()
 
-
         if not result["success"]:
 
             return {
-
                 "text": result["message"],
-
                 "keyboard": ADMIN_MENU,
-
             }
 
 
         stats = result["statistics"]
 
-
         return {
 
             "text":
-
             (
-
                 "📈 آمار کلی\n\n"
-
                 f"🟢 باز: {stats['open']}\n"
-
                 f"✅ بسته: {stats['closed']}\n"
-
                 f"📅 امروز: {stats['today']}\n"
-
                 f"👨‍💼 کارشناسان: {stats['experts']}"
-
             ),
 
             "keyboard": ADMIN_MENU,
-
         }
 
 
 
-    # ===============================
     # Reports
-    # ===============================
 
-    if message == "📅 گزارش روزانه":
+    report_map = {
+
+        "📅 گزارش روزانه": get_daily_report,
+        "📆 گزارش هفتگی": get_weekly_report,
+        "🗓 گزارش ماهانه": get_monthly_report,
+
+    }
 
 
-        result = get_daily_report()
+    if message in report_map:
 
         return format_report(
-
-            "📅 گزارش روزانه",
-
-            result,
-
+            message,
+            report_map[message](),
         )
 
 
 
-    if message == "📆 گزارش هفتگی":
-
-
-        result = get_weekly_report()
-
-        return format_report(
-
-            "📆 گزارش هفتگی",
-
-            result,
-
-        )
-
-
-
-    if message == "🗓 گزارش ماهانه":
-
-
-        result = get_monthly_report()
-
-        return format_report(
-
-            "🗓 گزارش ماهانه",
-
-            result,
-
-        )
-
-
-
-    # ===============================
-    # Recent Requests
-    # ===============================
+    # Recent
 
     if message == "📋 درخواست‌های اخیر":
-
 
         result = get_recent_activity()
 
@@ -256,11 +166,8 @@ def handle_admin_message(
         if not result["success"]:
 
             return {
-
                 "text": result["message"],
-
                 "keyboard": ADMIN_MENU,
-
             }
 
 
@@ -272,11 +179,8 @@ def handle_admin_message(
             text += (
 
                 f"🎫 {item['tracking_code']}\n"
-
                 f"📌 وضعیت: {item['status']}\n"
-
                 f"🛠 خدمت: {item['service']}\n"
-
                 "────────────\n"
 
             )
@@ -285,42 +189,32 @@ def handle_admin_message(
         return {
 
             "text": text,
-
             "keyboard": ADMIN_MENU,
 
         }
 
 
 
-    # ===============================
     # Create Expert
-    # ===============================
 
     if cmd == "create_expert":
-
 
         if len(parts) < 5:
 
             return {
 
                 "text":
-
-                "فرمت:\n"
-                "create_expert chat_id name username department",
+                "فرمت:\ncreate_expert chat_id name username department",
 
                 "keyboard": ADMIN_MENU,
-
             }
 
 
         result = create_expert_account(
 
             int(parts[1]),
-
             parts[2],
-
             parts[3],
-
             parts[4],
 
         )
@@ -329,11 +223,8 @@ def handle_admin_message(
         return {
 
             "text":
-
             "✅ کارشناس ثبت شد"
-
             if result["success"]
-
             else result["message"],
 
             "keyboard": ADMIN_MENU,
@@ -342,28 +233,28 @@ def handle_admin_message(
 
 
 
-    # ===============================
-    # Activate Expert
-    # ===============================
+    # Activate
 
     if cmd == "activate_expert":
 
+        if len(parts) < 2:
+
+            return {
+                "text": "فرمت: activate_expert chat_id",
+                "keyboard": ADMIN_MENU,
+            }
+
 
         result = activate_expert(
-
-            int(parts[1]),
-
+            int(parts[1])
         )
 
 
         return {
 
             "text":
-
             "✅ فعال شد"
-
             if result["success"]
-
             else result["message"],
 
             "keyboard": ADMIN_MENU,
@@ -372,28 +263,28 @@ def handle_admin_message(
 
 
 
-    # ===============================
-    # Deactivate Expert
-    # ===============================
+    # Deactivate
 
     if cmd == "deactivate_expert":
 
+        if len(parts) < 2:
+
+            return {
+                "text": "فرمت: deactivate_expert chat_id",
+                "keyboard": ADMIN_MENU,
+            }
+
 
         result = deactivate_expert(
-
-            int(parts[1]),
-
+            int(parts[1])
         )
 
 
         return {
 
             "text":
-
             "❌ غیرفعال شد"
-
             if result["success"]
-
             else result["message"],
 
             "keyboard": ADMIN_MENU,
@@ -402,43 +293,32 @@ def handle_admin_message(
 
 
 
-    # ===============================
     # Transfer
-    # ===============================
 
     if cmd == "transfer":
-
 
         if len(parts) < 3:
 
             return {
 
                 "text":
-
-                "فرمت:\ntransfer request_id expert_id",
+                "فرمت: transfer request_id expert_id",
 
                 "keyboard": ADMIN_MENU,
-
             }
 
 
         result = transfer_request(
-
             int(parts[1]),
-
             int(parts[2]),
-
         )
 
 
         return {
 
             "text":
-
             "📤 درخواست منتقل شد"
-
             if result["success"]
-
             else result["message"],
 
             "keyboard": ADMIN_MENU,
@@ -447,23 +327,27 @@ def handle_admin_message(
 
 
 
-    # ===============================
     # Holidays
-    # ===============================
 
     if cmd == "add_holiday":
 
+        if len(parts) < 2:
 
-        result = add_system_holiday(
+            return {
+                "text": "فرمت: add_holiday YYYY-MM-DD",
+                "keyboard": ADMIN_MENU,
+            }
 
-            parts[1],
 
-        )
+        result = add_system_holiday(parts[1])
 
 
         return {
 
-            "text": "📅 تعطیلی ثبت شد",
+            "text":
+            "📅 تعطیلی ثبت شد"
+            if result["success"]
+            else result["message"],
 
             "keyboard": ADMIN_MENU,
 
@@ -473,17 +357,23 @@ def handle_admin_message(
 
     if cmd == "remove_holiday":
 
+        if len(parts) < 2:
 
-        result = delete_system_holiday(
+            return {
+                "text": "فرمت: remove_holiday YYYY-MM-DD",
+                "keyboard": ADMIN_MENU,
+            }
 
-            parts[1],
 
-        )
+        result = delete_system_holiday(parts[1])
 
 
         return {
 
-            "text": "📅 تعطیلی حذف شد",
+            "text":
+            "📅 تعطیلی حذف شد"
+            if result["success"]
+            else result["message"],
 
             "keyboard": ADMIN_MENU,
 
@@ -491,17 +381,23 @@ def handle_admin_message(
 
 
 
-    # ===============================
     # Settings
-    # ===============================
 
     if cmd == "set":
+
+        if len(parts) < 3:
+
+            return {
+
+                "text": "فرمت: set key value",
+                "keyboard": ADMIN_MENU,
+
+            }
 
 
         result = update_settings(
 
             parts[1],
-
             " ".join(parts[2:]),
 
         )
@@ -510,11 +406,8 @@ def handle_admin_message(
         return {
 
             "text":
-
             "⚙️ تنظیم شد"
-
             if result["success"]
-
             else result["message"],
 
             "keyboard": ADMIN_MENU,
@@ -532,10 +425,6 @@ def handle_admin_message(
     }
 
 
-
-# ----------------------------------
-# Report Formatter
-# ----------------------------------
 
 def format_report(
     title: str,
@@ -559,17 +448,11 @@ def format_report(
     return {
 
         "text":
-
         (
-
             f"{title}\n\n"
-
             f"📥 کل درخواست‌ها: {report['total']}\n"
-
             f"🟢 باز: {report['open']}\n"
-
             f"✅ بسته: {report['closed']}"
-
         ),
 
         "keyboard": ADMIN_MENU,
