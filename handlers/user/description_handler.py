@@ -1,7 +1,7 @@
 """
 handlers/user/description_handler.py
 
-Handle optional request description.
+Handle optional request description and final confirmation.
 """
 
 from user_state import (
@@ -11,10 +11,20 @@ from user_state import (
     reset,
 )
 
-from menus import MAIN_MENU
-from request_service import create_request
+from menus import (
+    MAIN_MENU,
+    DESCRIPTION_MENU,
+    CONFIRM_MENU,
+)
 
-from handlers.user.request_summary import show_summary
+from request_service import (
+    create_request,
+)
+
+from handlers.user.request_summary import (
+    show_summary,
+)
+
 from handlers.user.edit_request import (
     edit_menu,
     start_edit,
@@ -24,14 +34,14 @@ from handlers.user.edit_request import (
 MAX_DESCRIPTION = 300
 
 
+# =================================================
+# Description
+# =================================================
+
 def handle_description(
     chat_id: int,
     message: str,
 ):
-
-    # -----------------------------
-    # بدون توضیح
-    # -----------------------------
 
     if message == "⏭ بدون توضیح":
 
@@ -50,12 +60,13 @@ def handle_description(
             return {
 
                 "text":
-                    f"❌ توضیحات نباید بیشتر از {MAX_DESCRIPTION} کاراکتر باشد.",
+                    (
+                        f"❌ توضیحات نباید بیشتر از "
+                        f"{MAX_DESCRIPTION} کاراکتر باشد."
+                    ),
 
-                "keyboard": [
-                    ["⏭ بدون توضیح"],
-                    ["❌ انصراف"],
-                ],
+                "keyboard":
+                    DESCRIPTION_MENU,
 
             }
 
@@ -65,30 +76,41 @@ def handle_description(
             message,
         )
 
+
     set_state(
         chat_id,
         "WAITING_CONFIRM",
     )
 
-    return show_summary(chat_id)
 
+    result = show_summary(
+        chat_id,
+    )
+
+
+    result["keyboard"] = CONFIRM_MENU
+
+
+    return result
+
+
+
+# =================================================
+# Confirm
+# =================================================
 
 def handle_confirm(
     chat_id: int,
     message: str,
 ):
 
-    # -----------------------------
-    # Edit Menu
-    # -----------------------------
 
     if message == "✏️ ویرایش درخواست":
 
-        return edit_menu(chat_id)
+        return edit_menu(
+            chat_id,
+        )
 
-    # -----------------------------
-    # Edit Field
-    # -----------------------------
 
     if message.startswith(
 
@@ -108,25 +130,25 @@ def handle_confirm(
             message,
         )
 
-    # -----------------------------
-    # Cancel
-    # -----------------------------
 
     if message == "❌ انصراف":
 
-        reset(chat_id)
+        reset(
+            chat_id,
+        )
+
 
         return {
 
-            "text": "ثبت درخواست لغو شد.",
+            "text":
+                "ثبت درخواست لغو شد.",
 
-            "keyboard": MAIN_MENU,
+            "keyboard":
+                MAIN_MENU,
 
         }
 
-    # -----------------------------
-    # Invalid
-    # -----------------------------
+
 
     if message != "✅ ثبت نهایی":
 
@@ -135,25 +157,38 @@ def handle_confirm(
             "text":
                 "لطفاً یکی از گزینه‌های موجود را انتخاب کنید.",
 
+            "keyboard":
+                CONFIRM_MENU,
+
         }
 
-    # -----------------------------
-    # Final Save
-    # -----------------------------
 
-    data = get_data(chat_id)
+
+    data = get_data(
+        chat_id,
+    )
+
 
     result = create_request(
         chat_id,
         data,
     )
 
-    reset(chat_id)
+
+    reset(
+        chat_id,
+    )
+
 
     return {
 
-        "text": result["user_message"],
+        "text":
+            result.get(
+                "user_message",
+                "درخواست ثبت شد.",
+            ),
 
-        "keyboard": MAIN_MENU,
+        "keyboard":
+            MAIN_MENU,
 
     }
