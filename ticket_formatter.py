@@ -5,73 +5,46 @@ Request text formatter.
 """
 
 FIELD_NAMES = {
-
     "request_number": "شماره تقاضا",
-
     "computer_code": "رمز رایانه",
-
     "bill_id": "شناسه قبض",
-
     "national_code": "کد ملی",
-
     "mobile": "شماره همراه",
-
     "subscription": "اشتراک",
-
     "meter_serial": "سریال کنتور",
-
 }
-
 
 SERVICE_NAMES = {
-
-    "NEW_CONNECTION":
-        "نصب انشعاب جدید",
-
-    "AFTER_SALES":
-        "خدمات پس از فروش",
-
-    "METER_TEST":
-        "بازرسی و تست کنتور",
-
-    "BILL_INQUIRY":
-        "بررسی قبض برق",
-
+    "NEW_CONNECTION": "نصب انشعاب جدید",
+    "AFTER_SALES": "خدمات پس از فروش",
+    "METER_TEST": "بازرسی و تست کنتور",
+    "BILL_INQUIRY": "بررسی قبض برق",
 }
 
-
 SUB_SERVICE_NAMES = {
+    "UNKNOWN": "نامشخص",
+    "SERVICE_FIX": "اصلاح سرویس",
+    "REINSTALL": "نصب مجدد",
+    "RELOCATION": "تغییر مکان",
+    "CHANGE_NAME": "تغییر نام",
+    "AMPERAGE": "تبدیل آمپراژ",
+    "TEMP_REMOVE": "جمع‌آوری موقت",
+    "PERMANENT_REMOVE": "جمع‌آوری دائم",
+}
 
-    "UNKNOWN":
-        "نامشخص",
-
-    "SERVICE_FIX":
-        "اصلاح سرویس",
-
-    "REINSTALL":
-        "نصب مجدد",
-
-    "RELOCATION":
-        "تغییر مکان",
-
-    "CHANGE_NAME":
-        "تغییر نام",
-
-    "AMPERAGE":
-        "تبدیل آمپراژ",
-
-    "TEMP_REMOVE":
-        "جمع‌آوری موقت",
-
-    "PERMANENT_REMOVE":
-        "جمع‌آوری دائم",
-
+STATUS_NAMES = {
+    "OPEN": "در حال بررسی",
+    "PENDING": "در انتظار پاسخ",
+    "ANSWERED": "پاسخ داده شده",
+    "TRANSFERRED": "ارجاع شده",
+    "CLOSED": "بسته شده",
 }
 
 
 # ---------------------------------------------------
 # Request Body
 # ---------------------------------------------------
+
 def format_request(
     data: dict,
 ) -> str:
@@ -81,7 +54,6 @@ def format_request(
     service = data.get("service")
 
     if service:
-
         lines.append(
             f"خدمت: {SERVICE_NAMES.get(service, service)}"
         )
@@ -89,7 +61,6 @@ def format_request(
     sub = data.get("sub_service")
 
     if sub:
-
         lines.append(
             f"زیرخدمت: {SUB_SERVICE_NAMES.get(sub, sub)}"
         )
@@ -101,44 +72,38 @@ def format_request(
         value = data.get(key)
 
         if value:
-
-            lines.append(
-                f"{title}: {value}"
-            )
-
-    # -------------------------
-    # Description
-    # -------------------------
+            lines.append(f"{title}: {value}")
 
     description = data.get("description")
 
     if description:
-
-        lines.append("")
-        lines.append("توضیحات تکمیلی:")
-        lines.append(description)
+        lines.extend(
+            [
+                "",
+                "توضیحات تکمیلی:",
+                description,
+            ]
+        )
 
     return "\n".join(lines)
 
 
 # ---------------------------------------------------
-# Summary Before Final ثبت
+# Summary
 # ---------------------------------------------------
+
 def format_summary(
     data: dict,
 ) -> str:
 
     lines = [
-
         "📋 خلاصه درخواست",
         "",
-
     ]
 
     service = data.get("service")
 
     if service:
-
         lines.append(
             f"🔹 خدمت: {SERVICE_NAMES.get(service, service)}"
         )
@@ -146,7 +111,6 @@ def format_summary(
     sub = data.get("sub_service")
 
     if sub:
-
         lines.append(
             f"🔹 زیرخدمت: {SUB_SERVICE_NAMES.get(sub, sub)}"
         )
@@ -156,7 +120,6 @@ def format_summary(
         value = data.get(key)
 
         if value:
-
             lines.append(
                 f"• {title}: {value}"
             )
@@ -164,35 +127,30 @@ def format_summary(
     description = data.get("description")
 
     if description:
+        lines.extend(
+            [
+                "",
+                "📝 توضیحات تکمیلی:",
+                description,
+            ]
+        )
 
-        lines.extend([
-
+    lines.extend(
+        [
             "",
-
-            "📝 توضیحات تکمیلی:",
-
-            description,
-
-        ])
-
-    lines.extend([
-
-        "",
-
-        "━━━━━━━━━━━━━━",
-
-        "",
-
-        "در صورت تأیید، درخواست ثبت خواهد شد.",
-
-    ])
+            "━━━━━━━━━━━━━━",
+            "",
+            "در صورت تأیید، درخواست ثبت خواهد شد.",
+        ]
+    )
 
     return "\n".join(lines)
 
 
 # ---------------------------------------------------
-# Expert Message
+# Expert Ticket
 # ---------------------------------------------------
+
 def format_expert(
     tracking: str,
     chat_id: int,
@@ -200,102 +158,128 @@ def format_expert(
 ) -> str:
 
     return "\n".join(
-
         [
-
             "📩 درخواست جدید",
-
             "",
-
             f"🎫 {tracking}",
-
             "",
-
             format_request(data),
-
             "",
-
             f"👤 شناسه بله: {chat_id}",
-
         ]
-
     )
 
 
 # ---------------------------------------------------
-# User History
+# Tracking History
 # ---------------------------------------------------
+
 def format_user_history(
-    tracking: str,
-    status: str,
+    request: dict,
     messages: list[dict],
+    history: list[dict],
 ) -> str:
 
-    status_map = {
+    tracking = request["tracking_code"]
 
-        "OPEN": "در حال بررسی",
+    status = STATUS_NAMES.get(
+        request.get("status"),
+        request.get("status"),
+    )
 
-        "ANSWERED": "پاسخ داده شده",
-
-        "CLOSED": "بسته شده",
-
-    }
+    service = SERVICE_NAMES.get(
+        request.get("service"),
+        request.get("service"),
+    )
 
     lines = [
-
-        "📋 پیگیری درخواست",
-
+        "📋 وضعیت درخواست",
         "",
-
-        f"🎫 {tracking}",
-
-        "",
-
-        f"📌 وضعیت: {status_map.get(status, status)}",
-
-        "",
-
-        "━━━━━━━━━━━━━━",
-
+        f"🎫 کد پیگیری: {tracking}",
+        f"📌 وضعیت: {status}",
+        f"🛠 خدمت: {service}",
     ]
 
-    for item in messages:
+    priority = request.get("priority")
 
-        if item["sender_type"] == "USER":
+    if priority:
+        lines.append(f"⚡ اولویت: {priority}")
 
-            lines.extend([
+    expert = request.get("expert_name")
 
+    if expert:
+        lines.append(f"👨‍💼 کارشناس: {expert}")
+
+    created = request.get("created_at")
+
+    if created:
+        lines.append(f"📅 ثبت: {created}")
+
+    closed = request.get("closed_at")
+
+    if closed:
+        lines.append(f"✅ خاتمه: {closed}")
+
+    # --------------------------------
+    # History
+    # --------------------------------
+
+    if history:
+
+        lines.extend(
+            [
                 "",
-
-                "👤 درخواست",
-
-                "",
-
-                item["message"],
-
-                "",
-
                 "━━━━━━━━━━━━━━",
+                "📜 سوابق",
+            ]
+        )
 
-            ])
+        for item in history:
 
-        else:
+            created = item.get("created_at", "")
 
-            lines.extend([
+            event = item.get("description") or item.get("event_type")
 
+            lines.extend(
+                [
+                    "",
+                    f"• {created}",
+                    event,
+                ]
+            )
+
+    # --------------------------------
+    # Messages
+    # --------------------------------
+
+    if messages:
+
+        lines.extend(
+            [
                 "",
-
-                "👨‍💼 پاسخ کارشناس",
-
-                "",
-
-                item["message"],
-
-                "",
-
                 "━━━━━━━━━━━━━━",
+                "💬 گفتگوها",
+            ]
+        )
 
-            ])
+        for msg in messages:
+
+            sender = (
+                "👤 شما"
+                if msg["sender_type"] == "USER"
+                else "👨‍💼 کارشناس"
+            )
+
+            created = msg.get("created_at", "")
+
+            lines.extend(
+                [
+                    "",
+                    sender,
+                    created,
+                    msg["message"],
+                ]
+            )
 
     return "\n".join(lines)
 
@@ -303,6 +287,7 @@ def format_user_history(
 # ---------------------------------------------------
 # Expert Reply
 # ---------------------------------------------------
+
 def format_expert_reply(
     tracking: str,
     service: str,
@@ -310,58 +295,31 @@ def format_expert_reply(
 ) -> str:
 
     return "\n".join(
-
         [
-
             "📩 پاسخ کارشناس",
-
             "",
-
             f"🎫 {tracking}",
-
             "",
-
-            "📌 خدمت:",
-
-            SERVICE_NAMES.get(
-                service,
-                service,
-            ),
-
+            f"🛠 {SERVICE_NAMES.get(service, service)}",
             "",
-
             "━━━━━━━━━━━━━━",
-
             "",
-
             message,
-
         ]
-
     )
 
 
 # ---------------------------------------------------
-# Success Message
+# Success
 # ---------------------------------------------------
+
 def format_success(
     tracking: str,
 ) -> str:
 
     return (
-
-        "✅ درخواست شما با موفقیت ثبت شد."
-
-        "\n\n"
-
-        "کد پیگیری شما:"
-
-        "\n"
-
-        f"{tracking}"
-
-        "\n\n"
-
+        "✅ درخواست شما با موفقیت ثبت شد.\n\n"
+        "کد پیگیری:\n"
+        f"{tracking}\n\n"
         "این کد را برای پیگیری نزد خود نگه دارید."
-
     )
