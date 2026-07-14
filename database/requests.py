@@ -1,7 +1,7 @@
 """
 database/requests.py
 
-Request repository.
+Advanced request repository.
 """
 
 from typing import Optional
@@ -13,9 +13,10 @@ from .crud import (
 )
 
 
-# -------------------------------------------------
+# =================================================
 # Create Request
-# -------------------------------------------------
+# =================================================
+
 def insert_request(
     tracking_code: str,
     chat_id: int,
@@ -30,9 +31,21 @@ def insert_request(
             tracking_code,
             chat_id,
             service,
-            sub_service
+            sub_service,
+            status,
+            created_at,
+            updated_at
         )
-        VALUES (%s,%s,%s,%s)
+        VALUES
+        (
+            %s,
+            %s,
+            %s,
+            %s,
+            'OPEN',
+            CURRENT_TIMESTAMP,
+            CURRENT_TIMESTAMP
+        )
         """,
         (
             tracking_code,
@@ -43,9 +56,10 @@ def insert_request(
     )
 
 
-# -------------------------------------------------
+# =================================================
 # Get Request By ID
-# -------------------------------------------------
+# =================================================
+
 def get_request(
     request_id: int,
 ) -> Optional[dict]:
@@ -56,15 +70,18 @@ def get_request(
         FROM requests
         WHERE id=%s
         """,
-        (request_id,),
+        (
+            request_id,
+        ),
     )
 
     return dict(row) if row else None
 
 
-# -------------------------------------------------
+# =================================================
 # Get By Tracking
-# -------------------------------------------------
+# =================================================
+
 def get_request_by_tracking(
     tracking_code: str,
 ) -> Optional[dict]:
@@ -75,17 +92,20 @@ def get_request_by_tracking(
         FROM requests
         WHERE tracking_code=%s
         """,
-        (tracking_code,),
+        (
+            tracking_code,
+        ),
     )
 
     return dict(row) if row else None
 
 
-# -------------------------------------------------
+# =================================================
 # User Requests
-# -------------------------------------------------
+# =================================================
+
 def get_user_requests(
-    chat_id:int,
+    chat_id: int,
 ) -> list[dict]:
 
     rows = fetch_all(
@@ -95,7 +115,9 @@ def get_user_requests(
         WHERE chat_id=%s
         ORDER BY created_at DESC
         """,
-        (chat_id,),
+        (
+            chat_id,
+        ),
     )
 
     return [
@@ -104,12 +126,13 @@ def get_user_requests(
     ]
 
 
-# -------------------------------------------------
+# =================================================
 # Update Status
-# -------------------------------------------------
+# =================================================
+
 def update_request_status(
-    request_id:int,
-    status:str,
+    request_id: int,
+    status: str,
 ):
 
     execute(
@@ -117,8 +140,8 @@ def update_request_status(
         UPDATE requests
 
         SET
-        status=%s,
-        updated_at=CURRENT_TIMESTAMP
+            status=%s,
+            updated_at=CURRENT_TIMESTAMP
 
         WHERE id=%s
         """,
@@ -129,12 +152,13 @@ def update_request_status(
     )
 
 
-# -------------------------------------------------
+# =================================================
 # Assign Expert
-# -------------------------------------------------
+# =================================================
+
 def assign_expert(
-    request_id:int,
-    expert_id:int,
+    request_id: int,
+    expert_id: int,
 ):
 
     execute(
@@ -142,8 +166,10 @@ def assign_expert(
         UPDATE requests
 
         SET
-        expert_id=%s,
-        updated_at=CURRENT_TIMESTAMP
+            expert_id=%s,
+            assigned_at=CURRENT_TIMESTAMP,
+            status='PENDING',
+            updated_at=CURRENT_TIMESTAMP
 
         WHERE id=%s
         """,
@@ -154,12 +180,13 @@ def assign_expert(
     )
 
 
-# -------------------------------------------------
+# =================================================
 # Transfer Request
-# -------------------------------------------------
+# =================================================
+
 def transfer_request(
-    request_id:int,
-    new_expert_id:int,
+    request_id: int,
+    new_expert_id: int,
 ):
 
     execute(
@@ -167,10 +194,9 @@ def transfer_request(
         UPDATE requests
 
         SET
-
-        expert_id=%s,
-
-        updated_at=CURRENT_TIMESTAMP
+            expert_id=%s,
+            transferred_at=CURRENT_TIMESTAMP,
+            updated_at=CURRENT_TIMESTAMP
 
         WHERE id=%s
         """,
@@ -181,11 +207,12 @@ def transfer_request(
     )
 
 
-# -------------------------------------------------
-# Get Transferred Requests
-# -------------------------------------------------
+# =================================================
+# Transferred Requests
+# =================================================
+
 def get_transferred_requests(
-    limit:int=50,
+    limit: int = 50,
 ) -> list[dict]:
 
     rows = fetch_all(
@@ -194,11 +221,9 @@ def get_transferred_requests(
 
         FROM requests
 
-        WHERE expert_id IS NOT NULL
+        WHERE transferred_at IS NOT NULL
 
-        AND updated_at <> created_at
-
-        ORDER BY updated_at DESC
+        ORDER BY transferred_at DESC
 
         LIMIT %s
         """,
@@ -213,11 +238,12 @@ def get_transferred_requests(
     ]
 
 
-# -------------------------------------------------
+# =================================================
 # Expert Requests
-# -------------------------------------------------
+# =================================================
+
 def get_expert_requests(
-    expert_id:int,
+    expert_id: int,
 ) -> list[dict]:
 
     rows = fetch_all(
@@ -241,13 +267,14 @@ def get_expert_requests(
     ]
 
 
-# -------------------------------------------------
+# =================================================
 # Save Expert Message
-# -------------------------------------------------
+# =================================================
+
 def save_expert_message(
-    request_id:int,
-    expert_chat_id:int,
-    expert_message_id:int,
+    request_id: int,
+    expert_chat_id: int,
+    expert_message_id: int,
 ):
 
     execute(
@@ -256,11 +283,17 @@ def save_expert_message(
 
         SET
 
-        expert_chat_id=%s,
+            expert_chat_id=%s,
 
-        expert_message_id=%s,
+            expert_message_id=%s,
 
-        updated_at=CURRENT_TIMESTAMP
+            first_response_at=
+                COALESCE(
+                    first_response_at,
+                    CURRENT_TIMESTAMP
+                ),
+
+            updated_at=CURRENT_TIMESTAMP
 
         WHERE id=%s
         """,
@@ -272,11 +305,12 @@ def save_expert_message(
     )
 
 
-# -------------------------------------------------
+# =================================================
 # Close Request
-# -------------------------------------------------
+# =================================================
+
 def close_request(
-    request_id:int,
+    request_id: int,
 ):
 
     execute(
@@ -285,11 +319,11 @@ def close_request(
 
         SET
 
-        status='CLOSED',
+            status='CLOSED',
 
-        closed_at=CURRENT_TIMESTAMP,
+            closed_at=CURRENT_TIMESTAMP,
 
-        updated_at=CURRENT_TIMESTAMP
+            updated_at=CURRENT_TIMESTAMP
 
         WHERE id=%s
         """,
@@ -299,12 +333,13 @@ def close_request(
     )
 
 
-# -------------------------------------------------
+# =================================================
 # Priority
-# -------------------------------------------------
+# =================================================
+
 def update_priority(
-    request_id:int,
-    priority:str,
+    request_id: int,
+    priority: str,
 ):
 
     execute(
@@ -313,9 +348,9 @@ def update_priority(
 
         SET
 
-        priority=%s,
+            priority=%s,
 
-        updated_at=CURRENT_TIMESTAMP
+            updated_at=CURRENT_TIMESTAMP
 
         WHERE id=%s
         """,
@@ -326,11 +361,12 @@ def update_priority(
     )
 
 
-# -------------------------------------------------
+# =================================================
 # Recent Requests
-# -------------------------------------------------
+# =================================================
+
 def get_recent_requests(
-    limit:int=20,
+    limit: int = 20,
 ) -> list[dict]:
 
     rows = fetch_all(
@@ -352,3 +388,64 @@ def get_recent_requests(
         dict(row)
         for row in rows
     ]
+
+
+# =================================================
+# SLA Report Data
+# =================================================
+
+def get_sla_statistics() -> dict:
+
+    row = fetch_one(
+        """
+        SELECT
+
+        COUNT(*) AS total,
+
+        AVG(
+            EXTRACT(
+                EPOCH FROM
+                (
+                    first_response_at - created_at
+                )
+            ) / 60
+        ) AS avg_response,
+
+        AVG(
+            EXTRACT(
+                EPOCH FROM
+                (
+                    closed_at - created_at
+                )
+            ) / 60
+        ) AS avg_close
+
+        FROM requests
+        """
+    )
+
+    if not row:
+
+        return {
+            "total": 0,
+            "avg_response": 0,
+            "avg_close": 0,
+        }
+
+    return {
+
+        "total": row["total"] or 0,
+
+        "avg_response":
+            round(
+                row["avg_response"] or 0,
+                2,
+            ),
+
+        "avg_close":
+            round(
+                row["avg_close"] or 0,
+                2,
+            ),
+
+    }
