@@ -25,6 +25,7 @@ def get_setting(
     """
 
     row = fetch_one(
+
         """
         SELECT value
 
@@ -32,16 +33,21 @@ def get_setting(
 
         WHERE key = %s
         """,
+
         (
             key,
         ),
+
     )
 
-    if row is None:
+    if not row:
 
         return default
 
-    return row["value"]
+    return row.get(
+        "value",
+        default,
+    )
 
 
 # -------------------------------------------------
@@ -56,6 +62,7 @@ def set_setting(
     """
 
     execute(
+
         """
         INSERT INTO settings
         (
@@ -75,10 +82,12 @@ def set_setting(
 
             value = EXCLUDED.value
         """,
+
         (
             key,
             value,
         ),
+
     )
 
 
@@ -90,14 +99,17 @@ def delete_setting(
 ) -> None:
 
     execute(
+
         """
         DELETE FROM settings
 
         WHERE key = %s
         """,
+
         (
             key,
         ),
+
     )
 
 
@@ -105,8 +117,12 @@ def delete_setting(
 # Get All Settings
 # -------------------------------------------------
 def get_all_settings() -> list[dict]:
+    """
+    Return all settings.
+    """
 
     rows = fetch_all(
+
         """
         SELECT *
 
@@ -114,19 +130,25 @@ def get_all_settings() -> list[dict]:
 
         ORDER BY key
         """
+
     )
 
     return [
+
         dict(row)
+
         for row in rows
+
     ]
 
 
 # -------------------------------------------------
-# Working Hours Helpers
+# Working Hours
 # -------------------------------------------------
-
 def get_working_hours() -> dict:
+    """
+    Get working configuration.
+    """
 
     return {
 
@@ -156,6 +178,9 @@ def set_working_hours(
     end: str,
     days: str,
 ) -> None:
+    """
+    Update working hours.
+    """
 
     set_setting(
         "WORK_START",
@@ -170,4 +195,51 @@ def set_working_hours(
     set_setting(
         "WORK_DAYS",
         days,
+    )
+
+
+# -------------------------------------------------
+# Boolean Settings
+# -------------------------------------------------
+def get_bool_setting(
+    key: str,
+    default: bool = False,
+) -> bool:
+    """
+    Read boolean settings safely.
+    """
+
+    value = get_setting(
+        key,
+    )
+
+    if value is None:
+
+        return default
+
+    return value.lower() in (
+        "1",
+        "true",
+        "yes",
+        "on",
+        "فعال",
+    )
+
+
+def set_bool_setting(
+    key: str,
+    value: bool,
+) -> None:
+    """
+    Save boolean setting.
+    """
+
+    set_setting(
+
+        key,
+
+        "true"
+        if value
+        else "false",
+
     )
