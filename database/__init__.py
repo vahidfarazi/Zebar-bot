@@ -85,6 +85,19 @@ from .requests import (
 
 
 # =================================================
+# Dashboard
+# =================================================
+
+from .dashboard import (
+
+    get_dashboard_statistics,
+
+    get_dashboard,
+
+)
+
+
+# =================================================
 # Reports
 # =================================================
 
@@ -166,12 +179,16 @@ from .history import (
 # =================================================
 
 from .tracking import (
+
     get_last_tracking_number,
+
 )
 
 
 from .tracking_sequence import (
+
     get_next_tracking_number,
+
 )
 
 
@@ -268,6 +285,7 @@ from .logs import (
 )
 
 
+
 __all__ = [
 
     # Connection
@@ -276,6 +294,7 @@ __all__ = [
     # Schema
     "init_database",
 
+
     # CRUD
     "execute",
     "execute_many",
@@ -283,9 +302,11 @@ __all__ = [
     "fetch_all",
     "table_exists",
 
+
     # Settings
     "get_setting",
     "set_setting",
+
 
     # Requests
     "insert_request",
@@ -303,6 +324,12 @@ __all__ = [
     "delete_request",
     "get_recent_requests",
 
+
+    # Dashboard
+    "get_dashboard_statistics",
+    "get_dashboard",
+
+
     # Reports
     "get_daily_statistics",
     "get_weekly_statistics",
@@ -311,6 +338,7 @@ __all__ = [
     "get_service_statistics",
     "get_expert_statistics",
     "get_dashboard_report",
+
 
     # Messages
     "add_message",
@@ -321,6 +349,7 @@ __all__ = [
     "get_expert_messages",
     "get_user_messages",
     "delete_messages",
+
 
     # History
     "add_history",
@@ -334,13 +363,16 @@ __all__ = [
     "get_latest_history",
     "delete_history",
 
+
     # Tracking
     "get_last_tracking_number",
     "get_next_tracking_number",
 
+
     # Users
     "get_user",
     "create_user",
+
 
     # Experts
     "create_expert",
@@ -355,11 +387,13 @@ __all__ = [
     "count_experts",
     "expert_exists",
 
+
     # Admins
     "is_admin",
     "add_admin",
     "remove_admin",
     "get_all_admins",
+
 
     # Holidays
     "is_holiday",
@@ -368,6 +402,7 @@ __all__ = [
     "enable_holiday",
     "disable_holiday",
     "get_all_holidays",
+
 
     # Logs
     "insert_log",
