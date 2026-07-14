@@ -133,7 +133,7 @@ def get_user_requests(
 def update_request_status(
     request_id: int,
     status: str,
-):
+) -> None:
 
     execute(
         """
@@ -159,7 +159,7 @@ def update_request_status(
 def assign_expert(
     request_id: int,
     expert_id: int,
-):
+) -> None:
 
     execute(
         """
@@ -168,7 +168,7 @@ def assign_expert(
         SET
             expert_id=%s,
             assigned_at=CURRENT_TIMESTAMP,
-            status='PENDING',
+            status='OPEN',
             updated_at=CURRENT_TIMESTAMP
 
         WHERE id=%s
@@ -187,7 +187,7 @@ def assign_expert(
 def transfer_request(
     request_id: int,
     new_expert_id: int,
-):
+) -> None:
 
     execute(
         """
@@ -275,7 +275,7 @@ def save_expert_message(
     request_id: int,
     expert_chat_id: int,
     expert_message_id: int,
-):
+) -> None:
 
     execute(
         """
@@ -311,7 +311,7 @@ def save_expert_message(
 
 def close_request(
     request_id: int,
-):
+) -> None:
 
     execute(
         """
@@ -340,7 +340,7 @@ def close_request(
 def update_priority(
     request_id: int,
     priority: str,
-):
+) -> None:
 
     execute(
         """
@@ -427,25 +427,42 @@ def get_sla_statistics() -> dict:
     if not row:
 
         return {
+
             "total": 0,
+
             "avg_response": 0,
+
             "avg_close": 0,
+
         }
+
 
     return {
 
-        "total": row["total"] or 0,
+        "total":
+
+            row["total"] or 0,
+
 
         "avg_response":
+
             round(
+
                 row["avg_response"] or 0,
+
                 2,
+
             ),
+
 
         "avg_close":
+
             round(
+
                 row["avg_close"] or 0,
+
                 2,
+
             ),
 
-    }
+        }
