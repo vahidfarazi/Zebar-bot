@@ -7,7 +7,6 @@ Business logic for admin operations.
 from typing import Dict, Any
 
 from database import (
-
     create_expert,
     set_active,
     assign_expert,
@@ -16,7 +15,6 @@ from database import (
     remove_holiday,
 
     set_setting,
-
     get_setting,
 
     get_dashboard_report,
@@ -28,11 +26,10 @@ from database import (
     get_monthly_statistics,
 
     add_transfer_history,
-
 )
 
 from working_hours import (
-    get_system_work_status,
+    get_work_status,
 )
 
 from logger import (
@@ -50,7 +47,6 @@ def dashboard() -> Dict[str, Any]:
     try:
 
         return {
-
             "success": True,
 
             "statistics":
@@ -60,13 +56,11 @@ def dashboard() -> Dict[str, Any]:
                 get_dashboard_report(),
 
             "working_status":
-                get_system_work_status(),
+                get_work_status(),
 
             "recent_requests":
                 get_recent_requests(10),
-
         }
-
 
     except Exception as e:
 
@@ -77,14 +71,10 @@ def dashboard() -> Dict[str, Any]:
         )
 
         return {
-
             "success": False,
-
             "message":
                 "خطا در دریافت اطلاعات داشبورد",
-
         }
-
 
 
 # =================================================
@@ -107,20 +97,15 @@ def create_expert_account(
             department,
         )
 
-
         log_info(
             "admin_service",
             "create_expert",
             str(chat_id),
         )
 
-
         return {
-
-            "success":True,
-
+            "success": True,
         }
-
 
     except Exception as e:
 
@@ -131,19 +116,14 @@ def create_expert_account(
         )
 
         return {
-
-            "success":False,
-
+            "success": False,
             "message":
                 "خطا در ایجاد کارشناس",
-
         }
 
 
 
-def activate_expert(
-    chat_id:int,
-):
+def activate_expert(chat_id:int):
 
     return change_expert_status(
         chat_id,
@@ -152,9 +132,7 @@ def activate_expert(
 
 
 
-def deactivate_expert(
-    chat_id:int,
-):
+def deactivate_expert(chat_id:int):
 
     return change_expert_status(
         chat_id,
@@ -175,20 +153,9 @@ def change_expert_status(
             active,
         )
 
-
-        log_info(
-            "admin_service",
-            "expert_status",
-            f"{chat_id}:{active}",
-        )
-
-
         return {
-
-            "success":True,
-
+            "success": True,
         }
-
 
     except Exception as e:
 
@@ -198,14 +165,10 @@ def change_expert_status(
             str(e),
         )
 
-
         return {
-
-            "success":False,
-
+            "success": False,
             "message":
                 "خطا در تغییر وضعیت کارشناس",
-
         }
 
 
@@ -228,8 +191,10 @@ def transfer_request(
 
 
         add_transfer_history(
-            request_id,
+            str(request_id),
+            None,
             expert_id,
+            0,
         )
 
 
@@ -241,9 +206,7 @@ def transfer_request(
 
 
         return {
-
-            "success":True,
-
+            "success": True,
         }
 
 
@@ -255,14 +218,10 @@ def transfer_request(
             str(e),
         )
 
-
         return {
-
-            "success":False,
-
+            "success": False,
             "message":
                 "خطا در انتقال درخواست",
-
         }
 
 
@@ -271,23 +230,15 @@ def transfer_request(
 # Holidays
 # =================================================
 
-def add_system_holiday(
-    date:str,
-):
+def add_system_holiday(date:str):
 
     try:
 
-        add_holiday(
-            date,
-        )
-
+        add_holiday(date)
 
         return {
-
-            "success":True,
-
+            "success": True,
         }
-
 
     except Exception as e:
 
@@ -297,35 +248,23 @@ def add_system_holiday(
             str(e),
         )
 
-
         return {
-
-            "success":False,
-
+            "success": False,
             "message":
                 "خطا در ثبت تعطیلی",
-
         }
 
 
 
-def delete_system_holiday(
-    date:str,
-):
+def delete_system_holiday(date:str):
 
     try:
 
-        remove_holiday(
-            date,
-        )
-
+        remove_holiday(date)
 
         return {
-
-            "success":True,
-
+            "success": True,
         }
-
 
     except Exception as e:
 
@@ -335,20 +274,16 @@ def delete_system_holiday(
             str(e),
         )
 
-
         return {
-
-            "success":False,
-
+            "success": False,
             "message":
                 "خطا در حذف تعطیلی",
-
         }
 
 
 
 # =================================================
-# Working Hours Settings
+# Working Hours
 # =================================================
 
 def update_working_hours(
@@ -363,26 +298,14 @@ def update_working_hours(
             start,
         )
 
-
         set_setting(
             "WORK_END",
             end,
         )
 
-
-        log_info(
-            "admin_service",
-            "working_hours",
-            f"{start}-{end}",
-        )
-
-
         return {
-
-            "success":True,
-
+            "success": True,
         }
-
 
     except Exception as e:
 
@@ -392,21 +315,15 @@ def update_working_hours(
             str(e),
         )
 
-
         return {
-
-            "success":False,
-
+            "success": False,
             "message":
                 "خطا در تغییر ساعات کاری",
-
         }
 
 
 
-def update_working_days(
-    days:str,
-):
+def update_working_days(days:str):
 
     try:
 
@@ -415,13 +332,9 @@ def update_working_days(
             days,
         )
 
-
         return {
-
-            "success":True,
-
+            "success": True,
         }
-
 
     except Exception as e:
 
@@ -431,14 +344,10 @@ def update_working_days(
             str(e),
         )
 
-
         return {
-
-            "success":False,
-
+            "success": False,
             "message":
                 "خطا در تغییر روزهای کاری",
-
         }
 
 
@@ -448,22 +357,16 @@ def get_working_hours():
     return {
 
         "start":
-            get_setting(
-                "WORK_START"
-            )
+            get_setting("WORK_START")
             or "07:00",
 
         "end":
-            get_setting(
-                "WORK_END"
-            )
+            get_setting("WORK_END")
             or "13:00",
 
         "days":
-            get_setting(
-                "WORKING_DAYS"
-            )
-            or "5,6,0,1,2,3",
+            get_setting("WORKING_DAYS")
+            or "0,1,2,3,4",
 
     }
 
@@ -485,13 +388,9 @@ def update_settings(
             value,
         )
 
-
         return {
-
-            "success":True,
-
+            "success": True,
         }
-
 
     except Exception as e:
 
@@ -501,14 +400,10 @@ def update_settings(
             str(e),
         )
 
-
         return {
-
-            "success":False,
-
+            "success": False,
             "message":
                 "خطا در بروزرسانی تنظیمات",
-
         }
 
 
@@ -521,16 +416,13 @@ def get_statistics():
 
     result = dashboard()
 
-
     if not result["success"]:
-
         return result
-
 
 
     return {
 
-        "success":True,
+        "success": True,
 
         "statistics":
             result["statistics"],
@@ -539,21 +431,18 @@ def get_statistics():
 
 
 
-def get_recent_activity(
-    limit:int=10,
-):
+def get_recent_activity(limit:int=10):
 
     try:
 
         return {
 
-            "success":True,
+            "success": True,
 
             "recent_requests":
                 get_recent_requests(limit),
 
         }
-
 
     except Exception as e:
 
@@ -563,10 +452,9 @@ def get_recent_activity(
             str(e),
         )
 
-
         return {
 
-            "success":False,
+            "success": False,
 
             "message":
                 "خطا در دریافت درخواست‌ها",
@@ -581,79 +469,28 @@ def get_recent_activity(
 
 def get_daily_report():
 
-    try:
-
-        return {
-
-            "success":True,
-
-            "report":
-                get_daily_statistics(),
-
-        }
-
-
-    except Exception:
-
-        return {
-
-            "success":False,
-
-            "message":
-                "خطا در گزارش روزانه",
-
-        }
+    return {
+        "success": True,
+        "report":
+            get_daily_statistics(),
+    }
 
 
 
 def get_weekly_report():
 
-    try:
-
-        return {
-
-            "success":True,
-
-            "report":
-                get_weekly_statistics(),
-
-        }
-
-
-    except Exception:
-
-        return {
-
-            "success":False,
-
-            "message":
-                "خطا در گزارش هفتگی",
-
-        }
+    return {
+        "success": True,
+        "report":
+            get_weekly_statistics(),
+    }
 
 
 
 def get_monthly_report():
 
-    try:
-
-        return {
-
-            "success":True,
-
-            "report":
-                get_monthly_statistics(),
-
-        }
-
-
-    except Exception:
-
-        return {
-
-            "success":False,
-
-            "message":
-                "خطا در گزارش ماهانه",
-
-        }
+    return {
+        "success": True,
+        "report":
+            get_monthly_statistics(),
+    }
