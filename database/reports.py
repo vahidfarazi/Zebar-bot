@@ -11,10 +11,12 @@ from .crud import (
 
 
 # =================================================
-# Helper
+# Normalize
 # =================================================
 
-def normalize_statistics(row: dict | None) -> dict:
+def normalize_statistics(
+    row: dict | None,
+) -> dict:
 
     if not row:
 
@@ -32,6 +34,7 @@ def normalize_statistics(row: dict | None) -> dict:
 
         }
 
+
     return {
 
         "total": row.get("total") or 0,
@@ -47,14 +50,69 @@ def normalize_statistics(row: dict | None) -> dict:
     }
 
 
+
 # =================================================
-# Daily Statistics
+# Generic Period Statistics
+# =================================================
+
+def _get_period_statistics(
+    interval: str,
+) -> dict:
+
+    row = fetch_one(
+        f"""
+        SELECT
+
+            COUNT(*) AS total,
+
+            SUM(
+                CASE
+                    WHEN status='OPEN'
+                    THEN 1 ELSE 0
+                END
+            ) AS open,
+
+            SUM(
+                CASE
+                    WHEN status='CLOSED'
+                    THEN 1 ELSE 0
+                END
+            ) AS closed,
+
+            SUM(
+                CASE
+                    WHEN status='PENDING'
+                    THEN 1 ELSE 0
+                END
+            ) AS pending,
+
+            SUM(
+                CASE
+                    WHEN expert_id IS NOT NULL
+                    THEN 1 ELSE 0
+                END
+            ) AS transferred
+
+
+        FROM requests
+
+
+        WHERE created_at >= CURRENT_DATE - INTERVAL '{interval}'
+        """
+    )
+
+
+    return normalize_statistics(
+        row,
+    )
+
+
+
+# =================================================
+# Daily
 # =================================================
 
 def get_daily_statistics() -> dict:
-    """
-    Today's statistics.
-    """
 
     row = fetch_one(
         """
@@ -90,127 +148,50 @@ def get_daily_statistics() -> dict:
                 END
             ) AS transferred
 
+
         FROM requests
+
 
         WHERE DATE(created_at)=CURRENT_DATE
         """
     )
 
-    return normalize_statistics(row)
+
+    return normalize_statistics(
+        row,
+    )
+
 
 
 # =================================================
-# Weekly Statistics
+# Weekly
 # =================================================
 
 def get_weekly_statistics() -> dict:
-    """
-    Last 7 days statistics.
-    """
 
-    row = fetch_one(
-        """
-        SELECT
-
-            COUNT(*) AS total,
-
-            SUM(
-                CASE
-                    WHEN status='OPEN'
-                    THEN 1 ELSE 0
-                END
-            ) AS open,
-
-            SUM(
-                CASE
-                    WHEN status='CLOSED'
-                    THEN 1 ELSE 0
-                END
-            ) AS closed,
-
-            SUM(
-                CASE
-                    WHEN status='PENDING'
-                    THEN 1 ELSE 0
-                END
-            ) AS pending,
-
-            SUM(
-                CASE
-                    WHEN expert_id IS NOT NULL
-                    THEN 1 ELSE 0
-                END
-            ) AS transferred
-
-        FROM requests
-
-        WHERE created_at >= CURRENT_DATE - INTERVAL '6 days'
-        """
+    return _get_period_statistics(
+        "6 days",
     )
 
-    return normalize_statistics(row)
 
 
 # =================================================
-# Monthly Statistics
+# Monthly
 # =================================================
 
 def get_monthly_statistics() -> dict:
-    """
-    Last 30 days statistics.
-    """
 
-    row = fetch_one(
-        """
-        SELECT
-
-            COUNT(*) AS total,
-
-            SUM(
-                CASE
-                    WHEN status='OPEN'
-                    THEN 1 ELSE 0
-                END
-            ) AS open,
-
-            SUM(
-                CASE
-                    WHEN status='CLOSED'
-                    THEN 1 ELSE 0
-                END
-            ) AS closed,
-
-            SUM(
-                CASE
-                    WHEN status='PENDING'
-                    THEN 1 ELSE 0
-                END
-            ) AS pending,
-
-            SUM(
-                CASE
-                    WHEN expert_id IS NOT NULL
-                    THEN 1 ELSE 0
-                END
-            ) AS transferred
-
-        FROM requests
-
-        WHERE created_at >= CURRENT_DATE - INTERVAL '29 days'
-        """
+    return _get_period_statistics(
+        "29 days",
     )
 
-    return normalize_statistics(row)
 
 
 # =================================================
-# Chart Data - Daily
+# Chart
 # =================================================
 
 def get_daily_chart_data() -> list[dict]:
-    """
-    Data for dashboard charts.
-    """
 
     rows = fetch_all(
         """
@@ -220,21 +201,26 @@ def get_daily_chart_data() -> list[dict]:
 
             COUNT(*) AS total
 
+
         FROM requests
+
 
         WHERE created_at >= CURRENT_DATE - INTERVAL '6 days'
 
+
         GROUP BY DATE(created_at)
+
 
         ORDER BY DATE(created_at)
         """
     )
 
+
     return [
 
         {
 
-            "date": row["date"],
+            "date": str(row["date"]),
 
             "total": row["total"] or 0,
 
@@ -245,14 +231,12 @@ def get_daily_chart_data() -> list[dict]:
     ]
 
 
+
 # =================================================
-# Service Statistics
+# Services
 # =================================================
 
 def get_service_statistics() -> list[dict]:
-    """
-    Requests grouped by service.
-    """
 
     rows = fetch_all(
         """
@@ -262,13 +246,17 @@ def get_service_statistics() -> list[dict]:
 
             COUNT(*) AS total
 
+
         FROM requests
 
+
         GROUP BY service
+
 
         ORDER BY total DESC
         """
     )
+
 
     return [
 
@@ -285,14 +273,12 @@ def get_service_statistics() -> list[dict]:
     ]
 
 
+
 # =================================================
-# Expert Performance
+# Experts
 # =================================================
 
 def get_expert_statistics() -> list[dict]:
-    """
-    Expert workload report.
-    """
 
     rows = fetch_all(
         """
@@ -311,17 +297,26 @@ def get_expert_statistics() -> list[dict]:
                 END
             ) AS closed
 
+
         FROM experts e
+
 
         LEFT JOIN requests r
 
         ON r.expert_id=e.chat_id
 
-        GROUP BY e.chat_id,e.name
+
+        GROUP BY
+
+            e.chat_id,
+
+            e.name
+
 
         ORDER BY total DESC
         """
     )
+
 
     return [
 
@@ -342,14 +337,12 @@ def get_expert_statistics() -> list[dict]:
     ]
 
 
+
 # =================================================
-# Full Dashboard Report
+# Full Dashboard
 # =================================================
 
 def get_dashboard_report() -> dict:
-    """
-    Complete dashboard data.
-    """
 
     return {
 
@@ -371,4 +364,4 @@ def get_dashboard_report() -> dict:
         "experts":
             get_expert_statistics(),
 
-    }
+}
