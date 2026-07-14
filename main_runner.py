@@ -35,19 +35,69 @@ from expert_service import (
     reply,
 )
 
+from working_hours import (
+    can_create_request,
+    availability_message,
+)
 
-# -------------------------------------------------
+from handlers.expert_handlers import (
+    handle_expert_message,
+)
+
+
+# =================================================
+# Send Result
+# =================================================
+
+def send_result(
+    chat_id:int,
+    result,
+):
+
+    if result is None:
+
+        return
+
+
+    if isinstance(result,dict):
+
+        send_message(
+
+            chat_id=chat_id,
+
+            text=result.get(
+                "text",
+                "",
+            ),
+
+            keyboard=result.get(
+                "keyboard",
+            ),
+
+        )
+
+    else:
+
+        send_message(
+
+            chat_id=chat_id,
+
+            text=str(result),
+
+        )
+
+
+
+# =================================================
 # Process Update
-# -------------------------------------------------
+# =================================================
+
 def process_update(
-    sender_id: int,
-    message: str,
-    role: str = "USER",
-    message_id: int | None = None,
-) -> None:
-    """
-    Process incoming message.
-    """
+    sender_id:int,
+    message:str,
+    role:str="USER",
+    message_id:int|None=None,
+):
 
     try:
 
@@ -55,19 +105,19 @@ def process_update(
             sender_id,
         )
 
+
         # -----------------------------------------
-        # Expert Reply
+        # Expert Reply Flow
         # -----------------------------------------
 
         if role == "EXPERT":
 
-            if is_waiting_reply(
-                sender_id,
-            ):
+            if is_waiting_reply(sender_id):
 
                 tracking = get_tracking_code(
                     sender_id,
                 )
+
 
                 result = reply(
 
@@ -81,9 +131,11 @@ def process_update(
 
                 )
 
+
                 reset(
                     sender_id,
                 )
+
 
                 if not result["success"]:
 
@@ -96,6 +148,51 @@ def process_update(
                     )
 
                 return
+
+
+
+            result = handle_expert_message(
+
+                sender_id,
+
+                message,
+
+            )
+
+
+            send_result(
+
+                sender_id,
+
+                result,
+
+            )
+
+            return
+
+
+
+        # -----------------------------------------
+        # User Create Request Availability
+        # -----------------------------------------
+
+        if role == "USER":
+
+            if message == "📝 ثبت درخواست":
+
+                if not can_create_request():
+
+                    send_message(
+
+                        chat_id=sender_id,
+
+                        text=availability_message(),
+
+                    )
+
+                    return
+
+
 
         # -----------------------------------------
         # Router
@@ -111,36 +208,15 @@ def process_update(
 
         )
 
-        if result is None:
 
-            return
+        send_result(
 
-        if isinstance(result, dict):
+            sender_id,
 
-            send_message(
+            result,
 
-                chat_id=sender_id,
+        )
 
-                text=result.get(
-                    "text",
-                    "",
-                ),
-
-                keyboard=result.get(
-                    "keyboard",
-                ),
-
-            )
-
-        else:
-
-            send_message(
-
-                chat_id=sender_id,
-
-                text=str(result),
-
-            )
 
         log_info(
 
@@ -152,9 +228,12 @@ def process_update(
 
         )
 
+
     except Exception:
 
+
         traceback.print_exc()
+
 
         log_error(
 
@@ -166,38 +245,32 @@ def process_update(
 
         )
 
+
         send_message(
 
             chat_id=sender_id,
 
-            text="خطایی رخ داد.",
+            text="❌ خطایی رخ داد.",
 
         )
 
 
-# -------------------------------------------------
-# Handle Incoming Update
-# -------------------------------------------------
+
+# =================================================
+# Update Entry
+# =================================================
+
 def handle_update(
-    update: dict,
-) -> None:
-    """
-    Entry point.
-    """
+    update:dict,
+):
 
     try:
 
-        print("========== UPDATE ==========")
-        print(update)
-        print("============================")
-
-        # -----------------------------------------
-        # Callback
-        # -----------------------------------------
 
         callback = update.get(
             "callback_query",
         )
+
 
         if callback:
 
@@ -207,94 +280,98 @@ def handle_update(
 
             return
 
-        # -----------------------------------------
-        # Message
-        # -----------------------------------------
+
 
         message = update.get(
             "message",
             {},
         )
 
+
         if not message:
 
             return
+
+
 
         sender = message.get(
             "from",
             {},
         )
 
+
         sender_id = sender.get(
             "id",
         )
 
+
         if not sender_id:
 
             return
+
+
 
         text = message.get(
             "text",
             "",
         )
 
+
         message_id = message.get(
             "message_id",
         )
 
-        # -----------------------------------------
-        # Detect Role
-        # -----------------------------------------
 
-        role = "USER"
 
         chat = message.get(
             "chat",
             {},
         )
 
-        group_id = chat.get(
+
+        chat_id = chat.get(
             "id",
         )
+
 
         chat_type = chat.get(
             "type",
             "private",
         )
 
+
+
+        role = "USER"
+
+
+
         expert_group_id = int(
+
             Config.get_str(
+
                 "EXPERT_GROUP_ID",
+
                 "0",
+
             )
+
         )
 
-        print("SENDER:", sender_id)
-        print("GROUP:", group_id)
-        print("CHAT TYPE:", chat_type)
-        print("IS_ADMIN:", is_admin(sender_id))
 
-        # -------------------------------------------------
-        # داخل گروه کارشناسان همیشه کارشناس است
-        # -------------------------------------------------
 
-        if group_id == expert_group_id:
+        if chat_id == expert_group_id:
 
             role = "EXPERT"
 
-        # -------------------------------------------------
-        # فقط در چت خصوصی مدیر است
-        # -------------------------------------------------
 
-        elif chat_type == "private" and is_admin(sender_id):
+        elif (
+            chat_type == "private"
+            and is_admin(sender_id)
+        ):
 
             role = "ADMIN"
 
-        else:
 
-            role = "USER"
-
-        print("ROLE:", role)
 
         process_update(
 
@@ -308,9 +385,13 @@ def handle_update(
 
         )
 
+
+
     except Exception:
 
+
         traceback.print_exc()
+
 
         log_error(
 
