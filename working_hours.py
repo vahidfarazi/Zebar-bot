@@ -1,94 +1,241 @@
 """
 working_hours.py
 
-Central time & SLA management for Azarakhsh system.
+Central working hours and request availability manager.
 """
 
 from datetime import datetime, time
 
-from config import Config
-from database import is_holiday as db_is_holiday
+from database import (
+    is_holiday as db_is_holiday,
+    get_setting,
+)
 
 
-# -----------------------------
+# ----------------------------------
 # Current Time
-# -----------------------------
+# ----------------------------------
 def get_current_time() -> datetime:
-    """
-    Return current system datetime.
-    """
     return datetime.now()
 
 
-# -----------------------------
+# ----------------------------------
 # Current Date
-# -----------------------------
+# ----------------------------------
 def get_current_date() -> str:
-    """
-    Return current date (YYYY-MM-DD).
-    """
     return get_current_time().date().isoformat()
 
 
-# -----------------------------
-# Working Time
-# -----------------------------
-def is_working_time() -> bool:
+# ----------------------------------
+# Parse Time
+# ----------------------------------
+def parse_time(value: str) -> time:
+
+    hour, minute = map(
+        int,
+        value.split(":"),
+    )
+
+    return time(
+        hour,
+        minute,
+    )
+
+
+# ----------------------------------
+# Working Hours
+# ----------------------------------
+def get_work_start() -> str:
+
+    return (
+        get_setting(
+            "WORK_START"
+        )
+        or "07:00"
+    )
+
+
+def get_work_end() -> str:
+
+    return (
+        get_setting(
+            "WORK_END"
+        )
+        or "13:00"
+    )
+
+
+# ----------------------------------
+# Working Days
+# ----------------------------------
+def get_working_days() -> list[int]:
+
     """
-    Check whether current time is inside working hours.
+    Python weekday:
+    Monday = 0
+    Sunday = 6
     """
 
-    now = get_current_time().time()
+    value = (
+        get_setting(
+            "WORKING_DAYS"
+        )
+        or "0,1,2,3,4"
+    )
 
-    start = Config.get_str("WORK_START", "07:00")
-    end = Config.get_str("WORK_END", "13:00")
-
-    start_hour, start_minute = map(int, start.split(":"))
-    end_hour, end_minute = map(int, end.split(":"))
-
-    start_time = time(start_hour, start_minute)
-    end_time = time(end_hour, end_minute)
-
-    return start_time <= now <= end_time
+    return [
+        int(x)
+        for x in value.split(",")
+    ]
 
 
-# -----------------------------
-# Holiday
-# -----------------------------
-def is_holiday(date_str: str | None = None) -> bool:
-    """
-    Check whether the given date is a holiday.
-    """
+# ----------------------------------
+# Check Working Day
+# ----------------------------------
+def is_working_day(
+    date=None,
+) -> bool:
+
+    if date is None:
+        date = get_current_time()
+
+    return (
+        date.weekday()
+        in get_working_days()
+    )
+
+
+# ----------------------------------
+# Check Holiday
+# ----------------------------------
+def is_holiday(
+    date_str: str | None = None,
+) -> bool:
 
     if date_str is None:
         date_str = get_current_date()
 
-    return db_is_holiday(date_str)
+    return db_is_holiday(
+        date_str
+    )
 
 
-# -----------------------------
-# Request Availability
-# -----------------------------
+# ----------------------------------
+# Check Working Time
+# ----------------------------------
+def is_working_time() -> bool:
+
+    now = (
+        get_current_time()
+        .time()
+    )
+
+    start = parse_time(
+        get_work_start()
+    )
+
+    end = parse_time(
+        get_work_end()
+    )
+
+    return (
+        start <= now <= end
+    )
+
+
+# ----------------------------------
+# Full Working Status
+# ----------------------------------
+def get_work_status() -> str:
+
+    if is_holiday():
+
+        return "HOLIDAY"
+
+
+    if not is_working_day():
+
+        return "WEEKEND"
+
+
+    if not is_working_time():
+
+        return "OUTSIDE"
+
+
+    return "WORKING"
+
+
+# ----------------------------------
+# Can Create Request
+# ----------------------------------
 def can_create_request() -> bool:
-    """
-    Temporary: Always allow creating requests.
-    This is only for debugging.
-    """
+
+    return (
+        get_work_status()
+        == "WORKING"
+    )
+
+
+# ----------------------------------
+# Can Track Request
+# ----------------------------------
+def can_track_request() -> bool:
 
     return True
 
 
-# -----------------------------
-# SLA
-# -----------------------------
+# ----------------------------------
+# User Message
+# ----------------------------------
+def availability_message() -> str:
+
+    status = get_work_status()
+
+
+    if status == "HOLIDAY":
+
+        return (
+            "📅 امروز تعطیل رسمی است.\n\n"
+            "در حال حاضر فقط امکان پیگیری درخواست‌ها وجود دارد."
+        )
+
+
+    if status == "WEEKEND":
+
+        return (
+            "📅 امروز خارج از روزهای کاری است.\n\n"
+            "در حال حاضر فقط امکان پیگیری درخواست‌ها وجود دارد."
+        )
+
+
+    if status == "OUTSIDE":
+
+        return (
+            "⏰ در حال حاضر خارج از ساعت کاری هستیم.\n\n"
+            "ساعات پاسخگویی:\n"
+            f"🕖 {get_work_start()} تا {get_work_end()}\n\n"
+            "در این زمان فقط امکان پیگیری درخواست وجود دارد."
+        )
+
+
+    return (
+        "🟢 سامانه آماده ثبت درخواست است."
+    )
+
+
+# ----------------------------------
+# SLA Calculator
+# ----------------------------------
 def calculate_sla(
     start_time: datetime,
     end_time: datetime,
 ) -> int:
-    """
-    Calculate SLA duration in minutes.
-    """
 
     return int(
-        (end_time - start_time).total_seconds() // 60
+        (
+            end_time - start_time
+        )
+        .total_seconds()
+        // 60
     )
