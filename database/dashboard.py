@@ -11,10 +11,10 @@ from .crud import (
 
 
 # =================================================
-# General Statistics
+# Dashboard Statistics
 # =================================================
 
-def get_dashboard_summary() -> dict:
+def get_dashboard_statistics() -> dict:
     """
     Main dashboard counters.
     """
@@ -44,31 +44,83 @@ def get_dashboard_summary() -> dict:
                     WHEN status='CLOSED'
                     THEN 1
                 END
-            ) AS closed
+            ) AS closed,
+
+            COUNT(
+                CASE
+                    WHEN expert_id IS NOT NULL
+                    THEN 1
+                END
+            ) AS transferred
 
         FROM requests
         """
     )
 
+
     if not row:
 
         return {
+
             "total": 0,
+
             "open": 0,
+
             "pending": 0,
+
             "closed": 0,
+
+            "transferred": 0,
+
         }
 
 
     return {
 
-        "total": row["total"] or 0,
+        "total":
+            row["total"] or 0,
 
-        "open": row["open"] or 0,
+        "open":
+            row["open"] or 0,
 
-        "pending": row["pending"] or 0,
+        "pending":
+            row["pending"] or 0,
 
-        "closed": row["closed"] or 0,
+        "closed":
+            row["closed"] or 0,
+
+        "transferred":
+            row["transferred"] or 0,
+
+    }
+
+
+
+# =================================================
+# Full Dashboard Data
+# =================================================
+
+def get_dashboard() -> dict:
+    """
+    Complete dashboard data.
+    """
+
+    return {
+
+        "statistics":
+            get_dashboard_statistics(),
+
+        "services":
+            get_service_statistics(),
+
+        "experts":
+            get_expert_statistics(),
+
+        "recent":
+            get_recent_activity(),
+
+        "sla":
+            get_sla_dashboard(),
 
     }
 
@@ -79,9 +131,6 @@ def get_dashboard_summary() -> dict:
 # =================================================
 
 def get_service_statistics() -> list[dict]:
-    """
-    Requests grouped by service.
-    """
 
     rows = fetch_all(
         """
@@ -111,15 +160,12 @@ def get_service_statistics() -> list[dict]:
 
 
 # =================================================
-# Daily Statistics
+# Daily Chart Data
 # =================================================
 
-def get_daily_statistics(
+def get_daily_chart_data(
     limit: int = 30,
 ) -> list[dict]:
-    """
-    Daily request count.
-    """
 
     rows = fetch_all(
         """
@@ -154,13 +200,10 @@ def get_daily_statistics(
 
 
 # =================================================
-# Expert Performance
+# Expert Statistics
 # =================================================
 
 def get_expert_statistics() -> list[dict]:
-    """
-    Expert response statistics.
-    """
 
     rows = fetch_all(
         """
@@ -168,7 +211,14 @@ def get_expert_statistics() -> list[dict]:
 
             expert_id,
 
-            COUNT(*) AS total
+            COUNT(*) AS total,
+
+            COUNT(
+                CASE
+                    WHEN status='CLOSED'
+                    THEN 1
+                END
+            ) AS closed
 
         FROM requests
 
@@ -198,9 +248,6 @@ def get_expert_statistics() -> list[dict]:
 def get_recent_activity(
     limit: int = 20,
 ) -> list[dict]:
-    """
-    Recent requests for admin panel.
-    """
 
     rows = fetch_all(
         """
@@ -245,9 +292,6 @@ def get_recent_activity(
 # =================================================
 
 def get_sla_dashboard() -> dict:
-    """
-    SLA metrics.
-    """
 
     row = fetch_one(
         """
@@ -308,4 +352,4 @@ def get_sla_dashboard() -> dict:
                 2,
             ),
 
-  }
+    }
