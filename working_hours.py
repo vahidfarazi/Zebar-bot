@@ -30,15 +30,9 @@ def get_current_date() -> str:
 
 def parse_time(value: str) -> time:
 
-    hour, minute = map(
-        int,
-        value.split(":"),
-    )
+    hour, minute = map(int, value.split(":"))
 
-    return time(
-        hour,
-        minute,
-    )
+    return time(hour, minute)
 
 
 # ----------------------------------
@@ -47,82 +41,56 @@ def parse_time(value: str) -> time:
 
 def get_work_start() -> str:
 
-    return (
-        get_setting("WORK_START")
-        or "07:00"
-    )
+    return get_setting("WORK_START") or "07:00"
 
 
 def get_work_end() -> str:
 
-    return (
-        get_setting("WORK_END")
-        or "13:00"
-    )
+    return get_setting("WORK_END") or "13:00"
 
 
 def get_working_days() -> list[int]:
-
-    """
-    Iran working days:
-
-    Saturday = 5
-    Sunday = 6
-    Monday = 0
-    Tuesday = 1
-    Wednesday = 2
-    Thursday = 3
-
-    Friday = 4 holiday
-    """
 
     value = (
         get_setting("WORKING_DAYS")
         or "5,6,0,1,2,3"
     )
 
-    return [
-        int(x)
-        for x in value.split(",")
-    ]
+    return [int(x) for x in value.split(",")]
+
+
+def system_enabled() -> bool:
+
+    value = (
+        get_setting("SYSTEM_ENABLED")
+        or "1"
+    )
+
+    return value == "1"
 
 
 # ----------------------------------
 # Working Day
 # ----------------------------------
 
-def is_working_day(
-    date=None,
-) -> bool:
+def is_working_day(date=None) -> bool:
 
     if date is None:
-
         date = get_current_time()
 
-
-    return (
-        date.weekday()
-        in get_working_days()
-    )
+    return date.weekday() in get_working_days()
 
 
 # ----------------------------------
 # Holiday
 # ----------------------------------
 
-def is_holiday(
-    date_str: str | None = None,
-) -> bool:
-
+def is_holiday(date_str: str | None = None) -> bool:
 
     if date_str is None:
-
         date_str = get_current_date()
 
-
-    return db_is_holiday(
-        date_str
-    )
+    return db_is_holiday(date_str)
 
 
 # ----------------------------------
@@ -131,52 +99,34 @@ def is_holiday(
 
 def is_working_time() -> bool:
 
-
-    now = (
-        get_current_time()
-        .time()
-    )
-
-
-    start = parse_time(
-        get_work_start()
-    )
-
-
-    end = parse_time(
-        get_work_end()
-    )
-
+    now = get_current_time().time()
 
     return (
-        start <= now <= end
+        parse_time(get_work_start())
+        <= now
+        <= parse_time(get_work_end())
     )
 
 
 # ----------------------------------
-# System Status
+# Status
 # ----------------------------------
 
 def get_work_status() -> str:
 
+    if not system_enabled():
+        return "DISABLED"
 
     if is_holiday():
-
         return "HOLIDAY"
 
-
     if not is_working_day():
-
         return "WEEKEND"
 
-
     if not is_working_time():
-
         return "OUTSIDE"
 
-
     return "WORKING"
-
 
 
 # ----------------------------------
@@ -185,10 +135,7 @@ def get_work_status() -> str:
 
 def can_create_request() -> bool:
 
-    return (
-        get_work_status()
-        == "WORKING"
-    )
+    return get_work_status() == "WORKING"
 
 
 def can_track_request() -> bool:
@@ -196,55 +143,58 @@ def can_track_request() -> bool:
     return True
 
 
-
 # ----------------------------------
-# Dashboard Status
+# Dashboard
 # ----------------------------------
 
 def get_system_work_status() -> dict:
 
-
     status = get_work_status()
 
+    titles = {
 
-    mapping = {
+        "WORKING": "🟢 فعال",
 
-        "WORKING":
-            "🟢 فعال",
+        "OUTSIDE": "🟡 خارج ساعت کاری",
 
-        "OUTSIDE":
-            "🟡 خارج ساعت کاری",
+        "HOLIDAY": "🔴 تعطیل رسمی",
 
-        "HOLIDAY":
-            "🔴 تعطیل رسمی",
+        "WEEKEND": "🔴 روز غیرکاری",
 
-        "WEEKEND":
-            "🔴 روز غیرکاری",
+        "DISABLED": "⛔ سامانه غیرفعال",
 
     }
-
 
     return {
 
         "status": status,
 
-        "title":
-            mapping.get(
-                status,
-                status,
-            ),
+        "title": titles.get(status, status),
 
-        "start":
-            get_work_start(),
+        "start": get_work_start(),
 
-        "end":
-            get_work_end(),
+        "end": get_work_end(),
 
-        "can_create":
-            can_create_request(),
+        "days": get_working_days(),
+
+        "enabled": system_enabled(),
+
+        "can_create": can_create_request(),
 
     }
 
+
+# ----------------------------------
+# Working Hours String
+# ----------------------------------
+
+def get_working_hours_text() -> str:
+
+    return (
+        f"{get_work_start()} "
+        f"تا "
+        f"{get_work_end()}"
+    )
 
 
 # ----------------------------------
@@ -253,41 +203,37 @@ def get_system_work_status() -> dict:
 
 def availability_message() -> str:
 
-
     status = get_work_status()
 
+    if status == "DISABLED":
 
+        return (
+            "⛔ سامانه موقتاً غیرفعال است."
+        )
 
     if status == "HOLIDAY":
 
         return (
             "📅 امروز تعطیل رسمی است.\n\n"
-            "در حال حاضر فقط امکان پیگیری درخواست وجود دارد."
+            "فقط امکان پیگیری درخواست وجود دارد."
         )
-
 
     if status == "WEEKEND":
 
         return (
             "📅 امروز روز کاری نیست.\n\n"
-            "در حال حاضر فقط امکان پیگیری درخواست وجود دارد."
+            "فقط امکان پیگیری درخواست وجود دارد."
         )
-
 
     if status == "OUTSIDE":
 
         return (
             "⏰ خارج از ساعت کاری هستیم.\n\n"
-            f"🕖 ساعات کاری: "
-            f"{get_work_start()} تا {get_work_end()}\n\n"
-            "فقط امکان پیگیری درخواست وجود دارد."
+            f"🕖 ساعات کاری:\n"
+            f"{get_working_hours_text()}"
         )
 
-
-    return (
-        "🟢 سامانه آماده ثبت درخواست است."
-    )
-
+    return "🟢 سامانه آماده ثبت درخواست است."
 
 
 # ----------------------------------
@@ -299,11 +245,6 @@ def calculate_sla(
     end_time: datetime,
 ) -> int:
 
-
     return int(
-        (
-            end_time - start_time
-        )
-        .total_seconds()
-        // 60
+        (end_time - start_time).total_seconds() // 60
     )
