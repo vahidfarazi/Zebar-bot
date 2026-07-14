@@ -77,6 +77,7 @@ def handle_form(
     if state not in (
         "WAITING_TRACKING_CODE",
         "WAITING_CONFIRM",
+        "WAITING_DESCRIPTION",
     ):
 
         if not can_create_request():
@@ -211,7 +212,7 @@ def handle_form(
 
 
     # -----------------------------------------
-    # Data
+    # Load Data
     # -----------------------------------------
 
     data = get_data(
@@ -238,7 +239,7 @@ def handle_form(
 
 
     # -----------------------------------------
-    # Form
+    # Load Form
     # -----------------------------------------
 
     form = get_form(
@@ -268,6 +269,7 @@ def handle_form(
     step = engine.current_step(
         state,
     )
+
 
 
     # -----------------------------------------
@@ -387,7 +389,6 @@ def handle_form(
 
     if next_step:
 
-
         set_state(
 
             chat_id,
@@ -410,7 +411,7 @@ def handle_form(
 
 
     # -----------------------------------------
-    # Complete
+    # Complete Form
     # -----------------------------------------
 
     set_state(
@@ -442,4 +443,4 @@ def handle_form(
 
             ],
 
-        }
+            }
