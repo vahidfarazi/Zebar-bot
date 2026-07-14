@@ -97,7 +97,7 @@ def get_dashboard_statistics() -> dict:
 
 
 # =================================================
-# Full Dashboard Data
+# Complete Dashboard
 # =================================================
 
 def get_dashboard() -> dict:
@@ -122,6 +122,9 @@ def get_dashboard() -> dict:
         "sla":
             get_sla_dashboard(),
 
+        "chart":
+            get_daily_chart_data(),
+
     }
 
 
@@ -131,6 +134,9 @@ def get_dashboard() -> dict:
 # =================================================
 
 def get_service_statistics() -> list[dict]:
+    """
+    Requests grouped by service.
+    """
 
     rows = fetch_all(
         """
@@ -166,6 +172,9 @@ def get_service_statistics() -> list[dict]:
 def get_daily_chart_data(
     limit: int = 30,
 ) -> list[dict]:
+    """
+    Daily request chart data.
+    """
 
     rows = fetch_all(
         """
@@ -204,6 +213,9 @@ def get_daily_chart_data(
 # =================================================
 
 def get_expert_statistics() -> list[dict]:
+    """
+    Expert workload statistics.
+    """
 
     rows = fetch_all(
         """
@@ -248,6 +260,9 @@ def get_expert_statistics() -> list[dict]:
 def get_recent_activity(
     limit: int = 20,
 ) -> list[dict]:
+    """
+    Recent requests.
+    """
 
     rows = fetch_all(
         """
@@ -263,7 +278,9 @@ def get_recent_activity(
 
             status,
 
-            created_at
+            created_at,
+
+            updated_at
 
         FROM requests
 
@@ -292,6 +309,9 @@ def get_recent_activity(
 # =================================================
 
 def get_sla_dashboard() -> dict:
+    """
+    SLA response and close metrics.
+    """
 
     row = fetch_one(
         """
@@ -344,7 +364,6 @@ def get_sla_dashboard() -> dict:
                 row["response_time"] or 0,
                 2,
             ),
-
 
         "close_time":
             round(
