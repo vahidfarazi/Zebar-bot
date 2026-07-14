@@ -6,11 +6,15 @@ Expert repository.
 
 from typing import Optional
 
-from .crud import execute, fetch_one, fetch_all
+from .crud import (
+    execute,
+    fetch_one,
+    fetch_all,
+)
 
 
 # -------------------------------------------------
-# Create Expert
+# Create / Update Expert
 # -------------------------------------------------
 def create_expert(
     chat_id: int,
@@ -29,6 +33,7 @@ def create_expert(
             department,
             is_active
         )
+
         VALUES
         (
             %s,
@@ -37,14 +42,16 @@ def create_expert(
             %s,
             TRUE
         )
+
         ON CONFLICT(chat_id)
+
         DO UPDATE SET
 
-            name=EXCLUDED.name,
+            name = EXCLUDED.name,
 
-            username=EXCLUDED.username,
+            username = EXCLUDED.username,
 
-            department=EXCLUDED.department
+            department = EXCLUDED.department
         """,
         (
             chat_id,
@@ -65,10 +72,14 @@ def get_expert(
     row = fetch_one(
         """
         SELECT *
+
         FROM experts
-        WHERE chat_id=%s
+
+        WHERE chat_id = %s
         """,
-        (chat_id,),
+        (
+            chat_id,
+        ),
     )
 
     return dict(row) if row else None
@@ -93,7 +104,10 @@ def list_experts() -> list[dict]:
         """
     )
 
-    return [dict(r) for r in rows]
+    return [
+        dict(row)
+        for row in rows
+    ]
 
 
 # -------------------------------------------------
@@ -107,13 +121,16 @@ def list_active_experts() -> list[dict]:
 
         FROM experts
 
-        WHERE is_active=TRUE
+        WHERE is_active = TRUE
 
         ORDER BY name
         """
     )
 
-    return [dict(r) for r in rows]
+    return [
+        dict(row)
+        for row in rows
+    ]
 
 
 # -------------------------------------------------
@@ -128,9 +145,9 @@ def update_department(
         """
         UPDATE experts
 
-        SET department=%s
+        SET department = %s
 
-        WHERE chat_id=%s
+        WHERE chat_id = %s
         """,
         (
             department,
@@ -151,9 +168,9 @@ def set_active(
         """
         UPDATE experts
 
-        SET is_active=%s
+        SET is_active = %s
 
-        WHERE chat_id=%s
+        WHERE chat_id = %s
         """,
         (
             active,
@@ -193,9 +210,11 @@ def delete_expert(
         """
         DELETE FROM experts
 
-        WHERE chat_id=%s
+        WHERE chat_id = %s
         """,
-        (chat_id,),
+        (
+            chat_id,
+        ),
     )
 
 
@@ -208,17 +227,15 @@ def count_experts() -> dict:
         """
         SELECT
 
-            COUNT(*) total,
+        COUNT(*) AS total,
 
-            COUNT(*)
-            FILTER(
-                WHERE is_active
-            ) active,
+        COUNT(*) FILTER(
+            WHERE is_active = TRUE
+        ) AS active,
 
-            COUNT(*)
-            FILTER(
-                WHERE NOT is_active
-            ) inactive
+        COUNT(*) FILTER(
+            WHERE is_active = FALSE
+        ) AS inactive
 
         FROM experts
         """
