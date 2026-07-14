@@ -20,9 +20,9 @@ def init_database() -> None:
 
         with connection.cursor() as cursor:
 
-            # -----------------------------
+            # -------------------------------------------------
             # Users
-            # -----------------------------
+            # -------------------------------------------------
             cursor.execute("""
             CREATE TABLE IF NOT EXISTS users (
                 chat_id BIGINT PRIMARY KEY,
@@ -33,9 +33,9 @@ def init_database() -> None:
             )
             """)
 
-            # -----------------------------
+            # -------------------------------------------------
             # Requests
-            # -----------------------------
+            # -------------------------------------------------
             cursor.execute("""
             CREATE TABLE IF NOT EXISTS requests (
 
@@ -67,9 +67,9 @@ def init_database() -> None:
             )
             """)
 
-            # -----------------------------
+            # -------------------------------------------------
             # Request Messages
-            # -----------------------------
+            # -------------------------------------------------
             cursor.execute("""
             CREATE TABLE IF NOT EXISTS request_messages (
 
@@ -89,9 +89,9 @@ def init_database() -> None:
             )
             """)
 
-            # -----------------------------
+            # -------------------------------------------------
             # Request History
-            # -----------------------------
+            # -------------------------------------------------
             cursor.execute("""
             CREATE TABLE IF NOT EXISTS request_history (
 
@@ -111,9 +111,9 @@ def init_database() -> None:
             )
             """)
 
-            # -----------------------------
+            # -------------------------------------------------
             # Tracking Sequences
-            # -----------------------------
+            # -------------------------------------------------
             cursor.execute("""
             CREATE TABLE IF NOT EXISTS tracking_sequences (
 
@@ -130,9 +130,9 @@ def init_database() -> None:
             )
             """)
 
-            # -----------------------------
+            # -------------------------------------------------
             # Experts
-            # -----------------------------
+            # -------------------------------------------------
             cursor.execute("""
             CREATE TABLE IF NOT EXISTS experts (
 
@@ -144,13 +144,95 @@ def init_database() -> None:
 
                 department TEXT,
 
-                is_active BOOLEAN DEFAULT TRUE
+                phone TEXT,
+
+                is_active BOOLEAN DEFAULT TRUE,
+
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
             """)
 
-            # -----------------------------
+            # -------------------------------------------------
+            # Expert Transfers
+            # -------------------------------------------------
+            cursor.execute("""
+            CREATE TABLE IF NOT EXISTS request_transfers (
+
+                id BIGSERIAL PRIMARY KEY,
+
+                tracking_code TEXT NOT NULL,
+
+                from_expert BIGINT,
+
+                to_expert BIGINT,
+
+                transferred_by BIGINT,
+
+                reason TEXT,
+
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """)
+
+            # -------------------------------------------------
+            # Expert Activity
+            # -------------------------------------------------
+            cursor.execute("""
+            CREATE TABLE IF NOT EXISTS expert_activity (
+
+                id BIGSERIAL PRIMARY KEY,
+
+                expert_id BIGINT NOT NULL,
+
+                tracking_code TEXT,
+
+                action TEXT NOT NULL,
+
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """)
+
+            # -------------------------------------------------
+            # Internal Notes
+            # -------------------------------------------------
+            cursor.execute("""
+            CREATE TABLE IF NOT EXISTS request_notes (
+
+                id BIGSERIAL PRIMARY KEY,
+
+                tracking_code TEXT NOT NULL,
+
+                expert_id BIGINT NOT NULL,
+
+                note TEXT NOT NULL,
+
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """)
+
+            # -------------------------------------------------
+            # Dashboard Statistics
+            # -------------------------------------------------
+            cursor.execute("""
+            CREATE TABLE IF NOT EXISTS dashboard_statistics (
+
+                stat_date DATE PRIMARY KEY,
+
+                total_requests INTEGER DEFAULT 0,
+
+                open_requests INTEGER DEFAULT 0,
+
+                answered_requests INTEGER DEFAULT 0,
+
+                closed_requests INTEGER DEFAULT 0,
+
+                transferred_requests INTEGER DEFAULT 0
+            )
+            """)
+
+            # -------------------------------------------------
             # Admins
-            # -----------------------------
+            # -------------------------------------------------
             cursor.execute("""
             CREATE TABLE IF NOT EXISTS admins (
 
@@ -158,9 +240,9 @@ def init_database() -> None:
             )
             """)
 
-            # -----------------------------
+            # -------------------------------------------------
             # Settings
-            # -----------------------------
+            # -------------------------------------------------
             cursor.execute("""
             CREATE TABLE IF NOT EXISTS settings (
 
@@ -170,9 +252,36 @@ def init_database() -> None:
             )
             """)
 
-            # -----------------------------
+            # -------------------------------------------------
+            # Work Calendar
+            # -------------------------------------------------
+            cursor.execute("""
+            CREATE TABLE IF NOT EXISTS work_calendar (
+
+                id INTEGER PRIMARY KEY DEFAULT 1,
+
+                work_start TIME NOT NULL DEFAULT '07:00',
+
+                work_end TIME NOT NULL DEFAULT '13:00',
+
+                work_days TEXT NOT NULL DEFAULT '0,1,2,3,4',
+
+                request_enabled BOOLEAN DEFAULT TRUE,
+
+                tracking_enabled BOOLEAN DEFAULT TRUE
+            )
+            """)
+
+            cursor.execute("""
+            INSERT INTO work_calendar(id)
+            VALUES (1)
+            ON CONFLICT(id)
+            DO NOTHING
+            """)
+
+            # -------------------------------------------------
             # Holidays
-            # -----------------------------
+            # -------------------------------------------------
             cursor.execute("""
             CREATE TABLE IF NOT EXISTS holidays (
 
@@ -182,9 +291,9 @@ def init_database() -> None:
             )
             """)
 
-            # -----------------------------
+            # -------------------------------------------------
             # System Logs
-            # -----------------------------
+            # -------------------------------------------------
             cursor.execute("""
             CREATE TABLE IF NOT EXISTS system_logs (
 
@@ -202,14 +311,15 @@ def init_database() -> None:
             )
             """)
 
-            # -----------------------------
+            # -------------------------------------------------
             # Default Admin
-            # -----------------------------
+            # -------------------------------------------------
             cursor.execute(
                 """
                 INSERT INTO admins(chat_id)
                 VALUES (%s)
-                ON CONFLICT (chat_id) DO NOTHING
+                ON CONFLICT(chat_id)
+                DO NOTHING
                 """,
                 (93686674,),
             )
