@@ -25,29 +25,18 @@ def get_setting(
     """
 
     row = fetch_one(
-
         """
         SELECT value
-
         FROM settings
-
         WHERE key = %s
         """,
-
-        (
-            key,
-        ),
-
+        (key,),
     )
 
-    if not row:
-
+    if row is None:
         return default
 
-    return row.get(
-        "value",
-        default,
-    )
+    return row.get("value", default)
 
 
 # -------------------------------------------------
@@ -62,32 +51,25 @@ def set_setting(
     """
 
     execute(
-
         """
         INSERT INTO settings
         (
             key,
             value
         )
-
         VALUES
         (
             %s,
             %s
         )
-
         ON CONFLICT (key)
-
         DO UPDATE SET
-
             value = EXCLUDED.value
         """,
-
         (
             key,
             value,
         ),
-
     )
 
 
@@ -99,17 +81,11 @@ def delete_setting(
 ) -> None:
 
     execute(
-
         """
         DELETE FROM settings
-
         WHERE key = %s
         """,
-
-        (
-            key,
-        ),
-
+        (key,),
     )
 
 
@@ -122,23 +98,16 @@ def get_all_settings() -> list[dict]:
     """
 
     rows = fetch_all(
-
         """
         SELECT *
-
         FROM settings
-
         ORDER BY key
         """
-
     )
 
     return [
-
         dict(row)
-
         for row in rows
-
     ]
 
 
@@ -152,27 +121,26 @@ def get_working_hours() -> dict:
 
     return {
 
-        "start":
-            get_setting(
-                "WORK_START",
-                "07:00",
-            ),
+        "start": get_setting(
+            "WORK_START",
+            "07:00",
+        ),
 
-        "end":
-            get_setting(
-                "WORK_END",
-                "13:00",
-            ),
+        "end": get_setting(
+            "WORK_END",
+            "13:00",
+        ),
 
-        "days":
-            get_setting(
-                "WORK_DAYS",
-                "شنبه,یکشنبه,دوشنبه,سه‌شنبه,چهارشنبه",
-            ),
+        "days": get_setting(
+            "WORK_DAYS",
+            "شنبه,یکشنبه,دوشنبه,سه‌شنبه,چهارشنبه",
+        ),
 
     }
 
-
+# -------------------------------------------------
+# Set Working Hours
+# -------------------------------------------------
 def set_working_hours(
     start: str,
     end: str,
@@ -209,12 +177,9 @@ def get_bool_setting(
     Read boolean settings safely.
     """
 
-    value = get_setting(
-        key,
-    )
+    value = get_setting(key)
 
     if value is None:
-
         return default
 
     return value.lower() in (
@@ -235,11 +200,6 @@ def set_bool_setting(
     """
 
     set_setting(
-
         key,
-
-        "true"
-        if value
-        else "false",
-
+        "true" if value else "false",
     )
