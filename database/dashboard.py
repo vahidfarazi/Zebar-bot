@@ -27,21 +27,21 @@ def get_dashboard_statistics() -> dict:
 
             COUNT(
                 CASE
-                    WHEN status='OPEN'
+                    WHEN status = 'OPEN'
                     THEN 1
                 END
             ) AS open,
 
             COUNT(
                 CASE
-                    WHEN status='PENDING'
+                    WHEN status = 'PENDING'
                     THEN 1
                 END
             ) AS pending,
 
             COUNT(
                 CASE
-                    WHEN status='CLOSED'
+                    WHEN status = 'CLOSED'
                     THEN 1
                 END
             ) AS closed,
@@ -56,7 +56,6 @@ def get_dashboard_statistics() -> dict:
         FROM requests
         """
     )
-
 
     if not row:
 
@@ -73,7 +72,6 @@ def get_dashboard_statistics() -> dict:
             "transferred": 0,
 
         }
-
 
     return {
 
@@ -93,7 +91,6 @@ def get_dashboard_statistics() -> dict:
             row["transferred"] or 0,
 
     }
-
 
 
 # =================================================
@@ -127,8 +124,6 @@ def get_dashboard() -> dict:
 
     }
 
-
-
 # =================================================
 # Service Statistics
 # =================================================
@@ -154,7 +149,6 @@ def get_service_statistics() -> list[dict]:
         """
     )
 
-
     return [
 
         dict(row)
@@ -162,7 +156,6 @@ def get_service_statistics() -> list[dict]:
         for row in rows
 
     ]
-
 
 
 # =================================================
@@ -197,7 +190,6 @@ def get_daily_chart_data(
         ),
     )
 
-
     return [
 
         dict(row)
@@ -205,8 +197,6 @@ def get_daily_chart_data(
         for row in rows
 
     ]
-
-
 
 # =================================================
 # Expert Statistics
@@ -227,7 +217,7 @@ def get_expert_statistics() -> list[dict]:
 
             COUNT(
                 CASE
-                    WHEN status='CLOSED'
+                    WHEN status = 'CLOSED'
                     THEN 1
                 END
             ) AS closed
@@ -242,7 +232,6 @@ def get_expert_statistics() -> list[dict]:
         """
     )
 
-
     return [
 
         dict(row)
@@ -250,7 +239,6 @@ def get_expert_statistics() -> list[dict]:
         for row in rows
 
     ]
-
 
 
 # =================================================
@@ -293,7 +281,6 @@ def get_recent_activity(
         ),
     )
 
-
     return [
 
         dict(row)
@@ -301,8 +288,6 @@ def get_recent_activity(
         for row in rows
 
     ]
-
-
 
 # =================================================
 # SLA Dashboard
@@ -328,7 +313,6 @@ def get_sla_dashboard() -> dict:
                 ) / 60
             ) AS response_time,
 
-
             AVG(
                 EXTRACT(
                     EPOCH FROM
@@ -340,11 +324,9 @@ def get_sla_dashboard() -> dict:
                 ) / 60
             ) AS close_time
 
-
         FROM requests
         """
     )
-
 
     if not row:
 
@@ -355,7 +337,6 @@ def get_sla_dashboard() -> dict:
             "close_time": 0,
 
         }
-
 
     return {
 
@@ -373,6 +354,7 @@ def get_sla_dashboard() -> dict:
 
     }
 
+
 # =================================================
 # Backward Compatibility
 # =================================================
@@ -381,4 +363,5 @@ def get_dashboard_summary() -> dict:
     """
     Backward compatibility.
     """
+
     return get_dashboard_statistics()
