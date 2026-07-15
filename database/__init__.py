@@ -153,3 +153,19 @@ except Exception as e:
         "DATABASE INIT WARNING:",
         e,
     )
+
+# -------------------------------------------------
+# Admins
+# -------------------------------------------------
+
+try:
+    from .admins import (
+        is_admin,
+        add_admin,
+        remove_admin,
+        get_all_admins,
+        count_admins,
+        admin_exists,
+    )
+except ImportError:
+    pass
