@@ -1,6 +1,5 @@
 print("DATABASE INIT FILE LOADED")
 
-
 """
 database package
 
@@ -108,6 +107,7 @@ try:
         add_message,
         get_message,
         get_messages,
+        get_history,
         get_last_message,
         get_last_user_message,
         get_last_expert_message,
@@ -117,12 +117,8 @@ try:
         get_expert_message_statistics,
         delete_messages,
     )
-
-except ImportError as e:
-    print(
-        "MESSAGES IMPORT WARNING:",
-        e,
-    )
+except ImportError:
+    pass
 
 
 # -------------------------------------------------
