@@ -4,13 +4,16 @@ database/messages.py
 Advanced request messages repository.
 """
 
+
 from typing import Optional
+
 
 from .crud import (
     execute,
     fetch_one,
     fetch_all,
 )
+
 
 
 # =================================================
@@ -57,6 +60,7 @@ def add_message(
     )
 
 
+
 # =================================================
 # Get Message
 # =================================================
@@ -79,6 +83,7 @@ def get_message(
     )
 
     return dict(row) if row else None
+
 
 
 # =================================================
@@ -110,6 +115,21 @@ def get_messages(
     ]
 
 
+
+# =================================================
+# History Alias
+# =================================================
+
+def get_history(
+    tracking_code: str,
+) -> list[dict]:
+
+    return get_messages(
+        tracking_code
+    )
+
+
+
 # =================================================
 # Last Message
 # =================================================
@@ -136,6 +156,7 @@ def get_last_message(
     )
 
     return dict(row) if row else None
+
 
 
 # =================================================
@@ -168,6 +189,7 @@ def get_last_user_message(
     return dict(row) if row else None
 
 
+
 # =================================================
 # Last Expert Message
 # =================================================
@@ -198,6 +220,7 @@ def get_last_expert_message(
     return dict(row) if row else None
 
 
+
 # =================================================
 # Count Messages
 # =================================================
@@ -222,6 +245,7 @@ def count_messages(
     return row["total"] or 0
 
 
+
 # =================================================
 # Expert Messages
 # =================================================
@@ -240,7 +264,7 @@ def get_expert_messages(
 
         AND sender_type='EXPERT'
 
-        ORDER BY created_at ASC
+        ORDER BY created_at ASC,id ASC
         """,
         (
             tracking_code,
@@ -251,6 +275,7 @@ def get_expert_messages(
         dict(row)
         for row in rows
     ]
+
 
 
 # =================================================
@@ -271,7 +296,7 @@ def get_user_messages(
 
         AND sender_type='USER'
 
-        ORDER BY created_at ASC
+        ORDER BY created_at ASC,id ASC
         """,
         (
             tracking_code,
@@ -282,6 +307,7 @@ def get_user_messages(
         dict(row)
         for row in rows
     ]
+
 
 
 # =================================================
@@ -317,6 +343,7 @@ def get_expert_message_statistics() -> list[dict]:
     ]
 
 
+
 # =================================================
 # Delete Messages
 # =================================================
@@ -335,36 +362,3 @@ def delete_messages(
             tracking_code,
         ),
     )
-
-# =================================================
-# Message History
-# =================================================
-
-def get_history(
-    tracking_code: str,
-) -> list[dict]:
-
-    rows = fetch_all(
-        """
-        SELECT
-            sender_type,
-            sender_id,
-            message_type,
-            message,
-            created_at
-
-        FROM request_messages
-
-        WHERE tracking_code=%s
-
-        ORDER BY created_at ASC,id ASC
-        """,
-        (
-            tracking_code,
-        ),
-    )
-
-    return [
-        dict(row)
-        for row in rows
-    ]
