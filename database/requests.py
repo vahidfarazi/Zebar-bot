@@ -36,6 +36,7 @@ def insert_request(
             service,
             sub_service,
             status,
+            priority,
             created_at,
             updated_at
         )
@@ -47,6 +48,7 @@ def insert_request(
             %s,
             %s,
             'OPEN',
+            'NORMAL',
             CURRENT_TIMESTAMP,
             CURRENT_TIMESTAMP
         )
@@ -76,7 +78,7 @@ def get_request(
 
         FROM requests
 
-        WHERE id=%s
+        WHERE id = %s
         """,
         (
             request_id,
@@ -100,7 +102,7 @@ def get_request_by_tracking(
 
         FROM requests
 
-        WHERE tracking_code=%s
+        WHERE tracking_code = %s
         """,
         (
             tracking_code,
@@ -108,6 +110,22 @@ def get_request_by_tracking(
     )
 
     return dict(row) if row else None
+
+
+# =================================================
+# Exists
+# =================================================
+
+def request_exists(
+    tracking_code: str,
+) -> bool:
+
+    return (
+        get_request_by_tracking(
+            tracking_code,
+        )
+        is not None
+    )
 
 
 # =================================================
@@ -124,133 +142,12 @@ def get_user_requests(
 
         FROM requests
 
-        WHERE chat_id=%s
+        WHERE chat_id = %s
 
-        ORDER BY created_at DESC
+        ORDER BY id DESC
         """,
         (
             chat_id,
-        ),
-    )
-
-    return [
-        dict(row)
-        for row in rows
-    ]
-
-
-# =================================================
-# Update Status
-# =================================================
-
-def update_request_status(
-    request_id: int,
-    status: str,
-) -> None:
-
-    execute(
-        """
-        UPDATE requests
-
-        SET
-
-            status=%s,
-
-            updated_at=CURRENT_TIMESTAMP
-
-        WHERE id=%s
-        """,
-        (
-            status,
-            request_id,
-        ),
-    )
-
-
-# =================================================
-# Assign Expert
-# =================================================
-
-def assign_expert(
-    request_id: int,
-    expert_id: int,
-) -> None:
-
-    execute(
-        """
-        UPDATE requests
-
-        SET
-
-            expert_id=%s,
-
-            assigned_at=CURRENT_TIMESTAMP,
-
-            status='PENDING',
-
-            updated_at=CURRENT_TIMESTAMP
-
-        WHERE id=%s
-        """,
-        (
-            expert_id,
-            request_id,
-        ),
-    )
-
-
-# =================================================
-# Transfer Request
-# =================================================
-
-def transfer_request(
-    request_id: int,
-    new_expert_id: int,
-) -> None:
-
-    execute(
-        """
-        UPDATE requests
-
-        SET
-
-            expert_id=%s,
-
-            transferred_at=CURRENT_TIMESTAMP,
-
-            updated_at=CURRENT_TIMESTAMP
-
-        WHERE id=%s
-        """,
-        (
-            new_expert_id,
-            request_id,
-        ),
-    )
-
-
-# =================================================
-# Transferred Requests
-# =================================================
-
-def get_transferred_requests(
-    limit: int = 50,
-) -> list[dict]:
-
-    rows = fetch_all(
-        """
-        SELECT *
-
-        FROM requests
-
-        WHERE transferred_at IS NOT NULL
-
-        ORDER BY transferred_at DESC
-
-        LIMIT %s
-        """,
-        (
-            limit,
         ),
     )
 
@@ -274,9 +171,9 @@ def get_expert_requests(
 
         FROM requests
 
-        WHERE expert_id=%s
+        WHERE expert_id = %s
 
-        ORDER BY created_at DESC
+        ORDER BY id DESC
         """,
         (
             expert_id,
@@ -287,122 +184,6 @@ def get_expert_requests(
         dict(row)
         for row in rows
     ]
-
-
-# =================================================
-# Save Expert Message Info
-# =================================================
-
-def save_expert_message(
-    request_id: int,
-    expert_chat_id: int,
-    expert_message_id: int,
-) -> None:
-
-    execute(
-        """
-        UPDATE requests
-
-        SET
-
-            expert_chat_id=%s,
-
-            expert_message_id=%s,
-
-            first_response_at =
-                COALESCE(
-                    first_response_at,
-                    CURRENT_TIMESTAMP
-                ),
-
-            updated_at=CURRENT_TIMESTAMP
-
-        WHERE id=%s
-        """,
-        (
-            expert_chat_id,
-            expert_message_id,
-            request_id,
-        ),
-    )
-
-# =================================================
-# Close Request
-# =================================================
-
-def close_request(
-    request_id: int,
-) -> None:
-
-    execute(
-        """
-        UPDATE requests
-
-        SET
-
-            status='CLOSED',
-
-            closed_at=CURRENT_TIMESTAMP,
-
-            updated_at=CURRENT_TIMESTAMP
-
-        WHERE id=%s
-        """,
-        (
-            request_id,
-        ),
-    )
-
-
-# =================================================
-# Priority
-# =================================================
-
-def update_priority(
-    request_id: int,
-    priority: str,
-) -> None:
-
-    execute(
-        """
-        UPDATE requests
-
-        SET
-
-            priority=%s,
-
-            updated_at=CURRENT_TIMESTAMP
-
-        WHERE id=%s
-        """,
-        (
-            priority,
-            request_id,
-        ),
-    )
-
-
-# =================================================
-# Delete Request
-# =================================================
-
-def delete_request(
-    request_id: int,
-) -> None:
-    """
-    Delete request permanently.
-    """
-
-    execute(
-        """
-        DELETE FROM requests
-
-        WHERE id=%s
-        """,
-        (
-            request_id,
-        ),
-    )
 
 
 # =================================================
@@ -433,12 +214,415 @@ def get_recent_requests(
         for row in rows
     ]
 
+# =================================================
+# Update Status
+# =================================================
+
+def update_request_status(
+    request_id: int,
+    status: str,
+) -> None:
+    """
+    Update request status.
+    """
+
+    execute(
+        """
+        UPDATE requests
+
+        SET
+
+            status = %s,
+
+            updated_at = CURRENT_TIMESTAMP
+
+        WHERE id = %s
+        """,
+        (
+            status,
+            request_id,
+        ),
+    )
+
+
+# =================================================
+# Assign Expert
+# =================================================
+
+def assign_expert(
+    request_id: int,
+    expert_id: int,
+) -> None:
+    """
+    Assign request to expert.
+    """
+
+    execute(
+        """
+        UPDATE requests
+
+        SET
+
+            expert_id = %s,
+
+            assigned_at = CURRENT_TIMESTAMP,
+
+            status = 'PENDING',
+
+            updated_at = CURRENT_TIMESTAMP
+
+        WHERE id = %s
+        """,
+        (
+            expert_id,
+            request_id,
+        ),
+    )
+
+
+# =================================================
+# Transfer Request
+# =================================================
+
+def transfer_request(
+    request_id: int,
+    new_expert_id: int,
+) -> None:
+    """
+    Transfer request.
+    """
+
+    execute(
+        """
+        UPDATE requests
+
+        SET
+
+            expert_id = %s,
+
+            transferred_at = CURRENT_TIMESTAMP,
+
+            updated_at = CURRENT_TIMESTAMP
+
+        WHERE id = %s
+        """,
+        (
+            new_expert_id,
+            request_id,
+        ),
+    )
+
+
+# =================================================
+# Save Expert Message
+# =================================================
+
+def save_expert_message(
+    request_id: int,
+    expert_chat_id: int,
+    expert_message_id: int,
+) -> None:
+    """
+    Save forwarded expert message ids.
+    """
+
+    execute(
+        """
+        UPDATE requests
+
+        SET
+
+            expert_chat_id = %s,
+
+            expert_message_id = %s,
+
+            first_response_at =
+                COALESCE(
+                    first_response_at,
+                    CURRENT_TIMESTAMP
+                ),
+
+            updated_at = CURRENT_TIMESTAMP
+
+        WHERE id = %s
+        """,
+        (
+            expert_chat_id,
+            expert_message_id,
+            request_id,
+        ),
+    )
+
+
+# =================================================
+# Close Request
+# =================================================
+
+def close_request(
+    request_id: int,
+) -> None:
+    """
+    Close request.
+    """
+
+    execute(
+        """
+        UPDATE requests
+
+        SET
+
+            status = 'CLOSED',
+
+            closed_at = CURRENT_TIMESTAMP,
+
+            updated_at = CURRENT_TIMESTAMP
+
+        WHERE id = %s
+        """,
+        (
+            request_id,
+        ),
+    )
+
+
+# =================================================
+# Reopen Request
+# =================================================
+
+def reopen_request(
+    request_id: int,
+) -> None:
+    """
+    Reopen closed request.
+    """
+
+    execute(
+        """
+        UPDATE requests
+
+        SET
+
+            status = 'OPEN',
+
+            closed_at = NULL,
+
+            updated_at = CURRENT_TIMESTAMP
+
+        WHERE id = %s
+        """,
+        (
+            request_id,
+        ),
+    )
+
+# =================================================
+# Priority
+# =================================================
+
+def update_priority(
+    request_id: int,
+    priority: str,
+) -> None:
+    """
+    Update request priority.
+    """
+
+    execute(
+        """
+        UPDATE requests
+
+        SET
+
+            priority = %s,
+
+            updated_at = CURRENT_TIMESTAMP
+
+        WHERE id = %s
+        """,
+        (
+            priority,
+            request_id,
+        ),
+    )
+
+
+# =================================================
+# Delete Request
+# =================================================
+
+def delete_request(
+    request_id: int,
+) -> None:
+    """
+    Delete request permanently.
+    """
+
+    execute(
+        """
+        DELETE FROM requests
+
+        WHERE id = %s
+        """,
+        (
+            request_id,
+        ),
+    )
+
+
+# =================================================
+# Count Requests
+# =================================================
+
+def count_requests() -> int:
+    """
+    Total requests.
+    """
+
+    row = fetch_one(
+        """
+        SELECT COUNT(*) AS total
+
+        FROM requests
+        """
+    )
+
+    return int(row["total"] or 0)
+
+
+# =================================================
+# Count Open Requests
+# =================================================
+
+def count_open_requests() -> int:
+    """
+    Total open requests.
+    """
+
+    row = fetch_one(
+        """
+        SELECT COUNT(*) AS total
+
+        FROM requests
+
+        WHERE status='OPEN'
+        """
+    )
+
+    return int(row["total"] or 0)
+
+
+# =================================================
+# Count Closed Requests
+# =================================================
+
+def count_closed_requests() -> int:
+    """
+    Total closed requests.
+    """
+
+    row = fetch_one(
+        """
+        SELECT COUNT(*) AS total
+
+        FROM requests
+
+        WHERE status='CLOSED'
+        """
+    )
+
+    return int(row["total"] or 0)
+
+
+# =================================================
+# Count Pending Requests
+# =================================================
+
+def count_pending_requests() -> int:
+    """
+    Total pending requests.
+    """
+
+    row = fetch_one(
+        """
+        SELECT COUNT(*) AS total
+
+        FROM requests
+
+        WHERE status='PENDING'
+        """
+    )
+
+    return int(row["total"] or 0)
+
+
+# =================================================
+# Count Expert Requests
+# =================================================
+
+def count_expert_requests(
+    expert_id: int,
+) -> int:
+    """
+    Number of requests assigned to expert.
+    """
+
+    row = fetch_one(
+        """
+        SELECT COUNT(*) AS total
+
+        FROM requests
+
+        WHERE expert_id = %s
+        """,
+        (
+            expert_id,
+        ),
+    )
+
+    return int(row["total"] or 0)
+
+# =================================================
+# Transferred Requests
+# =================================================
+
+def get_transferred_requests(
+    limit: int = 50,
+) -> list[dict]:
+    """
+    Return transferred requests.
+    """
+
+    rows = fetch_all(
+        """
+        SELECT *
+
+        FROM requests
+
+        WHERE expert_id IS NOT NULL
+
+        ORDER BY updated_at DESC
+
+        LIMIT %s
+        """,
+        (
+            limit,
+        ),
+    )
+
+    return [
+        dict(row)
+        for row in rows
+    ]
+
 
 # =================================================
 # SLA Statistics
 # =================================================
 
 def get_sla_statistics() -> dict:
+    """
+    SLA statistics.
+    """
 
     row = fetch_one(
         """
@@ -496,5 +680,31 @@ def get_sla_statistics() -> dict:
                 row.get("avg_close", 0) or 0,
                 2,
             ),
+
+    }
+
+
+# =================================================
+# Dashboard Summary
+# =================================================
+
+def get_requests_summary() -> dict:
+    """
+    Request summary for dashboard.
+    """
+
+    return {
+
+        "total":
+            count_requests(),
+
+        "open":
+            count_open_requests(),
+
+        "pending":
+            count_pending_requests(),
+
+        "closed":
+            count_closed_requests(),
 
     }
