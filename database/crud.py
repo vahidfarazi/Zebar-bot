@@ -9,18 +9,18 @@ from typing import Any
 from .connection import get_connection
 
 
-# -----------------------------
+# -------------------------------------------------
 # Execute
-# -----------------------------
+# -------------------------------------------------
+
 def execute(
     query: str,
     params: tuple = (),
 ) -> int:
     """
-    Execute INSERT, UPDATE or DELETE query.
+    Execute INSERT / UPDATE / DELETE.
 
-    Returns inserted id if RETURNING is used,
-    otherwise 0.
+    Returns returned id if RETURNING exists.
     """
 
     connection = get_connection()
@@ -29,18 +29,28 @@ def execute(
 
         with connection.cursor() as cursor:
 
-            cursor.execute(query, params)
+            cursor.execute(
+                query,
+                params,
+            )
 
             result = None
 
             if cursor.description:
+
                 result = cursor.fetchone()
 
             connection.commit()
 
             if result:
 
-                return list(result.values())[0]
+                if isinstance(result, dict):
+
+                    return next(
+                        iter(result.values())
+                    )
+
+                return result[0]
 
             return 0
 
@@ -49,15 +59,17 @@ def execute(
         connection.close()
 
 
-# -----------------------------
+
+# -------------------------------------------------
 # Fetch One
-# -----------------------------
+# -------------------------------------------------
+
 def fetch_one(
     query: str,
     params: tuple = (),
 ) -> dict[str, Any] | None:
     """
-    Execute SELECT and return one row.
+    Return one row.
     """
 
     connection = get_connection()
@@ -66,24 +78,31 @@ def fetch_one(
 
         with connection.cursor() as cursor:
 
-            cursor.execute(query, params)
+            cursor.execute(
+                query,
+                params,
+            )
 
-            return cursor.fetchone()
+            row = cursor.fetchone()
+
+            return row
 
     finally:
 
         connection.close()
 
 
-# -----------------------------
+
+# -------------------------------------------------
 # Fetch All
-# -----------------------------
+# -------------------------------------------------
+
 def fetch_all(
     query: str,
     params: tuple = (),
 ) -> list[dict[str, Any]]:
     """
-    Execute SELECT and return all rows.
+    Return all rows.
     """
 
     connection = get_connection()
@@ -92,24 +111,31 @@ def fetch_all(
 
         with connection.cursor() as cursor:
 
-            cursor.execute(query, params)
+            cursor.execute(
+                query,
+                params,
+            )
 
-            return cursor.fetchall()
+            rows = cursor.fetchall()
+
+            return rows
 
     finally:
 
         connection.close()
 
 
-# -----------------------------
+
+# -------------------------------------------------
 # Execute Many
-# -----------------------------
+# -------------------------------------------------
+
 def execute_many(
     query: str,
     params: list[tuple],
 ) -> None:
     """
-    Execute query for multiple rows.
+    Execute many queries.
     """
 
     connection = get_connection()
@@ -118,7 +144,10 @@ def execute_many(
 
         with connection.cursor() as cursor:
 
-            cursor.executemany(query, params)
+            cursor.executemany(
+                query,
+                params,
+            )
 
             connection.commit()
 
@@ -127,24 +156,65 @@ def execute_many(
         connection.close()
 
 
-# -----------------------------
+
+# -------------------------------------------------
 # Table Exists
-# -----------------------------
+# -------------------------------------------------
+
 def table_exists(
     table_name: str,
 ) -> bool:
     """
-    Check whether a table exists.
+    Check table existence.
     """
 
     row = fetch_one(
         """
         SELECT table_name
+
         FROM information_schema.tables
+
         WHERE table_schema='public'
+
         AND table_name=%s
         """,
-        (table_name,),
+        (
+            table_name,
+        ),
+    )
+
+    return row is not None
+
+
+
+# -------------------------------------------------
+# Column Exists
+# -------------------------------------------------
+
+def column_exists(
+    table_name: str,
+    column_name: str,
+) -> bool:
+    """
+    Check column existence.
+    """
+
+    row = fetch_one(
+        """
+        SELECT column_name
+
+        FROM information_schema.columns
+
+        WHERE table_schema='public'
+
+        AND table_name=%s
+
+        AND column_name=%s
+        """,
+        (
+            table_name,
+            column_name,
+        ),
     )
 
     return row is not None
