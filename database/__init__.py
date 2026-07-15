@@ -29,6 +29,7 @@ from .crud import (
 )
 
 
+
 # =================================================
 # SETTINGS
 # =================================================
@@ -54,35 +55,7 @@ except Exception as e:
 # =================================================
 
 try:
-    from .requests import (
-
-        insert_request,
-
-        get_request,
-        get_request_by_tracking,
-        get_user_requests,
-
-        update_request_status,
-
-        assign_expert,
-        transfer_request,
-
-        get_transferred_requests,
-        get_expert_requests,
-
-        save_expert_message,
-
-        close_request,
-
-        update_priority,
-
-        delete_request,
-
-        get_recent_requests,
-
-        get_sla_statistics,
-
-    )
+    from .requests import *
 
 except Exception as e:
     print("REQUESTS IMPORT WARNING:", e)
@@ -151,34 +124,7 @@ except Exception as e:
 
 try:
 
-    from .messages import (
-
-        add_message,
-
-        get_message,
-
-        get_messages,
-
-        get_history,
-
-        get_last_message,
-
-        get_last_user_message,
-
-        get_last_expert_message,
-
-        count_messages,
-
-        get_expert_messages,
-
-        get_user_messages,
-
-        get_expert_message_statistics,
-
-        delete_messages,
-
-    )
-
+    from .messages import *
 
 except Exception as e:
 
@@ -195,30 +141,7 @@ except Exception as e:
 
 try:
 
-    from .history import (
-
-        add_history,
-
-        get_history as get_request_history,
-
-        get_latest_history,
-
-        count_history,
-
-        add_transfer_history,
-
-        add_status_history,
-
-        add_assignment_history,
-
-        add_admin_history,
-
-        add_expert_history,
-
-        delete_history,
-
-    )
-
+    from .history import *
 
 except Exception as e:
 
@@ -256,24 +179,7 @@ except Exception as e:
 
 try:
 
-    from .holidays import (
-
-        add_holiday,
-
-        remove_holiday,
-
-        enable_holiday,
-
-        disable_holiday,
-
-        is_holiday,
-
-        get_all_holidays,
-
-        get_holidays,
-
-    )
-
+    from .holidays import *
 
 except Exception as e:
 
@@ -307,6 +213,8 @@ try:
         set_active,
 
         get_active,
+
+        get_dashboard_summary,
 
     )
 
