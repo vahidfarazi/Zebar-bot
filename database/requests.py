@@ -73,7 +73,9 @@ def get_request(
     row = fetch_one(
         """
         SELECT *
+
         FROM requests
+
         WHERE id=%s
         """,
         (
@@ -95,7 +97,9 @@ def get_request_by_tracking(
     row = fetch_one(
         """
         SELECT *
+
         FROM requests
+
         WHERE tracking_code=%s
         """,
         (
@@ -149,7 +153,9 @@ def update_request_status(
         UPDATE requests
 
         SET
+
             status=%s,
+
             updated_at=CURRENT_TIMESTAMP
 
         WHERE id=%s
@@ -175,9 +181,13 @@ def assign_expert(
         UPDATE requests
 
         SET
+
             expert_id=%s,
+
             assigned_at=CURRENT_TIMESTAMP,
+
             status='PENDING',
+
             updated_at=CURRENT_TIMESTAMP
 
         WHERE id=%s
@@ -203,8 +213,11 @@ def transfer_request(
         UPDATE requests
 
         SET
+
             expert_id=%s,
+
             transferred_at=CURRENT_TIMESTAMP,
+
             updated_at=CURRENT_TIMESTAMP
 
         WHERE id=%s
@@ -313,7 +326,6 @@ def save_expert_message(
         ),
     )
 
-
 # =================================================
 # Close Request
 # =================================================
@@ -365,6 +377,29 @@ def update_priority(
         """,
         (
             priority,
+            request_id,
+        ),
+    )
+
+
+# =================================================
+# Delete Request
+# =================================================
+
+def delete_request(
+    request_id: int,
+) -> None:
+    """
+    Delete request permanently.
+    """
+
+    execute(
+        """
+        DELETE FROM requests
+
+        WHERE id=%s
+        """,
+        (
             request_id,
         ),
     )
@@ -433,7 +468,6 @@ def get_sla_statistics() -> dict:
         """
     )
 
-
     if not row:
 
         return {
@@ -445,7 +479,6 @@ def get_sla_statistics() -> dict:
             "avg_close": 0,
 
         }
-
 
     return {
 
