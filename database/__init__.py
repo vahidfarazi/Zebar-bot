@@ -1,10 +1,12 @@
 print("DATABASE INIT FILE LOADED")
 
+
 """
 database package
 
 Central database exports.
 """
+
 
 # -------------------------------------------------
 # Initialize database
@@ -103,11 +105,24 @@ except ImportError:
 
 try:
     from .messages import (
-        save_message,
+        add_message,
+        get_message,
         get_messages,
+        get_last_message,
+        get_last_user_message,
+        get_last_expert_message,
+        count_messages,
+        get_expert_messages,
+        get_user_messages,
+        get_expert_message_statistics,
+        delete_messages,
     )
-except ImportError:
-    pass
+
+except ImportError as e:
+    print(
+        "MESSAGES IMPORT WARNING:",
+        e,
+    )
 
 
 # -------------------------------------------------
@@ -117,6 +132,7 @@ except ImportError:
 try:
     init_database()
     print("DATABASE INITIALIZED")
+
 except Exception as e:
     print(
         "DATABASE INIT WARNING:",
