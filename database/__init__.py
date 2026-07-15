@@ -134,3 +134,17 @@ except Exception as e:
         "DATABASE INIT WARNING:",
         e,
     )
+
+# -------------------------------------------------
+# Holidays
+# -------------------------------------------------
+
+try:
+    from .holidays import (
+        is_holiday,
+        add_holiday,
+        remove_holiday,
+        get_holidays,
+    )
+except ImportError:
+    pass
