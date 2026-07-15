@@ -139,21 +139,6 @@ except ImportError as e:
     print("HOLIDAYS IMPORT WARNING:", e)
 
 
-
-# -------------------------------------------------
-# Database Ready
-# -------------------------------------------------
-
-try:
-    init_database()
-    print("DATABASE INITIALIZED")
-
-except Exception as e:
-    print(
-        "DATABASE INIT WARNING:",
-        e,
-    )
-
 # -------------------------------------------------
 # Admins
 # -------------------------------------------------
@@ -169,3 +154,18 @@ try:
     )
 except ImportError:
     pass
+    
+
+# -------------------------------------------------
+# Database Ready
+# -------------------------------------------------
+
+try:
+    init_database()
+    print("DATABASE INITIALIZED")
+
+except Exception as e:
+    print(
+        "DATABASE INIT WARNING:",
+        e,
+    )
