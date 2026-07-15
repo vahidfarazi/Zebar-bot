@@ -1,7 +1,7 @@
 """
 database/history.py
 
-Advanced request history repository.
+Request history repository.
 """
 
 from .crud import (
@@ -23,7 +23,7 @@ def add_history(
     description: str = "",
 ) -> None:
     """
-    Add history record.
+    Add history event.
     """
 
     execute(
@@ -58,15 +58,16 @@ def add_history(
     )
 
 
+
 # =================================================
-# Get History
+# Get History Timeline
 # =================================================
 
 def get_history(
     tracking_code: str,
 ) -> list[dict]:
     """
-    Return history timeline.
+    Return request timeline.
     """
 
     rows = fetch_all(
@@ -75,7 +76,7 @@ def get_history(
 
         FROM request_history
 
-        WHERE tracking_code = %s
+        WHERE tracking_code=%s
 
         ORDER BY created_at ASC, id ASC
         """,
@@ -90,6 +91,19 @@ def get_history(
     ]
 
 
+
+# Compatibility Alias
+
+def get_request_history(
+    tracking_code: str,
+) -> list[dict]:
+
+    return get_history(
+        tracking_code
+    )
+
+
+
 # =================================================
 # Latest Event
 # =================================================
@@ -97,9 +111,6 @@ def get_history(
 def get_latest_history(
     tracking_code: str,
 ) -> dict | None:
-    """
-    Return latest history item.
-    """
 
     row = fetch_one(
         """
@@ -107,7 +118,7 @@ def get_latest_history(
 
         FROM request_history
 
-        WHERE tracking_code = %s
+        WHERE tracking_code=%s
 
         ORDER BY id DESC
 
@@ -120,6 +131,8 @@ def get_latest_history(
 
     return dict(row) if row else None
 
+
+
 # =================================================
 # Count History
 # =================================================
@@ -127,9 +140,6 @@ def get_latest_history(
 def count_history(
     tracking_code: str,
 ) -> int:
-    """
-    Count history events.
-    """
 
     row = fetch_one(
         """
@@ -137,18 +147,24 @@ def count_history(
 
         FROM request_history
 
-        WHERE tracking_code = %s
+        WHERE tracking_code=%s
         """,
         (
             tracking_code,
         ),
     )
 
-    return int(row["total"] or 0)
+    if not row:
+        return 0
+
+    return int(
+        row["total"] or 0
+    )
+
 
 
 # =================================================
-# Transfer History
+# Transfer
 # =================================================
 
 def add_transfer_history(
@@ -157,9 +173,6 @@ def add_transfer_history(
     to_expert: int,
     admin_id: int,
 ) -> None:
-    """
-    Record request transfer.
-    """
 
     add_history(
         tracking_code,
@@ -174,6 +187,7 @@ def add_transfer_history(
     )
 
 
+
 # =================================================
 # Status Change
 # =================================================
@@ -185,9 +199,6 @@ def add_status_history(
     actor_id: int,
     actor_type: str,
 ) -> None:
-    """
-    Record status change.
-    """
 
     add_history(
         tracking_code,
@@ -200,7 +211,9 @@ def add_status_history(
             f"به "
             f"{new_status}"
         ),
-)
+    )
+
+
 
 # =================================================
 # Expert Assignment
@@ -211,9 +224,6 @@ def add_assignment_history(
     expert_id: int,
     actor_id: int,
 ) -> None:
-    """
-    Record expert assignment.
-    """
 
     add_history(
         tracking_code,
@@ -227,6 +237,7 @@ def add_assignment_history(
     )
 
 
+
 # =================================================
 # Admin Action
 # =================================================
@@ -237,9 +248,6 @@ def add_admin_history(
     action: str,
     description: str = "",
 ) -> None:
-    """
-    Record admin action.
-    """
 
     add_history(
         tracking_code,
@@ -248,6 +256,7 @@ def add_admin_history(
         admin_id,
         description,
     )
+
 
 
 # =================================================
@@ -260,9 +269,6 @@ def add_expert_history(
     action: str,
     description: str = "",
 ) -> None:
-    """
-    Record expert action.
-    """
 
     add_history(
         tracking_code,
@@ -272,6 +278,8 @@ def add_expert_history(
         description,
     )
 
+
+
 # =================================================
 # Delete History
 # =================================================
@@ -279,15 +287,12 @@ def add_expert_history(
 def delete_history(
     tracking_code: str,
 ) -> None:
-    """
-    Delete all history records for a request.
-    """
 
     execute(
         """
         DELETE FROM request_history
 
-        WHERE tracking_code = %s
+        WHERE tracking_code=%s
         """,
         (
             tracking_code,
