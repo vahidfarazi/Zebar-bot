@@ -169,7 +169,6 @@ def get_service_statistics() -> list[dict]:
         for row in rows
     ]
 
-
 # -------------------------------------------------
 # Expert Performance
 # -------------------------------------------------
@@ -189,7 +188,7 @@ def get_expert_statistics() -> list[dict]:
 
         LEFT JOIN requests r
 
-        ON r.expert_id=e.chat_id
+        ON r.expert_id = e.chat_id
 
         GROUP BY
 
