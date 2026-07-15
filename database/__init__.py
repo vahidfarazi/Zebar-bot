@@ -17,6 +17,17 @@ from .connection import (
 
 
 # =====================================================
+# CRUD
+# =====================================================
+
+from .crud import (
+    execute,
+    fetch_one,
+    fetch_all,
+)
+
+
+# =====================================================
 # SCHEMA
 # =====================================================
 
@@ -43,6 +54,7 @@ def get_user_by_chat_id(
     return get_user(
         chat_id
     )
+
 
 
 # =====================================================
@@ -72,6 +84,7 @@ def get_active_expert(
     )
 
 
+
 # =====================================================
 # ADMINS
 # =====================================================
@@ -84,6 +97,7 @@ from .admins import (
     get_active_admins,
     count_admins,
 )
+
 
 
 # =====================================================
@@ -100,6 +114,7 @@ from .requests import (
     transfer_request,
     close_request,
 )
+
 
 
 # =====================================================
@@ -134,6 +149,7 @@ def create_tracking_code(
     )
 
 
+
 # =====================================================
 # MESSAGES
 # =====================================================
@@ -145,6 +161,7 @@ from .messages import (
 )
 
 
+
 # =====================================================
 # HISTORY
 # =====================================================
@@ -153,6 +170,7 @@ from .history import (
     add_history,
     get_history,
 )
+
 
 
 # =====================================================
@@ -167,6 +185,7 @@ from .settings import (
 )
 
 
+
 # =====================================================
 # HOLIDAYS
 # =====================================================
@@ -179,6 +198,7 @@ from .holidays import (
 )
 
 
+
 # =====================================================
 # LOGS
 # =====================================================
@@ -188,6 +208,7 @@ from .logs import (
     get_logs,
     clear_logs,
 )
+
 
 
 # =====================================================
@@ -219,6 +240,11 @@ __all__ = [
     "close_connection",
     "init_database",
 
+    # crud
+    "execute",
+    "fetch_one",
+    "fetch_all",
+
     # schema
     "create_tables",
 
@@ -231,6 +257,7 @@ __all__ = [
     # experts
     "create_expert",
     "get_expert",
+    "list_experts",
     "get_active_experts",
     "get_active_expert",
 
@@ -238,23 +265,55 @@ __all__ = [
     "add_admin",
     "remove_admin",
     "is_admin",
+    "get_all_admins",
+    "get_active_admins",
+    "count_admins",
 
     # requests
     "insert_request",
     "get_request",
     "get_request_by_tracking",
+    "get_user_requests",
+    "update_request_status",
+    "assign_expert",
+    "transfer_request",
     "close_request",
 
     # tracking
     "create_tracking_code",
+    "get_next_tracking_number",
     "get_last_tracking_number",
+
+    # messages
+    "add_message",
+    "get_messages",
+    "get_last_message",
+
+    # history
+    "add_history",
+    "get_history",
 
     # settings
     "get_setting",
     "set_setting",
+    "delete_setting",
+    "get_all_settings",
+
+    # holidays
+    "add_holiday",
+    "remove_holiday",
+    "get_holidays",
+    "is_holiday",
+
+    # logs
+    "insert_log",
+    "get_logs",
+    "clear_logs",
 
     # dashboard
     "get_dashboard",
+    "get_dashboard_statistics",
+    "get_dashboard_summary",
     "get_dashboard_report",
 
 ]
