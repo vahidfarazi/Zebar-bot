@@ -16,12 +16,17 @@ from .crud import (
 # -------------------------------------------------
 # Create / Update Expert
 # -------------------------------------------------
+
 def create_expert(
     chat_id: int,
     name: str,
     username: str = "",
     department: str = "",
+    phone: str = "",
 ) -> None:
+    """
+    Create or update expert.
+    """
 
     execute(
         """
@@ -31,11 +36,13 @@ def create_expert(
             name,
             username,
             department,
+            phone,
             is_active
         )
 
         VALUES
         (
+            %s,
             %s,
             %s,
             %s,
@@ -51,13 +58,16 @@ def create_expert(
 
             username = EXCLUDED.username,
 
-            department = EXCLUDED.department
+            department = EXCLUDED.department,
+
+            phone = EXCLUDED.phone
         """,
         (
             chat_id,
             name,
             username,
             department,
+            phone,
         ),
     )
 
@@ -65,6 +75,7 @@ def create_expert(
 # -------------------------------------------------
 # Get Expert
 # -------------------------------------------------
+
 def get_expert(
     chat_id: int,
 ) -> Optional[dict]:
@@ -86,8 +97,22 @@ def get_expert(
 
 
 # -------------------------------------------------
-# List Experts
+# Exists
 # -------------------------------------------------
+
+def expert_exists(
+    chat_id: int,
+) -> bool:
+
+    return get_expert(
+        chat_id,
+    ) is not None
+
+
+# -------------------------------------------------
+# List
+# -------------------------------------------------
+
 def list_experts() -> list[dict]:
 
     rows = fetch_all(
@@ -98,9 +123,9 @@ def list_experts() -> list[dict]:
 
         ORDER BY
 
-        is_active DESC,
+            is_active DESC,
 
-        name
+            name
         """
     )
 
@@ -111,8 +136,9 @@ def list_experts() -> list[dict]:
 
 
 # -------------------------------------------------
-# List Active Experts
+# Active Experts
 # -------------------------------------------------
+
 def list_active_experts() -> list[dict]:
 
     rows = fetch_all(
@@ -133,9 +159,26 @@ def list_active_experts() -> list[dict]:
     ]
 
 
+# backward compatibility
+
+def get_active_experts():
+
+    return list_active_experts()
+
+
+def get_active_expert(
+    chat_id: int,
+):
+
+    return get_expert(
+        chat_id,
+    )
+
+
 # -------------------------------------------------
-# Update Department
+# Department
 # -------------------------------------------------
+
 def update_department(
     chat_id: int,
     department: str,
@@ -157,8 +200,33 @@ def update_department(
 
 
 # -------------------------------------------------
-# Activate / Deactivate
+# Phone
 # -------------------------------------------------
+
+def update_phone(
+    chat_id: int,
+    phone: str,
+) -> None:
+
+    execute(
+        """
+        UPDATE experts
+
+        SET phone = %s
+
+        WHERE chat_id = %s
+        """,
+        (
+            phone,
+            chat_id,
+        ),
+    )
+
+
+# -------------------------------------------------
+# Active
+# -------------------------------------------------
+
 def set_active(
     chat_id: int,
     active: bool,
@@ -181,7 +249,7 @@ def set_active(
 
 def activate_expert(
     chat_id: int,
-) -> None:
+):
 
     set_active(
         chat_id,
@@ -191,7 +259,7 @@ def activate_expert(
 
 def deactivate_expert(
     chat_id: int,
-) -> None:
+):
 
     set_active(
         chat_id,
@@ -200,8 +268,9 @@ def deactivate_expert(
 
 
 # -------------------------------------------------
-# Delete Expert
+# Delete
 # -------------------------------------------------
+
 def delete_expert(
     chat_id: int,
 ) -> None:
@@ -219,36 +288,27 @@ def delete_expert(
 
 
 # -------------------------------------------------
-# Count Experts
+# Count
 # -------------------------------------------------
+
 def count_experts() -> dict:
 
     row = fetch_one(
         """
         SELECT
 
-        COUNT(*) AS total,
+            COUNT(*) AS total,
 
-        COUNT(*) FILTER(
-            WHERE is_active = TRUE
-        ) AS active,
+            COUNT(*) FILTER(
+                WHERE is_active = TRUE
+            ) AS active,
 
-        COUNT(*) FILTER(
-            WHERE is_active = FALSE
-        ) AS inactive
+            COUNT(*) FILTER(
+                WHERE is_active = FALSE
+            ) AS inactive
 
         FROM experts
         """
     )
 
     return dict(row)
-
-
-# -------------------------------------------------
-# Exists
-# -------------------------------------------------
-def expert_exists(
-    chat_id: int,
-) -> bool:
-
-    return get_expert(chat_id) is not None
