@@ -4,25 +4,41 @@ database/__init__.py
 Database package exports.
 """
 
-# Database initialization
-from .schema import init_database
+# -------------------------------------------------
+# Connection
+# -------------------------------------------------
+
+from .connection import (
+    get_connection,
+)
 
 
+# -------------------------------------------------
 # CRUD
+# -------------------------------------------------
+
 from .crud import (
     execute,
+    execute_many,
     fetch_one,
     fetch_all,
-    execute_many,
     table_exists,
 )
 
 
-# Connection
-from .connection import get_connection
+# -------------------------------------------------
+# Schema
+# -------------------------------------------------
+
+from .schema import (
+    init_database,
+)
 
 
+# -------------------------------------------------
 # Users
+# -------------------------------------------------
+
 from .users import (
     create_user,
     get_user,
@@ -33,18 +49,24 @@ from .users import (
 )
 
 
+# -------------------------------------------------
 # Admins
+# -------------------------------------------------
+
 from .admins import (
     add_admin,
     remove_admin,
     is_admin,
-    admin_exists,
     get_all_admins,
     count_admins,
+    admin_exists,
 )
 
 
+# -------------------------------------------------
 # Experts
+# -------------------------------------------------
+
 from .experts import (
     create_expert,
     get_expert,
@@ -60,7 +82,27 @@ from .experts import (
 )
 
 
+# -------------------------------------------------
+# Requests
+# -------------------------------------------------
+
+try:
+    from .requests import (
+        create_request,
+        get_request,
+        get_requests,
+        update_request_status,
+        assign_request,
+        close_request,
+    )
+except ImportError:
+    pass
+
+
+# -------------------------------------------------
 # Messages
+# -------------------------------------------------
+
 from .messages import (
     add_message,
     get_message,
@@ -76,7 +118,10 @@ from .messages import (
 )
 
 
+# -------------------------------------------------
 # History
+# -------------------------------------------------
+
 from .history import (
     add_history,
     get_history,
@@ -91,7 +136,10 @@ from .history import (
 )
 
 
+# -------------------------------------------------
 # Tracking
+# -------------------------------------------------
+
 from .tracking import (
     get_last_tracking_number,
 )
@@ -102,7 +150,10 @@ from .tracking_sequence import (
 )
 
 
+# -------------------------------------------------
 # Holidays
+# -------------------------------------------------
+
 from .holidays import (
     add_holiday,
     remove_holiday,
@@ -114,7 +165,10 @@ from .holidays import (
 )
 
 
+# -------------------------------------------------
 # Logs
+# -------------------------------------------------
+
 from .logs import (
     insert_log,
     get_logs,
@@ -122,7 +176,10 @@ from .logs import (
 )
 
 
+# -------------------------------------------------
 # Reports
+# -------------------------------------------------
+
 from .reports import (
     get_daily_statistics,
     get_weekly_statistics,
@@ -134,7 +191,10 @@ from .reports import (
 )
 
 
+# -------------------------------------------------
 # Dashboard
+# -------------------------------------------------
+
 from .dashboard import (
     get_dashboard_statistics,
     get_dashboard,
@@ -150,28 +210,15 @@ from .settings import (
     set_setting,
     delete_setting,
     get_all_settings,
+    get_working_hours,
+    set_working_hours,
+    get_bool_setting,
+    set_bool_setting,
 )
 
 
-__all__ = [
+# -------------------------------------------------
+# Package Version
+# -------------------------------------------------
 
-    # init
-    "init_database",
-
-    # connection
-    "get_connection",
-
-    # crud
-    "execute",
-    "fetch_one",
-    "fetch_all",
-    "execute_many",
-    "table_exists",
-
-    # settings
-    "get_setting",
-    "set_setting",
-    "delete_setting",
-    "get_all_settings",
-
-]
+__version__ = "1.0.0"
