@@ -1,3 +1,5 @@
+print("DATABASE INIT FILE LOADED")
+
 """
 database package
 
