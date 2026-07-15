@@ -32,39 +32,49 @@ from .crud import (
 # Settings
 # -------------------------------------------------
 
-from .settings import (
-    get_setting,
-    set_setting,
-    delete_setting,
-    get_all_settings,
-    get_working_hours,
-    set_working_hours,
-    get_bool_setting,
-    set_bool_setting,
-)
+try:
+    from .settings import (
+        get_setting,
+        set_setting,
+        delete_setting,
+        get_all_settings,
+        get_working_hours,
+        set_working_hours,
+        get_bool_setting,
+        set_bool_setting,
+    )
+
+except ImportError as e:
+    print("SETTINGS IMPORT WARNING:", e)
+
 
 
 # -------------------------------------------------
 # Requests
 # -------------------------------------------------
 
-from .requests import (
-    insert_request,
-    get_request,
-    get_request_by_tracking,
-    get_user_requests,
-    update_request_status,
-    assign_expert,
-    transfer_request,
-    get_transferred_requests,
-    get_expert_requests,
-    save_expert_message,
-    close_request,
-    update_priority,
-    delete_request,
-    get_recent_requests,
-    get_sla_statistics,
-)
+try:
+    from .requests import (
+        insert_request,
+        get_request,
+        get_request_by_tracking,
+        get_user_requests,
+        update_request_status,
+        assign_expert,
+        transfer_request,
+        get_transferred_requests,
+        get_expert_requests,
+        save_expert_message,
+        close_request,
+        update_priority,
+        delete_request,
+        get_recent_requests,
+        get_sla_statistics,
+    )
+
+except ImportError as e:
+    print("REQUESTS IMPORT WARNING:", e)
+
 
 
 # -------------------------------------------------
@@ -75,10 +85,9 @@ try:
     from .users import (
         create_user,
         get_user,
-        update_username,
-        update_full_name,
-        update_role,
-        get_all_users,
+        get_user_by_chat_id,
+        update_user,
+        delete_user,
     )
 
 except ImportError as e:
@@ -94,15 +103,8 @@ try:
     from .experts import (
         create_expert,
         get_expert,
-        list_experts,
-        list_active_experts,
-        set_active,
-        activate_expert,
-        deactivate_expert,
-        update_department,
-        delete_expert,
-        count_experts,
-        expert_exists,
+        get_active_experts,
+        update_expert,
     )
 
 except ImportError as e:
@@ -141,7 +143,7 @@ except ImportError as e:
 try:
     from .history import (
         add_history,
-        get_history as get_request_history,
+        get_history,
         get_latest_history,
         count_history,
         add_transfer_history,
@@ -197,14 +199,50 @@ except ImportError as e:
 
 
 # -------------------------------------------------
+# Tracking
+# -------------------------------------------------
+
+try:
+    from .tracking import (
+        create_tracking_code,
+        get_tracking,
+        add_tracking,
+        update_tracking,
+    )
+
+except ImportError as e:
+    print("TRACKING IMPORT WARNING:", e)
+
+
+
+# -------------------------------------------------
+# Statistics
+# -------------------------------------------------
+
+try:
+    from .statistics import (
+        get_statistics,
+    )
+
+except ImportError as e:
+    print("STATISTICS IMPORT WARNING:", e)
+
+
+
+# -------------------------------------------------
 # Dashboard
 # -------------------------------------------------
 
 try:
     from .dashboard import (
+        get_dashboard,
         get_dashboard_statistics,
         get_dashboard_summary,
-        get_dashboard,
+        get_service_statistics,
+        get_expert_statistics,
+        get_recent_activity,
+        get_sla_dashboard,
+        get_daily_chart_data,
     )
 
 except ImportError as e:
@@ -222,13 +260,24 @@ try:
         get_weekly_statistics,
         get_monthly_statistics,
         get_dashboard_report,
-        get_daily_chart_data,
-        get_service_statistics,
-        get_expert_statistics,
     )
 
 except ImportError as e:
     print("REPORTS IMPORT WARNING:", e)
+
+
+
+# -------------------------------------------------
+# Schema
+# -------------------------------------------------
+
+try:
+    from .schema import (
+        create_tables,
+    )
+
+except ImportError as e:
+    print("SCHEMA IMPORT WARNING:", e)
 
 
 
