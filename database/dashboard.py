@@ -372,3 +372,13 @@ def get_sla_dashboard() -> dict:
             ),
 
     }
+
+# =================================================
+# Backward Compatibility
+# =================================================
+
+def get_dashboard_summary() -> dict:
+    """
+    Backward compatibility.
+    """
+    return get_dashboard_statistics()
