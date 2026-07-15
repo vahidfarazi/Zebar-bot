@@ -1,7 +1,7 @@
 """
 database/reports.py
 
-Reporting queries for admin panel.
+Reporting repository.
 """
 
 from .crud import (
@@ -21,89 +21,88 @@ def normalize_statistics(
     if not row:
 
         return {
-
             "total": 0,
-
             "open": 0,
-
             "closed": 0,
-
             "pending": 0,
-
             "transferred": 0,
-
         }
-
 
     return {
 
-        "total": row.get("total") or 0,
+        "total":
+            row.get("total") or 0,
 
-        "open": row.get("open") or 0,
+        "open":
+            row.get("open") or 0,
 
-        "closed": row.get("closed") or 0,
+        "closed":
+            row.get("closed") or 0,
 
-        "pending": row.get("pending") or 0,
+        "pending":
+            row.get("pending") or 0,
 
-        "transferred": row.get("transferred") or 0,
+        "transferred":
+            row.get("transferred") or 0,
 
     }
 
 
 
 # =================================================
-# Generic Period Statistics
+# Period Statistics
 # =================================================
 
 def _get_period_statistics(
-    interval: str,
+    days: int,
 ) -> dict:
 
     row = fetch_one(
-        f"""
+        """
         SELECT
 
             COUNT(*) AS total,
 
-            SUM(
+            COUNT(
                 CASE
                     WHEN status='OPEN'
-                    THEN 1 ELSE 0
+                    THEN 1
                 END
             ) AS open,
 
-            SUM(
+            COUNT(
                 CASE
                     WHEN status='CLOSED'
-                    THEN 1 ELSE 0
+                    THEN 1
                 END
             ) AS closed,
 
-            SUM(
+            COUNT(
                 CASE
                     WHEN status='PENDING'
-                    THEN 1 ELSE 0
+                    THEN 1
                 END
             ) AS pending,
 
-            SUM(
+            COUNT(
                 CASE
                     WHEN expert_id IS NOT NULL
-                    THEN 1 ELSE 0
+                    THEN 1
                 END
             ) AS transferred
 
-
         FROM requests
 
-
-        WHERE created_at >= CURRENT_DATE - INTERVAL '{interval}'
-        """
+        WHERE created_at >=
+            CURRENT_DATE - (%s * INTERVAL '1 day')
+        """,
+        (
+            days,
+        ),
     )
 
-
     return normalize_statistics(
-        row,
+        row
     )
 
 
@@ -120,45 +119,42 @@ def get_daily_statistics() -> dict:
 
             COUNT(*) AS total,
 
-            SUM(
+            COUNT(
                 CASE
                     WHEN status='OPEN'
-                    THEN 1 ELSE 0
+                    THEN 1
                 END
             ) AS open,
 
-            SUM(
+            COUNT(
                 CASE
                     WHEN status='CLOSED'
-                    THEN 1 ELSE 0
+                    THEN 1
                 END
             ) AS closed,
 
-            SUM(
+            COUNT(
                 CASE
                     WHEN status='PENDING'
-                    THEN 1 ELSE 0
+                    THEN 1
                 END
             ) AS pending,
 
-            SUM(
+            COUNT(
                 CASE
                     WHEN expert_id IS NOT NULL
-                    THEN 1 ELSE 0
+                    THEN 1
                 END
             ) AS transferred
 
-
         FROM requests
-
 
         WHERE DATE(created_at)=CURRENT_DATE
         """
     )
 
-
     return normalize_statistics(
-        row,
+        row
     )
 
 
@@ -170,7 +166,7 @@ def get_daily_statistics() -> dict:
 def get_weekly_statistics() -> dict:
 
     return _get_period_statistics(
-        "6 days",
+        7
     )
 
 
@@ -182,7 +178,7 @@ def get_weekly_statistics() -> dict:
 def get_monthly_statistics() -> dict:
 
     return _get_period_statistics(
-        "29 days",
+        30
     )
 
 
@@ -191,7 +187,9 @@ def get_monthly_statistics() -> dict:
 # Chart
 # =================================================
 
-def get_daily_chart_data() -> list[dict]:
+def get_daily_chart_data(
+    days: int = 7,
+) -> list[dict]:
 
     rows = fetch_all(
         """
@@ -201,29 +199,28 @@ def get_daily_chart_data() -> list[dict]:
 
             COUNT(*) AS total
 
-
         FROM requests
 
-
-        WHERE created_at >= CURRENT_DATE - INTERVAL '6 days'
-
+        WHERE created_at >=
+            CURRENT_DATE - (%s * INTERVAL '1 day')
 
         GROUP BY DATE(created_at)
 
-
-        ORDER BY DATE(created_at)
-        """
+        ORDER BY date
+        """,
+        (
+            days,
+        ),
     )
-
 
     return [
 
         {
+            "date":
+                str(row["date"]),
 
-            "date": str(row["date"]),
-
-            "total": row["total"] or 0,
-
+            "total":
+                row["total"] or 0,
         }
 
         for row in rows
@@ -246,30 +243,17 @@ def get_service_statistics() -> list[dict]:
 
             COUNT(*) AS total
 
-
         FROM requests
 
-
         GROUP BY service
-
 
         ORDER BY total DESC
         """
     )
 
-
     return [
-
-        {
-
-            "service": row["service"],
-
-            "total": row["total"] or 0,
-
-        }
-
+        dict(row)
         for row in rows
-
     ]
 
 
@@ -290,21 +274,18 @@ def get_expert_statistics() -> list[dict]:
 
             COUNT(r.id) AS total,
 
-            SUM(
+            COUNT(
                 CASE
                     WHEN r.status='CLOSED'
-                    THEN 1 ELSE 0
+                    THEN 1
                 END
             ) AS closed
 
-
         FROM experts e
-
 
         LEFT JOIN requests r
 
         ON r.expert_id=e.chat_id
-
 
         GROUP BY
 
@@ -312,34 +293,19 @@ def get_expert_statistics() -> list[dict]:
 
             e.name
 
-
         ORDER BY total DESC
         """
     )
 
-
     return [
-
-        {
-
-            "chat_id": row["chat_id"],
-
-            "name": row["name"],
-
-            "total": row["total"] or 0,
-
-            "closed": row["closed"] or 0,
-
-        }
-
+        dict(row)
         for row in rows
-
     ]
 
 
 
 # =================================================
-# Full Dashboard
+# Dashboard Report
 # =================================================
 
 def get_dashboard_report() -> dict:
@@ -364,4 +330,14 @@ def get_dashboard_report() -> dict:
         "experts":
             get_expert_statistics(),
 
-}
+    }
+
+
+
+# =================================================
+# Compatibility
+# =================================================
+
+def get_reports() -> dict:
+
+    return get_dashboard_report()
