@@ -11,10 +11,6 @@ from dotenv import load_dotenv
 from psycopg.rows import dict_row
 
 
-# -------------------------------------------------
-# Load Environment
-# -------------------------------------------------
-
 load_dotenv()
 
 
@@ -39,26 +35,37 @@ def get_connection():
 
 
 # -------------------------------------------------
-# Initialize Database
+# Close Connection
+# -------------------------------------------------
+
+def close_connection(connection=None):
+    """
+    Close PostgreSQL connection safely.
+    """
+
+    if connection:
+
+        try:
+            connection.close()
+
+        except Exception:
+            pass
+
+
+# -------------------------------------------------
+# Test Connection
 # -------------------------------------------------
 
 def init_database():
-    """
-    Initialize database connection.
 
-    This function only checks that PostgreSQL
-    connection is available and closes it.
-
-    Tables should be created separately.
-    """
-
-    conn = None
+    connection = None
 
     try:
-        conn = get_connection()
 
-        # تست ساده اتصال
-        with conn.cursor() as cursor:
+        connection = get_connection()
+
+        with connection.cursor() as cursor:
+
             cursor.execute(
                 "SELECT 1"
             )
@@ -66,6 +73,8 @@ def init_database():
         print(
             "DATABASE CONNECTION OK"
         )
+
+        return True
 
     except Exception as e:
 
@@ -78,6 +87,6 @@ def init_database():
 
     finally:
 
-        if conn:
-
-            conn.close()
+        close_connection(
+            connection
+        )
