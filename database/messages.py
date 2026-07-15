@@ -335,3 +335,36 @@ def delete_messages(
             tracking_code,
         ),
     )
+
+# =================================================
+# Message History
+# =================================================
+
+def get_history(
+    tracking_code: str,
+) -> list[dict]:
+
+    rows = fetch_all(
+        """
+        SELECT
+            sender_type,
+            sender_id,
+            message_type,
+            message,
+            created_at
+
+        FROM request_messages
+
+        WHERE tracking_code=%s
+
+        ORDER BY created_at ASC,id ASC
+        """,
+        (
+            tracking_code,
+        ),
+    )
+
+    return [
+        dict(row)
+        for row in rows
+    ]
