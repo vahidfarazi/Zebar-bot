@@ -1,9 +1,16 @@
 """
-database
+database/__init__.py
 
-Central database package for Azarakhsh.
-Exports all public database functions.
+Database package exports.
 """
+
+# =================================================
+# Schema / Initialization
+# =================================================
+
+from .schema import (
+    init_database,
+)
 
 
 # =================================================
@@ -16,34 +23,15 @@ from .connection import (
 
 
 # =================================================
-# Schema
-# =================================================
-
-from .schema import (
-    init_database,
-)
-
-
-# =================================================
-# CRUD
+# CRUD Helpers
 # =================================================
 
 from .crud import (
     execute,
-    execute_many,
     fetch_one,
     fetch_all,
+    execute_many,
     table_exists,
-)
-
-
-# =================================================
-# Settings
-# =================================================
-
-from .settings import (
-    get_setting,
-    set_setting,
 )
 
 
@@ -52,71 +40,20 @@ from .settings import (
 # =================================================
 
 from .requests import (
-
     insert_request,
-
     get_request,
-
     get_request_by_tracking,
-
     get_user_requests,
-
     update_request_status,
-
     assign_expert,
-
     transfer_request,
-
     get_transferred_requests,
-
     get_expert_requests,
-
     save_expert_message,
-
     close_request,
-
     update_priority,
-
-    delete_request,
-
     get_recent_requests,
-
-)
-
-
-# =================================================
-# Dashboard
-# =================================================
-
-from .dashboard import (
-
-    get_dashboard_statistics,
-
-    get_dashboard,
-
-)
-
-
-# =================================================
-# Reports
-# =================================================
-
-from .reports import (
-
-    get_daily_statistics,
-
-    get_weekly_statistics,
-
-    get_monthly_statistics,
-
-    get_daily_chart_data,
-
-    get_service_statistics,
-
-    get_expert_statistics,
-
-    get_dashboard_report,
-
+    get_sla_statistics,
 )
 
 
@@ -125,83 +62,17 @@ from .reports import (
 # =================================================
 
 from .messages import (
-
     add_message,
-
     get_message,
-
     get_messages,
-
     get_last_message,
-
+    get_last_user_message,
+    get_last_expert_message,
     count_messages,
-
     get_expert_messages,
-
     get_user_messages,
-
+    get_expert_message_statistics,
     delete_messages,
-
-)
-
-
-# =================================================
-# History
-# =================================================
-
-from .history import (
-
-    add_history,
-
-    get_history,
-
-    count_history,
-
-    add_transfer_history,
-
-    add_status_history,
-
-    add_assignment_history,
-
-    add_admin_history,
-
-    add_expert_history,
-
-    get_latest_history,
-
-    delete_history,
-
-)
-
-
-# =================================================
-# Tracking
-# =================================================
-
-from .tracking import (
-
-    get_last_tracking_number,
-
-)
-
-
-from .tracking_sequence import (
-
-    get_next_tracking_number,
-
-)
-
-
-# =================================================
-# Users
-# =================================================
-
-from .users import (
-
-    get_user,
-
-    create_user,
-
 )
 
 
@@ -210,29 +81,17 @@ from .users import (
 # =================================================
 
 from .experts import (
-
     create_expert,
-
     get_expert,
-
     list_experts,
-
     list_active_experts,
-
     update_department,
-
     set_active,
-
     activate_expert,
-
     deactivate_expert,
-
     delete_expert,
-
     count_experts,
-
     expert_exists,
-
 )
 
 
@@ -241,15 +100,26 @@ from .experts import (
 # =================================================
 
 from .admins import (
-
-    is_admin,
-
     add_admin,
-
     remove_admin,
-
+    is_admin,
     get_all_admins,
+    count_admins,
+    admin_exists,
+)
 
+
+# =================================================
+# Users
+# =================================================
+
+from .users import (
+    create_user,
+    get_user,
+    update_username,
+    update_full_name,
+    update_role,
+    get_all_users,
 )
 
 
@@ -258,19 +128,13 @@ from .admins import (
 # =================================================
 
 from .holidays import (
-
-    is_holiday,
-
     add_holiday,
-
     remove_holiday,
-
     enable_holiday,
-
     disable_holiday,
-
+    is_holiday,
     get_all_holidays,
-
+    get_holidays,
 )
 
 
@@ -279,36 +143,91 @@ from .holidays import (
 # =================================================
 
 from .logs import (
-
     insert_log,
-
+    get_logs,
+    clear_logs,
 )
 
 
+# =================================================
+# Tracking
+# =================================================
+
+from .tracking import (
+    get_last_tracking_number,
+)
+
+
+from .tracking_sequence import (
+    get_next_tracking_number,
+)
+
+
+# =================================================
+# History
+# =================================================
+
+from .history import (
+    add_history,
+    get_history,
+    get_latest_history,
+    count_history,
+    add_transfer_history,
+    add_status_history,
+    add_assignment_history,
+    add_admin_history,
+    add_expert_history,
+    delete_history,
+)
+
+
+# =================================================
+# Reports
+# =================================================
+
+from .reports import (
+    normalize_statistics,
+    get_daily_statistics,
+    get_weekly_statistics,
+    get_monthly_statistics,
+    get_daily_chart_data,
+    get_service_statistics,
+    get_expert_statistics,
+    get_dashboard_report,
+)
+
+
+# =================================================
+# Dashboard
+# =================================================
+
+from .dashboard import (
+    get_dashboard_statistics,
+    get_dashboard,
+    get_sla_dashboard,
+)
+
+
+# =================================================
+# Package Version
+# =================================================
 
 __all__ = [
 
-    # Connection
-    "get_connection",
-
-    # Schema
+    # schema
     "init_database",
 
+    # connection
+    "get_connection",
 
-    # CRUD
+    # crud
     "execute",
-    "execute_many",
     "fetch_one",
     "fetch_all",
+    "execute_many",
     "table_exists",
 
-
-    # Settings
-    "get_setting",
-    "set_setting",
-
-
-    # Requests
+    # requests
     "insert_request",
     "get_request",
     "get_request_by_tracking",
@@ -316,95 +235,55 @@ __all__ = [
     "update_request_status",
     "assign_expert",
     "transfer_request",
-    "get_transferred_requests",
-    "get_expert_requests",
-    "save_expert_message",
     "close_request",
-    "update_priority",
-    "delete_request",
     "get_recent_requests",
+    "get_sla_statistics",
 
-
-    # Dashboard
-    "get_dashboard_statistics",
-    "get_dashboard",
-
-
-    # Reports
-    "get_daily_statistics",
-    "get_weekly_statistics",
-    "get_monthly_statistics",
-    "get_daily_chart_data",
-    "get_service_statistics",
-    "get_expert_statistics",
-    "get_dashboard_report",
-
-
-    # Messages
+    # messages
     "add_message",
-    "get_message",
     "get_messages",
-    "get_last_message",
-    "count_messages",
-    "get_expert_messages",
-    "get_user_messages",
     "delete_messages",
 
-
-    # History
-    "add_history",
-    "get_history",
-    "count_history",
-    "add_transfer_history",
-    "add_status_history",
-    "add_assignment_history",
-    "add_admin_history",
-    "add_expert_history",
-    "get_latest_history",
-    "delete_history",
-
-
-    # Tracking
-    "get_last_tracking_number",
-    "get_next_tracking_number",
-
-
-    # Users
-    "get_user",
-    "create_user",
-
-
-    # Experts
+    # experts
     "create_expert",
     "get_expert",
     "list_experts",
-    "list_active_experts",
-    "update_department",
-    "set_active",
-    "activate_expert",
-    "deactivate_expert",
     "delete_expert",
-    "count_experts",
-    "expert_exists",
 
-
-    # Admins
-    "is_admin",
+    # admins
     "add_admin",
     "remove_admin",
-    "get_all_admins",
+    "is_admin",
 
+    # users
+    "create_user",
+    "get_user",
 
-    # Holidays
-    "is_holiday",
+    # holidays
     "add_holiday",
     "remove_holiday",
-    "enable_holiday",
-    "disable_holiday",
-    "get_all_holidays",
+    "get_holidays",
 
-
-    # Logs
+    # logs
     "insert_log",
+    "get_logs",
+    "clear_logs",
+
+    # tracking
+    "get_last_tracking_number",
+    "get_next_tracking_number",
+
+    # history
+    "add_history",
+    "get_history",
+    "delete_history",
+
+    # reports
+    "get_dashboard_report",
+
+    # dashboard
+    "get_dashboard_statistics",
+    "get_dashboard",
+    "get_sla_dashboard",
 
 ]
