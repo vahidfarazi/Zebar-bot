@@ -75,12 +75,15 @@ try:
     from .users import (
         create_user,
         get_user,
-        get_user_by_chat_id,
-        update_user,
-        delete_user,
+        update_username,
+        update_full_name,
+        update_role,
+        get_all_users,
     )
+
 except ImportError as e:
     print("USERS IMPORT WARNING:", e)
+
 
 
 # -------------------------------------------------
@@ -91,11 +94,20 @@ try:
     from .experts import (
         create_expert,
         get_expert,
-        get_active_experts,
-        update_expert,
+        list_experts,
+        list_active_experts,
+        set_active,
+        activate_expert,
+        deactivate_expert,
+        update_department,
+        delete_expert,
+        count_experts,
+        expert_exists,
     )
+
 except ImportError as e:
     print("EXPERTS IMPORT WARNING:", e)
+
 
 
 # -------------------------------------------------
@@ -107,7 +119,6 @@ try:
         add_message,
         get_message,
         get_messages,
-        get_history,
         get_last_message,
         get_last_user_message,
         get_last_expert_message,
@@ -117,8 +128,33 @@ try:
         get_expert_message_statistics,
         delete_messages,
     )
+
 except ImportError as e:
     print("MESSAGES IMPORT WARNING:", e)
+
+
+
+# -------------------------------------------------
+# History
+# -------------------------------------------------
+
+try:
+    from .history import (
+        add_history,
+        get_history as get_request_history,
+        get_latest_history,
+        count_history,
+        add_transfer_history,
+        add_status_history,
+        add_assignment_history,
+        add_admin_history,
+        add_expert_history,
+        delete_history,
+    )
+
+except ImportError as e:
+    print("HISTORY IMPORT WARNING:", e)
+
 
 
 # -------------------------------------------------
@@ -135,8 +171,10 @@ try:
         get_all_holidays,
         get_holidays,
     )
+
 except ImportError as e:
     print("HOLIDAYS IMPORT WARNING:", e)
+
 
 
 # -------------------------------------------------
@@ -152,19 +190,61 @@ try:
         count_admins,
         admin_exists,
     )
-except ImportError:
-    pass
-    
+
+except ImportError as e:
+    print("ADMINS IMPORT WARNING:", e)
+
+
+
+# -------------------------------------------------
+# Dashboard
+# -------------------------------------------------
+
+try:
+    from .dashboard import (
+        get_dashboard_statistics,
+        get_dashboard_summary,
+        get_dashboard,
+    )
+
+except ImportError as e:
+    print("DASHBOARD IMPORT WARNING:", e)
+
+
+
+# -------------------------------------------------
+# Reports
+# -------------------------------------------------
+
+try:
+    from .reports import (
+        get_daily_statistics,
+        get_weekly_statistics,
+        get_monthly_statistics,
+        get_dashboard_report,
+        get_daily_chart_data,
+        get_service_statistics,
+        get_expert_statistics,
+    )
+
+except ImportError as e:
+    print("REPORTS IMPORT WARNING:", e)
+
+
 
 # -------------------------------------------------
 # Database Ready
 # -------------------------------------------------
 
 try:
+
     init_database()
+
     print("DATABASE INITIALIZED")
 
+
 except Exception as e:
+
     print(
         "DATABASE INIT WARNING:",
         e,
