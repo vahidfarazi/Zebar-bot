@@ -6,12 +6,16 @@ User repository.
 
 from typing import Optional
 
-from .crud import execute, fetch_one, fetch_all
+from .crud import (
+    execute,
+    fetch_one,
+    fetch_all,
+)
 
 
-# -----------------------------
+# -------------------------------------------------
 # Create User
-# -----------------------------
+# -------------------------------------------------
 def create_user(
     chat_id: int,
     username: str = "",
@@ -19,7 +23,7 @@ def create_user(
     role: str = "USER",
 ) -> None:
     """
-    Create user if not exists.
+    Create user or update basic info.
     """
 
     execute(
@@ -31,8 +35,24 @@ def create_user(
             full_name,
             role
         )
-        VALUES (%s, %s, %s, %s)
-        ON CONFLICT (chat_id) DO NOTHING
+
+        VALUES
+        (
+            %s,
+            %s,
+            %s,
+            %s
+        )
+
+        ON CONFLICT(chat_id)
+
+        DO UPDATE SET
+
+            username = EXCLUDED.username,
+
+            full_name = EXCLUDED.full_name,
+
+            role = EXCLUDED.role
         """,
         (
             chat_id,
@@ -43,37 +63,64 @@ def create_user(
     )
 
 
-# -----------------------------
+# -------------------------------------------------
 # Get User
-# -----------------------------
+# -------------------------------------------------
 def get_user(
     chat_id: int,
 ) -> Optional[dict]:
+    """
+    Return user.
+    """
 
     row = fetch_one(
         """
         SELECT *
+
         FROM users
+
         WHERE chat_id = %s
         """,
-        (chat_id,),
+        (
+            chat_id,
+        ),
     )
 
     return dict(row) if row else None
 
 
-# -----------------------------
-# Update Username
-# -----------------------------
+# -------------------------------------------------
+# Alias
+# -------------------------------------------------
+def get_user_by_chat_id(
+    chat_id: int,
+) -> Optional[dict]:
+    """
+    Compatibility alias.
+    """
+
+    return get_user(
+        chat_id,
+    )
+
+
+# -------------------------------------------------
+# Username
+# -------------------------------------------------
 def update_username(
     chat_id: int,
     username: str,
 ) -> None:
+    """
+    Update username.
+    """
 
     execute(
         """
         UPDATE users
+
         SET username = %s
+
         WHERE chat_id = %s
         """,
         (
@@ -83,18 +130,23 @@ def update_username(
     )
 
 
-# -----------------------------
-# Update Full Name
-# -----------------------------
+# -------------------------------------------------
+# Full Name
+# -------------------------------------------------
 def update_full_name(
     chat_id: int,
     full_name: str,
 ) -> None:
+    """
+    Update full name.
+    """
 
     execute(
         """
         UPDATE users
+
         SET full_name = %s
+
         WHERE chat_id = %s
         """,
         (
@@ -104,18 +156,23 @@ def update_full_name(
     )
 
 
-# -----------------------------
-# Update Role
-# -----------------------------
+# -------------------------------------------------
+# Role
+# -------------------------------------------------
 def update_role(
     chat_id: int,
     role: str,
 ) -> None:
+    """
+    Update role.
+    """
 
     execute(
         """
         UPDATE users
+
         SET role = %s
+
         WHERE chat_id = %s
         """,
         (
@@ -125,17 +182,83 @@ def update_role(
     )
 
 
-# -----------------------------
-# Get All Users
-# -----------------------------
+# -------------------------------------------------
+# Delete User
+# -------------------------------------------------
+def delete_user(
+    chat_id: int,
+) -> None:
+    """
+    Delete user.
+    """
+
+    execute(
+        """
+        DELETE FROM users
+
+        WHERE chat_id = %s
+        """,
+        (
+            chat_id,
+        ),
+    )
+
+
+# -------------------------------------------------
+# Exists
+# -------------------------------------------------
+def user_exists(
+    chat_id: int,
+) -> bool:
+    """
+    Check user existence.
+    """
+
+    return get_user(
+        chat_id,
+    ) is not None
+
+
+# -------------------------------------------------
+# All Users
+# -------------------------------------------------
 def get_all_users() -> list[dict]:
+    """
+    Return all users.
+    """
 
     rows = fetch_all(
         """
         SELECT *
+
         FROM users
+
         ORDER BY created_at DESC
         """
     )
 
-    return [dict(row) for row in rows]
+    return [
+        dict(row)
+        for row in rows
+    ]
+
+
+# -------------------------------------------------
+# Count
+# -------------------------------------------------
+def count_users() -> int:
+    """
+    Total users.
+    """
+
+    row = fetch_one(
+        """
+        SELECT COUNT(*) AS total
+
+        FROM users
+        """
+    )
+
+    return int(
+        row["total"] or 0
+    )
