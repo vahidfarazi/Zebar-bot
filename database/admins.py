@@ -11,52 +11,48 @@ from .crud import (
 )
 
 
-# -------------------------------------------------
+# =================================================
 # Add Admin
-# -------------------------------------------------
+# =================================================
+
 def add_admin(
     chat_id: int,
-    active: bool = True,
 ) -> None:
     """
-    Add new admin or activate existing one.
+    Add admin if not exists.
     """
 
     execute(
         """
         INSERT INTO admins
         (
-            chat_id,
-            active
+            chat_id
         )
 
         VALUES
         (
-            %s,
             %s
         )
 
         ON CONFLICT(chat_id)
 
-        DO UPDATE SET
-
-            active = EXCLUDED.active
+        DO NOTHING
         """,
         (
             chat_id,
-            active,
         ),
     )
 
 
-# -------------------------------------------------
+# =================================================
 # Remove Admin
-# -------------------------------------------------
+# =================================================
+
 def remove_admin(
     chat_id: int,
 ) -> None:
     """
-    Remove admin completely.
+    Remove admin.
     """
 
     execute(
@@ -71,9 +67,10 @@ def remove_admin(
     )
 
 
-# -------------------------------------------------
+# =================================================
 # Get Admin
-# -------------------------------------------------
+# =================================================
+
 def get_admin(
     chat_id: int,
 ) -> dict | None:
@@ -97,98 +94,91 @@ def get_admin(
     return dict(row) if row else None
 
 
-# -------------------------------------------------
+
+# =================================================
 # Is Admin
-# -------------------------------------------------
+# =================================================
+
 def is_admin(
     chat_id: int,
 ) -> bool:
     """
-    Check admin existence.
+    Check admin.
     """
 
-    return get_admin(chat_id) is not None
+    return get_admin(
+        chat_id
+    ) is not None
 
 
-# -------------------------------------------------
-# Activate / Deactivate
-# -------------------------------------------------
+
+# =================================================
+# Active Compatibility
+# =================================================
+
 def set_active(
     chat_id: int,
     active: bool = True,
 ) -> None:
     """
-    Enable / Disable admin.
+    Compatibility function.
+
+    Current schema has no active column,
+    so this only keeps API compatibility.
     """
 
-    execute(
-        """
-        UPDATE admins
+    if active:
 
-        SET active = %s
+        add_admin(
+            chat_id
+        )
 
-        WHERE chat_id = %s
-        """,
-        (
-            active,
-            chat_id,
-        ),
-    )
+    else:
+
+        remove_admin(
+            chat_id
+        )
+
 
 
 def activate_admin(
     chat_id: int,
 ) -> None:
 
-    set_active(
-        chat_id,
-        True,
+    add_admin(
+        chat_id
     )
+
 
 
 def deactivate_admin(
     chat_id: int,
 ) -> None:
 
-    set_active(
-        chat_id,
-        False,
+    remove_admin(
+        chat_id
     )
 
 
-# -------------------------------------------------
+
+# =================================================
 # Active Admins
-# -------------------------------------------------
+# =================================================
+
 def get_active_admins() -> list[int]:
     """
-    Return active admin ids.
+    Current schema treats all admins as active.
     """
 
-    rows = fetch_all(
-        """
-        SELECT chat_id
-
-        FROM admins
-
-        WHERE active = TRUE
-
-        ORDER BY chat_id
-        """
-    )
-
-    return [
-        row["chat_id"]
-        for row in rows
-    ]
+    return get_all_admins()
 
 
-# -------------------------------------------------
+
+# =================================================
 # All Admins
-# -------------------------------------------------
+# =================================================
+
 def get_all_admins() -> list[int]:
-    """
-    Return all admin ids.
-    """
 
     rows = fetch_all(
         """
@@ -206,13 +196,12 @@ def get_all_admins() -> list[int]:
     ]
 
 
-# -------------------------------------------------
+
+# =================================================
 # Count
-# -------------------------------------------------
+# =================================================
+
 def count_admins() -> int:
-    """
-    Total admins.
-    """
 
     row = fetch_one(
         """
@@ -227,9 +216,11 @@ def count_admins() -> int:
     )
 
 
-# -------------------------------------------------
+
+# =================================================
 # Exists
-# -------------------------------------------------
+# =================================================
+
 def admin_exists(
     chat_id: int,
 ) -> bool:
@@ -239,13 +230,12 @@ def admin_exists(
     )
 
 
-# -------------------------------------------------
+
+# =================================================
 # Dashboard
-# -------------------------------------------------
+# =================================================
+
 def get_dashboard_summary() -> dict:
-    """
-    Admin statistics.
-    """
 
     return {
 
