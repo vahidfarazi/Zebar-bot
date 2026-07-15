@@ -71,6 +71,9 @@ def insert_request(
 def get_request(
     request_id: int,
 ) -> Optional[dict]:
+    """
+    Return request by id.
+    """
 
     row = fetch_one(
         """
@@ -89,12 +92,15 @@ def get_request(
 
 
 # =================================================
-# Get By Tracking
+# Get By Tracking Code
 # =================================================
 
 def get_request_by_tracking(
     tracking_code: str,
 ) -> Optional[dict]:
+    """
+    Return request by tracking code.
+    """
 
     row = fetch_one(
         """
@@ -111,7 +117,6 @@ def get_request_by_tracking(
 
     return dict(row) if row else None
 
-
 # =================================================
 # Exists
 # =================================================
@@ -119,6 +124,9 @@ def get_request_by_tracking(
 def request_exists(
     tracking_code: str,
 ) -> bool:
+    """
+    Check whether request exists.
+    """
 
     return (
         get_request_by_tracking(
@@ -135,6 +143,9 @@ def request_exists(
 def get_user_requests(
     chat_id: int,
 ) -> list[dict]:
+    """
+    Return all requests of user.
+    """
 
     rows = fetch_all(
         """
@@ -164,6 +175,9 @@ def get_user_requests(
 def get_expert_requests(
     expert_id: int,
 ) -> list[dict]:
+    """
+    Return expert requests.
+    """
 
     rows = fetch_all(
         """
@@ -193,6 +207,9 @@ def get_expert_requests(
 def get_recent_requests(
     limit: int = 20,
 ) -> list[dict]:
+    """
+    Return latest requests.
+    """
 
     rows = fetch_all(
         """
@@ -289,7 +306,7 @@ def transfer_request(
     new_expert_id: int,
 ) -> None:
     """
-    Transfer request.
+    Transfer request to another expert.
     """
 
     execute(
@@ -353,7 +370,6 @@ def save_expert_message(
         ),
     )
 
-
 # =================================================
 # Close Request
 # =================================================
@@ -415,8 +431,9 @@ def reopen_request(
         ),
     )
 
+
 # =================================================
-# Priority
+# Update Priority
 # =================================================
 
 def update_priority(
@@ -468,14 +485,13 @@ def delete_request(
         ),
     )
 
-
 # =================================================
 # Count Requests
 # =================================================
 
 def count_requests() -> int:
     """
-    Total requests.
+    Return total requests.
     """
 
     row = fetch_one(
@@ -495,7 +511,7 @@ def count_requests() -> int:
 
 def count_open_requests() -> int:
     """
-    Total open requests.
+    Return total open requests.
     """
 
     row = fetch_one(
@@ -504,29 +520,7 @@ def count_open_requests() -> int:
 
         FROM requests
 
-        WHERE status='OPEN'
-        """
-    )
-
-    return int(row["total"] or 0)
-
-
-# =================================================
-# Count Closed Requests
-# =================================================
-
-def count_closed_requests() -> int:
-    """
-    Total closed requests.
-    """
-
-    row = fetch_one(
-        """
-        SELECT COUNT(*) AS total
-
-        FROM requests
-
-        WHERE status='CLOSED'
+        WHERE status = 'OPEN'
         """
     )
 
@@ -539,7 +533,7 @@ def count_closed_requests() -> int:
 
 def count_pending_requests() -> int:
     """
-    Total pending requests.
+    Return total pending requests.
     """
 
     row = fetch_one(
@@ -548,7 +542,29 @@ def count_pending_requests() -> int:
 
         FROM requests
 
-        WHERE status='PENDING'
+        WHERE status = 'PENDING'
+        """
+    )
+
+    return int(row["total"] or 0)
+
+
+# =================================================
+# Count Closed Requests
+# =================================================
+
+def count_closed_requests() -> int:
+    """
+    Return total closed requests.
+    """
+
+    row = fetch_one(
+        """
+        SELECT COUNT(*) AS total
+
+        FROM requests
+
+        WHERE status = 'CLOSED'
         """
     )
 
@@ -563,7 +579,7 @@ def count_expert_requests(
     expert_id: int,
 ) -> int:
     """
-    Number of requests assigned to expert.
+    Return total requests assigned to an expert.
     """
 
     row = fetch_one(
@@ -598,9 +614,9 @@ def get_transferred_requests(
 
         FROM requests
 
-        WHERE expert_id IS NOT NULL
+        WHERE transferred_at IS NOT NULL
 
-        ORDER BY updated_at DESC
+        ORDER BY transferred_at DESC
 
         LIMIT %s
         """,
@@ -621,7 +637,7 @@ def get_transferred_requests(
 
 def get_sla_statistics() -> dict:
     """
-    SLA statistics.
+    SLA response statistics.
     """
 
     row = fetch_one(
@@ -655,17 +671,12 @@ def get_sla_statistics() -> dict:
     if not row:
 
         return {
-
             "total": 0,
-
             "avg_response": 0,
-
             "avg_close": 0,
-
         }
 
     return {
-
         "total":
             row.get("total", 0) or 0,
 
@@ -680,31 +691,21 @@ def get_sla_statistics() -> dict:
                 row.get("avg_close", 0) or 0,
                 2,
             ),
-
     }
 
 
 # =================================================
-# Dashboard Summary
+# Requests Summary
 # =================================================
 
 def get_requests_summary() -> dict:
     """
-    Request summary for dashboard.
+    Return request counters.
     """
 
     return {
-
-        "total":
-            count_requests(),
-
-        "open":
-            count_open_requests(),
-
-        "pending":
-            count_pending_requests(),
-
-        "closed":
-            count_closed_requests(),
-
+        "total": count_requests(),
+        "open": count_open_requests(),
+        "pending": count_pending_requests(),
+        "closed": count_closed_requests(),
     }
