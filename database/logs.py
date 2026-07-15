@@ -1,15 +1,20 @@
 """
 database/logs.py
 
-System log repository.
+System logs repository.
 """
 
-from .crud import execute, fetch_all
+from .crud import (
+    execute,
+    fetch_one,
+    fetch_all,
+)
 
 
-# -----------------------------
+# =================================================
 # Insert Log
-# -----------------------------
+# =================================================
+
 def insert_log(
     level: str,
     module: str,
@@ -17,7 +22,7 @@ def insert_log(
     description: str,
 ) -> None:
     """
-    Insert a log entry.
+    Insert system log.
     """
 
     execute(
@@ -27,9 +32,18 @@ def insert_log(
             level,
             module,
             action,
-            description
+            description,
+            created_at
         )
-        VALUES (%s, %s, %s, %s)
+
+        VALUES
+        (
+            %s,
+            %s,
+            %s,
+            %s,
+            CURRENT_TIMESTAMP
+        )
         """,
         (
             level,
@@ -40,15 +54,45 @@ def insert_log(
     )
 
 
-# -----------------------------
+
+# =================================================
+# Get Log
+# =================================================
+
+def get_log(
+    log_id: int,
+) -> dict | None:
+    """
+    Return single log.
+    """
+
+    row = fetch_one(
+        """
+        SELECT *
+
+        FROM system_logs
+
+        WHERE id=%s
+        """,
+        (
+            log_id,
+        ),
+    )
+
+    return dict(row) if row else None
+
+
+
+# =================================================
 # Get Logs
-# -----------------------------
+# =================================================
+
 def get_logs(
     level: str | None = None,
     limit: int = 100,
 ) -> list[dict]:
     """
-    Return latest logs.
+    Return logs.
     """
 
     if level:
@@ -56,9 +100,13 @@ def get_logs(
         rows = fetch_all(
             """
             SELECT *
+
             FROM system_logs
-            WHERE level = %s
+
+            WHERE level=%s
+
             ORDER BY id DESC
+
             LIMIT %s
             """,
             (
@@ -72,8 +120,11 @@ def get_logs(
         rows = fetch_all(
             """
             SELECT *
+
             FROM system_logs
+
             ORDER BY id DESC
+
             LIMIT %s
             """,
             (
@@ -81,15 +132,81 @@ def get_logs(
             ),
         )
 
-    return [dict(row) for row in rows]
+    return [
+        dict(row)
+        for row in rows
+    ]
 
 
-# -----------------------------
-# Clear Logs
-# -----------------------------
+
+# =================================================
+# Latest Log
+# =================================================
+
+def get_latest_log() -> dict | None:
+
+    row = fetch_one(
+        """
+        SELECT *
+
+        FROM system_logs
+
+        ORDER BY id DESC
+
+        LIMIT 1
+        """
+    )
+
+    return dict(row) if row else None
+
+
+
+# =================================================
+# Count Logs
+# =================================================
+
+def count_logs(
+    level: str | None = None,
+) -> int:
+
+    if level:
+
+        row = fetch_one(
+            """
+            SELECT COUNT(*) AS total
+
+            FROM system_logs
+
+            WHERE level=%s
+            """,
+            (
+                level,
+            ),
+        )
+
+    else:
+
+        row = fetch_one(
+            """
+            SELECT COUNT(*) AS total
+
+            FROM system_logs
+            """
+        )
+
+    return int(
+        row["total"] or 0
+    )
+
+
+
+# =================================================
+# Delete Logs
+# =================================================
+
 def clear_logs() -> None:
     """
-    Delete all log records.
+    Delete all logs.
     """
 
     execute(
@@ -97,3 +214,13 @@ def clear_logs() -> None:
         DELETE FROM system_logs
         """
     )
+
+
+
+# =================================================
+# Compatibility
+# =================================================
+
+def delete_logs() -> None:
+
+    clear_logs()
