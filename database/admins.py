@@ -4,63 +4,130 @@ database/admins.py
 Admin repository.
 """
 
-from .crud import execute, fetch_one, fetch_all
+from .crud import (
+    execute,
+    fetch_one,
+    fetch_all,
+)
 
 
 # -------------------------------------------------
 # Add Admin
 # -------------------------------------------------
-def add_admin(chat_id: int) -> None:
+def add_admin(
+    chat_id: int,
+    active: bool = True,
+) -> None:
+    """
+    Add new admin or activate existing one.
+    """
+
     execute(
         """
-        INSERT INTO admins(chat_id)
-        VALUES (%s)
+        INSERT INTO admins
+        (
+            chat_id,
+            active
+        )
+
+        VALUES
+        (
+            %s,
+            %s
+        )
+
         ON CONFLICT(chat_id)
-        DO NOTHING
+
+        DO UPDATE SET
+
+            active = EXCLUDED.active
         """,
-        (chat_id,),
+        (
+            chat_id,
+            active,
+        ),
     )
 
 
 # -------------------------------------------------
 # Remove Admin
 # -------------------------------------------------
-def remove_admin(chat_id: int) -> None:
+def remove_admin(
+    chat_id: int,
+) -> None:
+    """
+    Remove admin completely.
+    """
+
     execute(
         """
         DELETE FROM admins
-        WHERE chat_id=%s
+
+        WHERE chat_id = %s
         """,
-        (chat_id,),
+        (
+            chat_id,
+        ),
     )
+
+
+# -------------------------------------------------
+# Get Admin
+# -------------------------------------------------
+def get_admin(
+    chat_id: int,
+) -> dict | None:
+    """
+    Return admin record.
+    """
+
+    row = fetch_one(
+        """
+        SELECT *
+
+        FROM admins
+
+        WHERE chat_id = %s
+        """,
+        (
+            chat_id,
+        ),
+    )
+
+    return dict(row) if row else None
 
 
 # -------------------------------------------------
 # Is Admin
 # -------------------------------------------------
-def is_admin(chat_id: int) -> bool:
-    row = fetch_one(
-        """
-        SELECT chat_id
-        FROM admins
-        WHERE chat_id=%s
-        """,
-        (chat_id,),
-    )
+def is_admin(
+    chat_id: int,
+) -> bool:
+    """
+    Check admin existence.
+    """
 
-    return row is not None
+    return get_admin(chat_id) is not None
 
 
 # -------------------------------------------------
-# Set Active Admin
+# Activate / Deactivate
 # -------------------------------------------------
-def set_active(chat_id: int, active: bool = True) -> None:
+def set_active(
+    chat_id: int,
+    active: bool = True,
+) -> None:
+    """
+    Enable / Disable admin.
+    """
 
     execute(
         """
         UPDATE admins
-        SET active=%s
-        WHERE chat_id=%s
+
+        SET active = %s
+
+        WHERE chat_id = %s
         """,
         (
             active,
@@ -69,16 +136,42 @@ def set_active(chat_id: int, active: bool = True) -> None:
     )
 
 
+def activate_admin(
+    chat_id: int,
+) -> None:
+
+    set_active(
+        chat_id,
+        True,
+    )
+
+
+def deactivate_admin(
+    chat_id: int,
+) -> None:
+
+    set_active(
+        chat_id,
+        False,
+    )
+
+
 # -------------------------------------------------
-# Get Active Admins
+# Active Admins
 # -------------------------------------------------
 def get_active_admins() -> list[int]:
+    """
+    Return active admin ids.
+    """
 
     rows = fetch_all(
         """
         SELECT chat_id
+
         FROM admins
-        WHERE active=true
+
+        WHERE active = TRUE
+
         ORDER BY chat_id
         """
     )
@@ -90,14 +183,19 @@ def get_active_admins() -> list[int]:
 
 
 # -------------------------------------------------
-# Get All Admins
+# All Admins
 # -------------------------------------------------
 def get_all_admins() -> list[int]:
+    """
+    Return all admin ids.
+    """
 
     rows = fetch_all(
         """
         SELECT chat_id
+
         FROM admins
+
         ORDER BY chat_id
         """
     )
@@ -109,33 +207,54 @@ def get_all_admins() -> list[int]:
 
 
 # -------------------------------------------------
-# Count Admins
+# Count
 # -------------------------------------------------
 def count_admins() -> int:
+    """
+    Total admins.
+    """
 
     row = fetch_one(
         """
         SELECT COUNT(*) AS total
+
         FROM admins
         """
     )
 
-    return int(row["total"])
+    return int(
+        row["total"] or 0
+    )
 
 
 # -------------------------------------------------
-# Admin Exists
+# Exists
 # -------------------------------------------------
-def admin_exists(chat_id: int) -> bool:
-    return is_admin(chat_id)
+def admin_exists(
+    chat_id: int,
+) -> bool:
+
+    return is_admin(
+        chat_id
+    )
 
 
 # -------------------------------------------------
-# Dashboard helper
+# Dashboard
 # -------------------------------------------------
-def get_dashboard_summary():
+def get_dashboard_summary() -> dict:
+    """
+    Admin statistics.
+    """
 
     return {
-        "admins": count_admins(),
-        "active_admins": len(get_active_admins()),
+
+        "admins":
+            count_admins(),
+
+        "active_admins":
+            len(
+                get_active_admins()
+            ),
+
     }
