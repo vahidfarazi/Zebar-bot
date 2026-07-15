@@ -4,16 +4,13 @@ database/messages.py
 Advanced request messages repository.
 """
 
-
 from typing import Optional
-
 
 from .crud import (
     execute,
     fetch_one,
     fetch_all,
 )
-
 
 
 # =================================================
@@ -27,6 +24,9 @@ def add_message(
     message_type: str,
     message: str,
 ) -> int:
+    """
+    Add new message.
+    """
 
     return execute(
         """
@@ -49,6 +49,8 @@ def add_message(
             %s,
             CURRENT_TIMESTAMP
         )
+
+        RETURNING id
         """,
         (
             tracking_code,
@@ -58,7 +60,6 @@ def add_message(
             message,
         ),
     )
-
 
 
 # =================================================
@@ -75,7 +76,7 @@ def get_message(
 
         FROM request_messages
 
-        WHERE id=%s
+        WHERE id = %s
         """,
         (
             message_id,
@@ -85,9 +86,8 @@ def get_message(
     return dict(row) if row else None
 
 
-
 # =================================================
-# Request Messages
+# Get Messages
 # =================================================
 
 def get_messages(
@@ -100,9 +100,9 @@ def get_messages(
 
         FROM request_messages
 
-        WHERE tracking_code=%s
+        WHERE tracking_code = %s
 
-        ORDER BY created_at ASC,id ASC
+        ORDER BY created_at ASC, id ASC
         """,
         (
             tracking_code,
@@ -115,9 +115,8 @@ def get_messages(
     ]
 
 
-
 # =================================================
-# History Alias
+# Alias
 # =================================================
 
 def get_history(
@@ -125,10 +124,8 @@ def get_history(
 ) -> list[dict]:
 
     return get_messages(
-        tracking_code
+        tracking_code,
     )
-
-
 
 # =================================================
 # Last Message
@@ -137,6 +134,9 @@ def get_history(
 def get_last_message(
     tracking_code: str,
 ) -> Optional[dict]:
+    """
+    Return last message.
+    """
 
     row = fetch_one(
         """
@@ -144,9 +144,9 @@ def get_last_message(
 
         FROM request_messages
 
-        WHERE tracking_code=%s
+        WHERE tracking_code = %s
 
-        ORDER BY created_at DESC,id DESC
+        ORDER BY created_at DESC, id DESC
 
         LIMIT 1
         """,
@@ -156,7 +156,6 @@ def get_last_message(
     )
 
     return dict(row) if row else None
-
 
 
 # =================================================
@@ -166,6 +165,9 @@ def get_last_message(
 def get_last_user_message(
     tracking_code: str,
 ) -> Optional[dict]:
+    """
+    Return last user message.
+    """
 
     row = fetch_one(
         """
@@ -173,11 +175,11 @@ def get_last_user_message(
 
         FROM request_messages
 
-        WHERE tracking_code=%s
+        WHERE tracking_code = %s
 
-        AND sender_type='USER'
+        AND sender_type = 'USER'
 
-        ORDER BY created_at DESC,id DESC
+        ORDER BY created_at DESC, id DESC
 
         LIMIT 1
         """,
@@ -187,7 +189,6 @@ def get_last_user_message(
     )
 
     return dict(row) if row else None
-
 
 
 # =================================================
@@ -197,6 +198,9 @@ def get_last_user_message(
 def get_last_expert_message(
     tracking_code: str,
 ) -> Optional[dict]:
+    """
+    Return last expert message.
+    """
 
     row = fetch_one(
         """
@@ -204,11 +208,11 @@ def get_last_expert_message(
 
         FROM request_messages
 
-        WHERE tracking_code=%s
+        WHERE tracking_code = %s
 
-        AND sender_type='EXPERT'
+        AND sender_type = 'EXPERT'
 
-        ORDER BY created_at DESC,id DESC
+        ORDER BY created_at DESC, id DESC
 
         LIMIT 1
         """,
@@ -220,7 +224,6 @@ def get_last_expert_message(
     return dict(row) if row else None
 
 
-
 # =================================================
 # Count Messages
 # =================================================
@@ -228,6 +231,9 @@ def get_last_expert_message(
 def count_messages(
     tracking_code: str,
 ) -> int:
+    """
+    Count messages.
+    """
 
     row = fetch_one(
         """
@@ -235,16 +241,14 @@ def count_messages(
 
         FROM request_messages
 
-        WHERE tracking_code=%s
+        WHERE tracking_code = %s
         """,
         (
             tracking_code,
         ),
     )
 
-    return row["total"] or 0
-
-
+    return int(row["total"] or 0)
 
 # =================================================
 # Expert Messages
@@ -253,6 +257,9 @@ def count_messages(
 def get_expert_messages(
     tracking_code: str,
 ) -> list[dict]:
+    """
+    Return expert messages.
+    """
 
     rows = fetch_all(
         """
@@ -260,11 +267,11 @@ def get_expert_messages(
 
         FROM request_messages
 
-        WHERE tracking_code=%s
+        WHERE tracking_code = %s
 
-        AND sender_type='EXPERT'
+        AND sender_type = 'EXPERT'
 
-        ORDER BY created_at ASC,id ASC
+        ORDER BY created_at ASC, id ASC
         """,
         (
             tracking_code,
@@ -275,7 +282,6 @@ def get_expert_messages(
         dict(row)
         for row in rows
     ]
-
 
 
 # =================================================
@@ -285,6 +291,9 @@ def get_expert_messages(
 def get_user_messages(
     tracking_code: str,
 ) -> list[dict]:
+    """
+    Return user messages.
+    """
 
     rows = fetch_all(
         """
@@ -292,11 +301,11 @@ def get_user_messages(
 
         FROM request_messages
 
-        WHERE tracking_code=%s
+        WHERE tracking_code = %s
 
-        AND sender_type='USER'
+        AND sender_type = 'USER'
 
-        ORDER BY created_at ASC,id ASC
+        ORDER BY created_at ASC, id ASC
         """,
         (
             tracking_code,
@@ -309,24 +318,26 @@ def get_user_messages(
     ]
 
 
-
 # =================================================
 # Expert Message Statistics
 # =================================================
 
 def get_expert_message_statistics() -> list[dict]:
+    """
+    Expert message statistics.
+    """
 
     rows = fetch_all(
         """
         SELECT
 
-        sender_id AS expert_id,
+            sender_id AS expert_id,
 
-        COUNT(*) AS messages
+            COUNT(*) AS messages
 
         FROM request_messages
 
-        WHERE sender_type='EXPERT'
+        WHERE sender_type = 'EXPERT'
 
         GROUP BY sender_id
 
@@ -343,7 +354,6 @@ def get_expert_message_statistics() -> list[dict]:
     ]
 
 
-
 # =================================================
 # Delete Messages
 # =================================================
@@ -351,12 +361,15 @@ def get_expert_message_statistics() -> list[dict]:
 def delete_messages(
     tracking_code: str,
 ) -> None:
+    """
+    Delete all messages for a request.
+    """
 
     execute(
         """
         DELETE FROM request_messages
 
-        WHERE tracking_code=%s
+        WHERE tracking_code = %s
         """,
         (
             tracking_code,
