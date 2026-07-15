@@ -79,8 +79,8 @@ try:
         update_user,
         delete_user,
     )
-except ImportError:
-    pass
+except ImportError as e:
+    print("USERS IMPORT WARNING:", e)
 
 
 # -------------------------------------------------
@@ -94,8 +94,8 @@ try:
         get_active_experts,
         update_expert,
     )
-except ImportError:
-    pass
+except ImportError as e:
+    print("EXPERTS IMPORT WARNING:", e)
 
 
 # -------------------------------------------------
@@ -117,8 +117,27 @@ try:
         get_expert_message_statistics,
         delete_messages,
     )
-except ImportError:
-    pass
+except ImportError as e:
+    print("MESSAGES IMPORT WARNING:", e)
+
+
+# -------------------------------------------------
+# Holidays
+# -------------------------------------------------
+
+try:
+    from .holidays import (
+        add_holiday,
+        remove_holiday,
+        enable_holiday,
+        disable_holiday,
+        is_holiday,
+        get_all_holidays,
+        get_holidays,
+    )
+except ImportError as e:
+    print("HOLIDAYS IMPORT WARNING:", e)
+
 
 
 # -------------------------------------------------
@@ -134,17 +153,3 @@ except Exception as e:
         "DATABASE INIT WARNING:",
         e,
     )
-
-# -------------------------------------------------
-# Holidays
-# -------------------------------------------------
-
-try:
-    from .holidays import (
-        is_holiday,
-        add_holiday,
-        remove_holiday,
-        get_holidays,
-    )
-except ImportError:
-    pass
