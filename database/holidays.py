@@ -11,9 +11,9 @@ from .crud import (
 )
 
 
-# -------------------------------------------------
+# =================================================
 # Add Holiday
-# -------------------------------------------------
+# =================================================
 
 def add_holiday(
     holiday_date: str,
@@ -26,16 +26,18 @@ def add_holiday(
             holiday_date,
             enabled
         )
+
         VALUES
         (
             %s,
             TRUE
         )
 
-        ON CONFLICT (holiday_date)
+        ON CONFLICT(holiday_date)
+
         DO UPDATE SET
 
-            enabled = TRUE
+            enabled=TRUE
         """,
         (
             holiday_date,
@@ -43,9 +45,49 @@ def add_holiday(
     )
 
 
-# -------------------------------------------------
+
+# =================================================
+# Get Holiday
+# =================================================
+
+def get_holiday(
+    holiday_date: str,
+) -> dict | None:
+
+    row = fetch_one(
+        """
+        SELECT *
+
+        FROM holidays
+
+        WHERE holiday_date=%s
+        """,
+        (
+            holiday_date,
+        ),
+    )
+
+    return dict(row) if row else None
+
+
+
+# =================================================
+# Exists
+# =================================================
+
+def holiday_exists(
+    holiday_date: str,
+) -> bool:
+
+    return get_holiday(
+        holiday_date
+    ) is not None
+
+
+
+# =================================================
 # Remove Holiday
-# -------------------------------------------------
+# =================================================
 
 def remove_holiday(
     holiday_date: str,
@@ -55,7 +97,7 @@ def remove_holiday(
         """
         DELETE FROM holidays
 
-        WHERE holiday_date = %s
+        WHERE holiday_date=%s
         """,
         (
             holiday_date,
@@ -63,9 +105,10 @@ def remove_holiday(
     )
 
 
-# -------------------------------------------------
+
+# =================================================
 # Enable Holiday
-# -------------------------------------------------
+# =================================================
 
 def enable_holiday(
     holiday_date: str,
@@ -75,9 +118,9 @@ def enable_holiday(
         """
         UPDATE holidays
 
-        SET enabled = TRUE
+        SET enabled=TRUE
 
-        WHERE holiday_date = %s
+        WHERE holiday_date=%s
         """,
         (
             holiday_date,
@@ -85,9 +128,10 @@ def enable_holiday(
     )
 
 
-# -------------------------------------------------
+
+# =================================================
 # Disable Holiday
-# -------------------------------------------------
+# =================================================
 
 def disable_holiday(
     holiday_date: str,
@@ -97,9 +141,9 @@ def disable_holiday(
         """
         UPDATE holidays
 
-        SET enabled = FALSE
+        SET enabled=FALSE
 
-        WHERE holiday_date = %s
+        WHERE holiday_date=%s
         """,
         (
             holiday_date,
@@ -107,9 +151,10 @@ def disable_holiday(
     )
 
 
-# -------------------------------------------------
+
+# =================================================
 # Is Holiday
-# -------------------------------------------------
+# =================================================
 
 def is_holiday(
     holiday_date: str,
@@ -121,9 +166,9 @@ def is_holiday(
 
         FROM holidays
 
-        WHERE holiday_date = %s
+        WHERE holiday_date=%s
 
-        AND enabled = TRUE
+        AND enabled=TRUE
 
         LIMIT 1
         """,
@@ -135,17 +180,16 @@ def is_holiday(
     return row is not None
 
 
-# -------------------------------------------------
-# Get All Holidays
-# -------------------------------------------------
+
+# =================================================
+# All Holidays
+# =================================================
 
 def get_all_holidays() -> list[dict]:
 
     rows = fetch_all(
         """
-        SELECT
-            holiday_date,
-            enabled
+        SELECT *
 
         FROM holidays
 
@@ -159,9 +203,35 @@ def get_all_holidays() -> list[dict]:
     ]
 
 
-# -------------------------------------------------
-# Alias For Admin Panel
-# -------------------------------------------------
+
+# =================================================
+# Active Holidays
+# =================================================
+
+def get_active_holidays() -> list[dict]:
+
+    rows = fetch_all(
+        """
+        SELECT *
+
+        FROM holidays
+
+        WHERE enabled=TRUE
+
+        ORDER BY holiday_date
+        """
+    )
+
+    return [
+        dict(row)
+        for row in rows
+    ]
+
+
+
+# =================================================
+# Admin Alias
+# =================================================
 
 def get_holidays() -> list[dict]:
 
