@@ -22,6 +22,9 @@ def add_history(
     actor_id: int | None = None,
     description: str = "",
 ) -> None:
+    """
+    Add history record.
+    """
 
     execute(
         """
@@ -56,12 +59,15 @@ def add_history(
 
 
 # =================================================
-# Get History Timeline
+# Get History
 # =================================================
 
 def get_history(
     tracking_code: str,
 ) -> list[dict]:
+    """
+    Return history timeline.
+    """
 
     rows = fetch_all(
         """
@@ -69,9 +75,9 @@ def get_history(
 
         FROM request_history
 
-        WHERE tracking_code=%s
+        WHERE tracking_code = %s
 
-        ORDER BY created_at ASC,id ASC
+        ORDER BY created_at ASC, id ASC
         """,
         (
             tracking_code,
@@ -91,6 +97,9 @@ def get_history(
 def get_latest_history(
     tracking_code: str,
 ) -> dict | None:
+    """
+    Return latest history item.
+    """
 
     row = fetch_one(
         """
@@ -98,7 +107,7 @@ def get_latest_history(
 
         FROM request_history
 
-        WHERE tracking_code=%s
+        WHERE tracking_code = %s
 
         ORDER BY id DESC
 
@@ -111,14 +120,16 @@ def get_latest_history(
 
     return dict(row) if row else None
 
-
 # =================================================
-# Count Events
+# Count History
 # =================================================
 
 def count_history(
     tracking_code: str,
 ) -> int:
+    """
+    Count history events.
+    """
 
     row = fetch_one(
         """
@@ -126,14 +137,14 @@ def count_history(
 
         FROM request_history
 
-        WHERE tracking_code=%s
+        WHERE tracking_code = %s
         """,
         (
             tracking_code,
         ),
     )
 
-    return row["total"] or 0
+    return int(row["total"] or 0)
 
 
 # =================================================
@@ -146,16 +157,15 @@ def add_transfer_history(
     to_expert: int,
     admin_id: int,
 ) -> None:
+    """
+    Record request transfer.
+    """
 
     add_history(
         tracking_code,
-
         "REQUEST_TRANSFER",
-
         "ADMIN",
-
         admin_id,
-
         (
             f"انتقال درخواست از کارشناس "
             f"{from_expert or 'بدون تخصیص'} "
@@ -175,24 +185,22 @@ def add_status_history(
     actor_id: int,
     actor_type: str,
 ) -> None:
+    """
+    Record status change.
+    """
 
     add_history(
         tracking_code,
-
         "STATUS_CHANGE",
-
         actor_type,
-
         actor_id,
-
         (
             f"تغییر وضعیت از "
             f"{old_status} "
             f"به "
             f"{new_status}"
         ),
-    )
-
+)
 
 # =================================================
 # Expert Assignment
@@ -203,16 +211,15 @@ def add_assignment_history(
     expert_id: int,
     actor_id: int,
 ) -> None:
+    """
+    Record expert assignment.
+    """
 
     add_history(
         tracking_code,
-
         "EXPERT_ASSIGNED",
-
         "ADMIN",
-
         actor_id,
-
         (
             f"تخصیص درخواست به کارشناس "
             f"{expert_id}"
@@ -230,16 +237,15 @@ def add_admin_history(
     action: str,
     description: str = "",
 ) -> None:
+    """
+    Record admin action.
+    """
 
     add_history(
         tracking_code,
-
         action,
-
         "ADMIN",
-
         admin_id,
-
         description,
     )
 
@@ -254,19 +260,17 @@ def add_expert_history(
     action: str,
     description: str = "",
 ) -> None:
+    """
+    Record expert action.
+    """
 
     add_history(
         tracking_code,
-
         action,
-
         "EXPERT",
-
         expert_id,
-
         description,
     )
-
 
 # =================================================
 # Delete History
@@ -275,12 +279,15 @@ def add_expert_history(
 def delete_history(
     tracking_code: str,
 ) -> None:
+    """
+    Delete all history records for a request.
+    """
 
     execute(
         """
         DELETE FROM request_history
 
-        WHERE tracking_code=%s
+        WHERE tracking_code = %s
         """,
         (
             tracking_code,
