@@ -14,6 +14,7 @@ from .crud import (
 # -------------------------------------------------
 # Add Holiday
 # -------------------------------------------------
+
 def add_holiday(
     holiday_date: str,
 ) -> None:
@@ -30,6 +31,7 @@ def add_holiday(
             %s,
             TRUE
         )
+
         ON CONFLICT (holiday_date)
         DO UPDATE SET
 
@@ -44,6 +46,7 @@ def add_holiday(
 # -------------------------------------------------
 # Remove Holiday
 # -------------------------------------------------
+
 def remove_holiday(
     holiday_date: str,
 ) -> None:
@@ -63,6 +66,7 @@ def remove_holiday(
 # -------------------------------------------------
 # Enable Holiday
 # -------------------------------------------------
+
 def enable_holiday(
     holiday_date: str,
 ) -> None:
@@ -84,6 +88,7 @@ def enable_holiday(
 # -------------------------------------------------
 # Disable Holiday
 # -------------------------------------------------
+
 def disable_holiday(
     holiday_date: str,
 ) -> None:
@@ -105,6 +110,7 @@ def disable_holiday(
 # -------------------------------------------------
 # Is Holiday
 # -------------------------------------------------
+
 def is_holiday(
     holiday_date: str,
 ) -> bool:
@@ -118,6 +124,8 @@ def is_holiday(
         WHERE holiday_date = %s
 
         AND enabled = TRUE
+
+        LIMIT 1
         """,
         (
             holiday_date,
@@ -130,11 +138,14 @@ def is_holiday(
 # -------------------------------------------------
 # Get All Holidays
 # -------------------------------------------------
+
 def get_all_holidays() -> list[dict]:
 
     rows = fetch_all(
         """
-        SELECT *
+        SELECT
+            holiday_date,
+            enabled
 
         FROM holidays
 
@@ -151,6 +162,7 @@ def get_all_holidays() -> list[dict]:
 # -------------------------------------------------
 # Alias For Admin Panel
 # -------------------------------------------------
+
 def get_holidays() -> list[dict]:
 
     return get_all_holidays()
