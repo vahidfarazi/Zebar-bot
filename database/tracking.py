@@ -127,3 +127,33 @@ def get_last_sequence() -> int:
     return extract_tracking_sequence(
         code
     )
+
+# =================================================
+# Next Tracking Number
+# =================================================
+
+def get_next_tracking_number() -> str:
+    """
+    Return next tracking code.
+
+    Format:
+        SR-2026-0000001
+    """
+
+    year = get_tracking_year()
+
+    sequence = get_last_sequence() + 1
+
+    return f"SR-{year}-{sequence:07d}"
+
+
+# =================================================
+# Generate Tracking Code
+# =================================================
+
+def generate_tracking_code() -> str:
+    """
+    Alias for compatibility.
+    """
+
+    return get_next_tracking_number()
