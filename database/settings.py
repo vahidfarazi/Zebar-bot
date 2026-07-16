@@ -203,3 +203,25 @@ def set_bool_setting(
         key,
         "true" if value else "false",
     )
+
+# -------------------------------------------------
+# Setting Exists
+# -------------------------------------------------
+
+def setting_exists(
+    key: str,
+) -> bool:
+    """
+    Check whether a setting exists.
+    """
+
+    row = fetch_one(
+        """
+        SELECT 1
+        FROM settings
+        WHERE key=%s
+        """,
+        (key,),
+    )
+
+    return row is not None
