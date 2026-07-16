@@ -225,3 +225,29 @@ def setting_exists(
     )
 
     return row is not None
+
+
+# -------------------------------------------------
+# Setting Exists
+# -------------------------------------------------
+
+def setting_exists(
+    key: str,
+) -> bool:
+    """
+    Check if setting exists.
+    """
+
+    row = fetch_one(
+        """
+        SELECT 1
+        FROM settings
+        WHERE key=%s
+        LIMIT 1
+        """,
+        (
+            key,
+        ),
+    )
+
+    return row is not None
