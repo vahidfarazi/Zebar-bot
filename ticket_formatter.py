@@ -72,7 +72,9 @@ def format_request(
         value = data.get(key)
 
         if value:
-            lines.append(f"{title}: {value}")
+            lines.append(
+                f"{title}: {value}"
+            )
 
     description = data.get("description")
 
@@ -86,6 +88,7 @@ def format_request(
         )
 
     return "\n".join(lines)
+
 
 
 # ---------------------------------------------------
@@ -146,7 +149,6 @@ def format_summary(
 
     return "\n".join(lines)
 
-
 # ---------------------------------------------------
 # Expert Ticket
 # ---------------------------------------------------
@@ -170,6 +172,7 @@ def format_expert(
     )
 
 
+
 # ---------------------------------------------------
 # Tracking History
 # ---------------------------------------------------
@@ -180,16 +183,19 @@ def format_user_history(
     history: list[dict],
 ) -> str:
 
-    tracking = request["tracking_code"]
+    tracking = request.get(
+        "tracking_code",
+        "",
+    )
 
     status = STATUS_NAMES.get(
         request.get("status"),
-        request.get("status"),
+        request.get("status", ""),
     )
 
     service = SERVICE_NAMES.get(
         request.get("service"),
-        request.get("service"),
+        request.get("service", ""),
     )
 
     lines = [
@@ -200,25 +206,39 @@ def format_user_history(
         f"🛠 خدمت: {service}",
     ]
 
+
     priority = request.get("priority")
 
     if priority:
-        lines.append(f"⚡ اولویت: {priority}")
+        lines.append(
+            f"⚡ اولویت: {priority}"
+        )
+
 
     expert = request.get("expert_name")
 
     if expert:
-        lines.append(f"👨‍💼 کارشناس: {expert}")
+        lines.append(
+            f"👨‍💼 کارشناس: {expert}"
+        )
+
 
     created = request.get("created_at")
 
-if created:
-    lines.append(f"📅 ثبت: {str(created)}")
+    if created:
+        lines.append(
+            f"📅 ثبت: {str(created)}"
+        )
 
-closed = request.get("closed_at")
 
-if closed:
-    lines.append(f"✅ خاتمه: {str(closed)}")
+    closed = request.get("closed_at")
+
+    if closed:
+        lines.append(
+            f"✅ خاتمه: {str(closed)}"
+        )
+
+
 
     # --------------------------------
     # History
@@ -234,19 +254,30 @@ if closed:
             ]
         )
 
+
         for item in history:
 
-            created = str(item.get("created_at", ""))
+            created = item.get(
+                "created_at",
+                "",
+            )
 
-            event = str(item.get("description") or item.get("event_type") or "")
+            event = (
+                item.get("description")
+                or item.get("event_type")
+                or ""
+            )
+
 
             lines.extend(
                 [
                     "",
-                    f"• {created}",
-                    event,
+                    f"• {str(created)}",
+                    str(event),
                 ]
             )
+
+
 
     # --------------------------------
     # Messages
@@ -262,26 +293,35 @@ if closed:
             ]
         )
 
+
         for msg in messages:
 
             sender = (
                 "👤 شما"
-                if msg["sender_type"] == "USER"
+                if msg.get("sender_type") == "USER"
                 else "👨‍💼 کارشناس"
             )
 
-            created = msg.get("created_at", "")
+
+            created = msg.get(
+                "created_at",
+                "",
+            )
+
 
             lines.extend(
                 [
                     "",
                     sender,
-                    created,
-                    msg["message"],
+                    str(created),
+                    str(msg.get("message", "")),
                 ]
             )
 
+
+
     return "\n".join(lines)
+
 
 
 # ---------------------------------------------------
@@ -307,6 +347,7 @@ def format_expert_reply(
             message,
         ]
     )
+
 
 
 # ---------------------------------------------------
