@@ -59,7 +59,7 @@ def remove_admin(
         """
         DELETE FROM admins
 
-        WHERE chat_id = %s
+        WHERE chat_id=%s
         """,
         (
             chat_id,
@@ -84,14 +84,19 @@ def get_admin(
 
         FROM admins
 
-        WHERE chat_id = %s
+        WHERE chat_id=%s
+
+        LIMIT 1
         """,
         (
             chat_id,
         ),
     )
 
-    return dict(row) if row else None
+    if not row:
+        return None
+
+    return dict(row)
 
 
 
@@ -103,74 +108,54 @@ def is_admin(
     chat_id: int,
 ) -> bool:
     """
-    Check admin.
+    Check admin existence.
     """
 
-    return get_admin(
-        chat_id
-    ) is not None
+    return get_admin(chat_id) is not None
 
 
 
 # =================================================
-# Active Compatibility
+# Activate / Deactivate
 # =================================================
-
-def set_active(
-    chat_id: int,
-    active: bool = True,
-) -> None:
-    """
-    Compatibility function.
-
-    Current schema has no active column,
-    so this only keeps API compatibility.
-    """
-
-    if active:
-
-        add_admin(
-            chat_id
-        )
-
-    else:
-
-        remove_admin(
-            chat_id
-        )
-
-
 
 def activate_admin(
     chat_id: int,
 ) -> None:
+    """
+    Activate admin.
+    """
 
-    add_admin(
-        chat_id
-    )
+    add_admin(chat_id)
 
 
 
 def deactivate_admin(
     chat_id: int,
 ) -> None:
-
-    remove_admin(
-        chat_id
-    )
-
-
-
-# =================================================
-# Active Admins
-# =================================================
-
-def get_active_admins() -> list[int]:
     """
-    Current schema treats all admins as active.
+    Deactivate admin.
+
+    Current schema removes admin.
     """
 
-    return get_all_admins()
+    remove_admin(chat_id)
+
+
+
+def set_active(
+    chat_id: int,
+    active: bool = True,
+) -> None:
+    """
+    Compatibility wrapper.
+    """
+
+    if active:
+        activate_admin(chat_id)
+
+    else:
+        deactivate_admin(chat_id)
 
 
 
@@ -179,6 +164,9 @@ def get_active_admins() -> list[int]:
 # =================================================
 
 def get_all_admins() -> list[int]:
+    """
+    Return all admins.
+    """
 
     rows = fetch_all(
         """
@@ -198,10 +186,27 @@ def get_all_admins() -> list[int]:
 
 
 # =================================================
+# Active Admins
+# =================================================
+
+def get_active_admins() -> list[int]:
+    """
+    Current schema:
+    all existing admins are active.
+    """
+
+    return get_all_admins()
+
+
+
+# =================================================
 # Count
 # =================================================
 
 def count_admins() -> int:
+    """
+    Count admins.
+    """
 
     row = fetch_one(
         """
@@ -224,10 +229,11 @@ def count_admins() -> int:
 def admin_exists(
     chat_id: int,
 ) -> bool:
+    """
+    Check admin existence.
+    """
 
-    return is_admin(
-        chat_id
-    )
+    return is_admin(chat_id)
 
 
 
@@ -236,6 +242,9 @@ def admin_exists(
 # =================================================
 
 def get_dashboard_summary() -> dict:
+    """
+    Admin dashboard summary.
+    """
 
     return {
 
