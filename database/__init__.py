@@ -211,6 +211,10 @@ __all__ = [
     # connection
     "get_connection",
 
+    # schema
+    "init_database",
+    "create_tables",
+    
     # crud
     "execute",
     "execute_many",
