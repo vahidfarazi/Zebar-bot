@@ -212,12 +212,12 @@ def format_user_history(
 
     created = request.get("created_at")
 
-    if created:
+if created:
     lines.append(f"📅 ثبت: {str(created)}")
 
-    closed = request.get("closed_at")
+closed = request.get("closed_at")
 
-    if closed:
+if closed:
     lines.append(f"✅ خاتمه: {str(closed)}")
 
     # --------------------------------
