@@ -109,37 +109,21 @@ def handle_tracking(
             request["closed_at"],
         )
 
+
+    # --------------------------------
+    # Format Tracking Result
+    # --------------------------------
+
     text = format_user_history(
 
-        tracking=tracking_code,
-
-        status=request["status"],
-
-        service=request.get("service"),
-
-        sub_service=request.get("sub_service"),
-
-        priority=request.get("priority"),
-
-        expert=request.get("expert_id"),
-
-        created_at=request.get("created_at"),
-
-        updated_at=request.get("updated_at"),
-
-        closed_at=request.get("closed_at"),
-
-        sla=sla,
-
-        message_count=message_count,
-
-        last_message=last_message,
-
-        history=history,
+        request=request,
 
         messages=messages,
 
+        history=history,
+
     )
+
 
     return {
 
