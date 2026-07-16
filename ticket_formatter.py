@@ -213,12 +213,12 @@ def format_user_history(
     created = request.get("created_at")
 
     if created:
-        lines.append(f"📅 ثبت: {created}")
+    lines.append(f"📅 ثبت: {str(created)}")
 
     closed = request.get("closed_at")
 
     if closed:
-        lines.append(f"✅ خاتمه: {closed}")
+    lines.append(f"✅ خاتمه: {str(closed)}")
 
     # --------------------------------
     # History
@@ -236,9 +236,9 @@ def format_user_history(
 
         for item in history:
 
-            created = item.get("created_at", "")
+            created = str(item.get("created_at", ""))
 
-            event = item.get("description") or item.get("event_type")
+            event = str(item.get("description") or item.get("event_type") or "")
 
             lines.extend(
                 [
