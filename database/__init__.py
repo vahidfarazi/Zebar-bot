@@ -72,6 +72,24 @@ from .experts import (
 )
 
 # =================================================
+# Admins
+# =================================================
+
+from .admins import (
+    add_admin,
+    remove_admin,
+    get_admin,
+    is_admin,
+    activate_admin,
+    deactivate_admin,
+    set_active as set_admin_active,
+    get_active_admins,
+    get_all_admins,
+    count_admins,
+    admin_exists,
+)
+
+# =================================================
 # Requests
 # =================================================
 
@@ -252,6 +270,19 @@ __all__ = [
     "delete_expert",
     "count_experts",
 
+    # admins
+    "add_admin",
+    "remove_admin",
+    "get_admin",
+    "is_admin",
+    "activate_admin",
+    "deactivate_admin",
+    "set_admin_active",
+    "get_active_admins",
+    "get_all_admins",
+    "count_admins",
+    "admin_exists",
+    
     # requests
     "insert_request",
     "get_request",
