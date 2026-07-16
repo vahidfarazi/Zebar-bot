@@ -1,154 +1,110 @@
 """
-database/__init__.py
-
-Central database export layer.
+database package exports
 """
 
-
-# =====================================================
-# CONNECTION
-# =====================================================
+# =================================================
+# Connection
+# =================================================
 
 from .connection import (
     get_connection,
-    close_connection,
-    init_database,
 )
 
-
-# =====================================================
-# SCHEMA
-# =====================================================
-
-from .schema import (
-    create_tables,
-)
-
-
-# =====================================================
-# CRUD CORE
-# =====================================================
+# =================================================
+# CRUD
+# =================================================
 
 from .crud import (
     execute,
+    execute_many,
     fetch_one,
     fetch_all,
+    table_exists,
+    column_exists,
 )
 
-
-# =====================================================
-# USERS
-# =====================================================
+# =================================================
+# Users
+# =================================================
 
 from .users import (
     create_user,
     get_user,
+    get_user_by_chat_id,
+    update_username,
+    update_full_name,
+    update_role,
+    delete_user,
+    user_exists,
     get_all_users,
+    get_users,
+    count_users,
 )
 
-
-def get_user_by_chat_id(
-    chat_id: int,
-):
-    return get_user(
-        chat_id
-    )
-
-
-# =====================================================
-# EXPERTS
-# =====================================================
+# =================================================
+# Experts
+# =================================================
 
 from .experts import (
     create_expert,
     get_expert,
+    expert_exists,
     list_experts,
     list_active_experts,
+    get_active_experts,
+    get_active_expert,
+    update_department,
+    update_phone,
+    set_active,
+    activate_expert,
+    deactivate_expert,
+    delete_expert,
+    count_experts,
 )
 
-
-def get_active_experts():
-    return list_active_experts()
-
-
-def get_active_expert(
-    chat_id: int,
-):
-    return get_expert(
-        chat_id
-    )
-
-
-# =====================================================
-# ADMINS
-# =====================================================
-
-from .admins import (
-    add_admin,
-    remove_admin,
-    is_admin,
-    get_all_admins,
-    get_active_admins,
-    count_admins,
-)
-
-
-# =====================================================
-# REQUESTS
-# =====================================================
+# =================================================
+# Requests
+# =================================================
 
 from .requests import (
     insert_request,
     get_request,
     get_request_by_tracking,
+    get_request_by_code,
+    request_exists,
     get_user_requests,
+    get_requests,
+    get_expert_requests,
     update_request_status,
     assign_expert,
     transfer_request,
+    save_expert_message,
     close_request,
+    reopen_request,
+    update_priority,
+    delete_request,
+    get_recent_requests,
+    get_transferred_requests,
+    count_requests,
+    count_open_requests,
+    count_pending_requests,
+    count_closed_requests,
+    count_expert_requests,
+    get_sla_statistics,
+    get_requests_summary,
 )
 
-
-# =====================================================
-# TRACKING
-# =====================================================
-
-from .tracking_sequence import (
-    get_next_tracking_number,
-)
-
-
-from .tracking import (
-    get_last_tracking_number,
-)
-
-
-def create_tracking_code(
-    year: str,
-    department_code: str = "SR",
-):
-
-    number = get_next_tracking_number(
-        year,
-        department_code,
-    )
-
-    return (
-        f"{department_code}-"
-        f"{year}-"
-        f"{number:07d}"
-    )
-
-
-# =====================================================
-# MESSAGES
-# =====================================================
+# =================================================
+# Messages
+# =================================================
 
 from .messages import (
     add_message,
     get_message,
+    message_exists,
     get_messages,
-    get_history,
+    get_request_messages,
+    get_history as get_message_history,
     get_last_message,
     get_last_user_message,
     get_last_expert_message,
@@ -159,14 +115,14 @@ from .messages import (
     delete_messages,
 )
 
-
-# =====================================================
-# HISTORY
-# =====================================================
+# =================================================
+# History
+# =================================================
 
 from .history import (
     add_history,
-    get_history as get_request_history,
+    get_history,
+    get_request_history,
     get_latest_history,
     count_history,
     add_transfer_history,
@@ -177,176 +133,34 @@ from .history import (
     delete_history,
 )
 
+# =================================================
+# Holidays
+# =================================================
 
-# =====================================================
-# SETTINGS
-# =====================================================
+from .holidays import (
+    add_holiday,
+    remove_holiday,
+    is_holiday,
+    get_holidays,
+)
+
+# =================================================
+# Settings
+# =================================================
 
 from .settings import (
     get_setting,
     set_setting,
     delete_setting,
+    setting_exists,
     get_all_settings,
-    get_working_hours,
 )
 
+# =================================================
+# Tracking
+# =================================================
 
-# =====================================================
-# HOLIDAYS
-# =====================================================
-
-from .holidays import (
-    add_holiday,
-    remove_holiday,
-    enable_holiday,
-    disable_holiday,
-    get_holidays,
-    get_all_holidays,
-    is_holiday,
+from .tracking import (
+    generate_tracking_code,
+    get_next_tracking_number,
 )
-
-
-# =====================================================
-# LOGS
-# =====================================================
-
-from .logs import (
-    insert_log,
-    get_logs,
-    clear_logs,
-)
-
-
-# =====================================================
-# STATISTICS
-# =====================================================
-
-from .statistics import (
-    get_dashboard_statistics,
-    get_daily_statistics,
-    get_weekly_statistics,
-    get_monthly_statistics,
-    get_service_statistics,
-    get_expert_statistics,
-    get_daily_chart_data,
-)
-
-
-# =====================================================
-# REPORTS
-# =====================================================
-
-from .reports import (
-    get_dashboard_report,
-)
-
-
-# =====================================================
-# EXPORTS
-# =====================================================
-
-__all__ = [
-
-    # connection
-    "get_connection",
-    "close_connection",
-    "init_database",
-
-    # schema
-    "create_tables",
-
-    # crud
-    "execute",
-    "fetch_one",
-    "fetch_all",
-
-    # users
-    "create_user",
-    "get_user",
-    "get_user_by_chat_id",
-    "get_all_users",
-
-    # experts
-    "create_expert",
-    "get_expert",
-    "get_active_experts",
-    "get_active_expert",
-
-    # admins
-    "add_admin",
-    "remove_admin",
-    "is_admin",
-
-    # requests
-    "insert_request",
-    "get_request",
-    "get_request_by_tracking",
-    "update_request_status",
-    "assign_expert",
-    "transfer_request",
-    "close_request",
-
-    # tracking
-    "create_tracking_code",
-    "get_last_tracking_number",
-    "get_next_tracking_number",
-
-    # messages
-    "add_message",
-    "get_message",
-    "get_messages",
-    "get_history",
-    "get_last_message",
-    "get_last_user_message",
-    "get_last_expert_message",
-    "count_messages",
-    "get_expert_messages",
-    "get_user_messages",
-    "get_expert_message_statistics",
-    "delete_messages",
-
-    # history
-    "add_history",
-    "get_request_history",
-    "get_latest_history",
-    "count_history",
-    "add_transfer_history",
-    "add_status_history",
-    "add_assignment_history",
-    "add_admin_history",
-    "add_expert_history",
-    "delete_history",
-
-    # settings
-    "get_setting",
-    "set_setting",
-    "delete_setting",
-    "get_all_settings",
-    "get_working_hours",
-
-    # holidays
-    "add_holiday",
-    "remove_holiday",
-    "enable_holiday",
-    "disable_holiday",
-    "get_holidays",
-    "get_all_holidays",
-    "is_holiday",
-
-    # logs
-    "insert_log",
-    "get_logs",
-    "clear_logs",
-
-    # statistics
-    "get_dashboard_statistics",
-    "get_daily_statistics",
-    "get_weekly_statistics",
-    "get_monthly_statistics",
-    "get_service_statistics",
-    "get_expert_statistics",
-    "get_daily_chart_data",
-
-    # reports
-    "get_dashboard_report",
-]
