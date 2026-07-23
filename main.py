@@ -13,6 +13,7 @@ from logger import log_system, log_error
 from database import init_database
 from working_hours import get_current_time, is_working_time
 from config import Config
+from fix_tracking import fix_tracking_sequence
 
 
 # -----------------------------
@@ -22,9 +23,16 @@ def initialize_system() -> None:
     """
     Initialize all core components.
     """
-    try:
+        try:
         init_database()
-        log_system("main", "init", "Database initialized successfully")
+
+        fix_tracking_sequence()
+
+        log_system(
+            "main",
+            "init",
+            "Database initialized successfully"
+        )
 
         # Future: init cache, services, etc.
 
