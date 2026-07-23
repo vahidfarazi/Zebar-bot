@@ -65,14 +65,22 @@ def generate_tracking_code(
         "11",
     )
 
-    sequence = get_next_tracking_number()
+    sequence = get_next_tracking_number(
+        year,
+        department,
+    )
+
+    # تبدیل به عدد برای فرمت 7 رقمی
+    try:
+        sequence = int(sequence)
+    except Exception:
+        sequence = 1
 
     return (
         f"{year}"
         f"{department}"
         f"{sequence:07d}"
     )
-
 
 
 # =================================================
