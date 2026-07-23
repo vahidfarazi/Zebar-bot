@@ -37,26 +37,18 @@ from logger import (
 # =================================================
 
 DEPARTMENT_CODES = {
-
     "NEW_CONNECTION": "11",
-
     "AFTER_SALES": "11",
-
     "METER_TEST": "11",
-
     "BILL_INQUIRY": "11",
-
 }
-
 
 
 # =================================================
 # Generate Tracking Code
 # =================================================
 
-def generate_tracking_code(
-    service: str,
-) -> str:
+def generate_tracking_code(service: str) -> str:
 
     year = "1405"
 
@@ -65,12 +57,8 @@ def generate_tracking_code(
         "11",
     )
 
-    sequence = get_next_tracking_number(
-        year,
-        department,
-    )
+    sequence = get_next_tracking_number()
 
-    # تبدیل به عدد برای فرمت 7 رقمی
     try:
         sequence = int(sequence)
     except Exception:
@@ -87,210 +75,97 @@ def generate_tracking_code(
 # Create Request
 # =================================================
 
-def create_request(
-    chat_id:int,
-    data:dict,
-) -> dict:
-
+def create_request(chat_id: int, data: dict) -> dict:
 
     try:
 
-
-        # -----------------------------------------
-        # Working Hours Check
-        # -----------------------------------------
-
+        # Check working hours
         if not can_create_request():
-
             return {
-
-                "success":False,
-
-                "user_message":
-                    "⏰ در حال حاضر امکان ثبت درخواست وجود ندارد.",
-
+                "success": False,
+                "user_message": "⏰ در حال حاضر امکان ثبت درخواست وجود ندارد.",
             }
 
 
-
-        service = data.get(
-            "service",
-        )
-
+        service = data.get("service")
 
         if not service:
-
             return {
-
-                "success":False,
-
-                "user_message":
-                    "❌ نوع خدمت مشخص نشده است.",
-
+                "success": False,
+                "user_message": "❌ نوع خدمت مشخص نشده است.",
             }
 
 
-
-        tracking = generate_tracking_code(
-
-            service,
-
-        )
+        tracking = generate_tracking_code(service)
 
 
-
-        # -----------------------------------------
-        # Save Request
-        # -----------------------------------------
-
+        # Save request
         insert_request(
-
             tracking_code=tracking,
-
             chat_id=chat_id,
-
             service=service,
-
-            sub_service=data.get(
-                "sub_service",
-            ),
-
+            sub_service=data.get("sub_service"),
         )
 
 
-
-        # -----------------------------------------
-        # User Message
-        # -----------------------------------------
-
-        request_text = format_request(
-
-            data,
-
-        )
-
-
+        # Save user message
+        request_text = format_request(data)
 
         add_message(
-
             tracking_code=tracking,
-
             sender_type="USER",
-
             sender_id=chat_id,
-
             message_type="REQUEST",
-
             message=request_text,
-
         )
 
 
-
-        # -----------------------------------------
         # History
-        # -----------------------------------------
-
         add_history(
-
             tracking_code=tracking,
-
             event_type="REQUEST_CREATED",
-
             actor_type="USER",
-
             actor_id=chat_id,
-
             description="درخواست جدید ثبت شد.",
-
         )
 
 
-
-        # -----------------------------------------
-        # Expert Notification
-        # -----------------------------------------
-
+        # Notify experts
         expert_message = format_expert(
-
             tracking,
-
             chat_id,
-
             data,
-
         )
-
 
         notify_experts(
-
             tracking,
-
             expert_message,
-
         )
-
 
 
         log_info(
-
             "request_service",
-
             "create_request",
-
             tracking,
-
         )
 
 
-
         return {
-
-
-            "success":True,
-
-
-            "tracking":
-
-                tracking,
-
-
-            "user_message":
-
-                format_success(
-
-                    tracking,
-
-                ),
-
-
+            "success": True,
+            "tracking": tracking,
+            "user_message": format_success(tracking),
         }
-
 
 
     except Exception as e:
 
-
         log_error(
-
             "request_service",
-
             "create_request",
-
             str(e),
-
         )
 
-
         return {
-
-
-            "success":False,
-
-
-            "user_message":
-
-                "❌ خطا در ثبت درخواست. لطفاً دوباره تلاش کنید.",
-
-
+            "success": False,
+            "user_message": "❌ خطا در ثبت درخواست. لطفاً دوباره تلاش کنید.",
         }
