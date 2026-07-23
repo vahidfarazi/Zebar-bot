@@ -113,19 +113,8 @@ def is_working_time() -> bool:
 # ----------------------------------
 
 def get_work_status() -> str:
-
-    if not system_enabled():
-        return "DISABLED"
-
-    if is_holiday():
-        return "HOLIDAY"
-
-    if not is_working_day():
-        return "WEEKEND"
-
-    if not is_working_time():
-        return "OUTSIDE"
-
+    # ===== TEST MODE =====
+    # فقط برای تست ثبت درخواست
     return "WORKING"
 
 
