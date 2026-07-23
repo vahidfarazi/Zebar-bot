@@ -58,36 +58,19 @@ def generate_tracking_code(
     service: str,
 ) -> str:
 
-
     year = "1405"
 
-
     department = DEPARTMENT_CODES.get(
-
         service,
-
         "11",
-
     )
 
-
-    sequence = get_next_tracking_number(
-
-        year,
-
-        department,
-
-    )
-
+    sequence = get_next_tracking_number()
 
     return (
-
         f"{year}"
-
         f"{department}"
-
         f"{sequence:07d}"
-
     )
 
 
