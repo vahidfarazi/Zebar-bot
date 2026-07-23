@@ -1,32 +1,25 @@
-from database import execute
+from database import get_connection
 
 
 def fix_tracking_sequence():
 
-    execute(
-        """
-        INSERT INTO tracking_sequences
-        (
-            year,
-            department_code,
-            last_number
-        )
-        VALUES
-        (
-            %s,
-            %s,
-            %s
-        )
-        ON CONFLICT (year, department_code)
-        DO UPDATE SET
-            last_number = EXCLUDED.last_number;
-        """,
-        (
-            "1405",
-            "11",
-            10,
-        ),
-    )
+    conn = get_connection()
 
+    try:
+        with conn.cursor() as cursor:
 
-    print("✅ Tracking sequence fixed")
+            cursor.execute(
+                """
+                UPDATE tracking_sequences
+                SET last_number = 10
+                WHERE year='1405'
+                AND department_code='11'
+                """
+            )
+
+            conn.commit()
+
+            print("### TRACKING FIX EXECUTED ###")
+
+    finally:
+        conn.close()
