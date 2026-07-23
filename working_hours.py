@@ -135,6 +135,14 @@ def get_work_status() -> str:
 
 def can_create_request() -> bool:
 
+    # ===== TEST MODE =====
+    # برای تست موقت ثبت درخواست
+    # بعد از پایان تست مقدار را False کن.
+    TEST_MODE = True
+
+    if TEST_MODE:
+        return True
+
     return get_work_status() == "WORKING"
 
 
