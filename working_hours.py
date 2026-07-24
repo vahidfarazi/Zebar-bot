@@ -123,22 +123,18 @@ def get_work_status() -> str:
     """
 
     if not system_enabled():
-
         return "DISABLED"
 
 
     if is_holiday():
-
         return "HOLIDAY"
 
 
     if not is_working_day():
-
         return "WEEKEND"
 
 
     if not is_working_time():
-
         return "OUTSIDE"
 
 
@@ -151,10 +147,7 @@ def get_work_status() -> str:
 
 def can_create_request() -> bool:
 
-    return (
-        get_work_status()
-        == "WORKING"
-    )
+    return get_work_status() == "WORKING"
 
 
 def can_track_request() -> bool:
@@ -213,9 +206,8 @@ def get_system_work_status() -> dict:
 def get_working_hours_text() -> str:
 
     return (
-        f"{get_work_start()} "
-        f"تا "
-        f"{get_work_end()}"
+        "شنبه تا پنجشنبه\n"
+        f"{get_work_start()} تا {get_work_end()}"
     )
 
 
@@ -235,11 +227,14 @@ def availability_message() -> str:
         )
 
 
-    if status == "HOLIDAY":
+    if status == "OUTSIDE":
 
         return (
-            "📅 امروز تعطیل رسمی است.\n\n"
-            "فقط امکان پیگیری درخواست وجود دارد."
+            "⏰ سامانه خارج از ساعات اداری است.\n\n"
+            "ساعات پاسخگویی:\n"
+            f"{get_working_hours_text()}\n\n"
+            "لطفاً در ساعات اداری دوباره تلاش کنید.\n\n"
+            "✅ اکنون فقط امکان پیگیری درخواست وجود دارد."
         )
 
 
@@ -247,16 +242,21 @@ def availability_message() -> str:
 
         return (
             "📅 امروز روز کاری نیست.\n\n"
-            "فقط امکان پیگیری درخواست وجود دارد."
+            "ساعات پاسخگویی:\n"
+            f"{get_working_hours_text()}\n\n"
+            "لطفاً در ساعات اداری دوباره تلاش کنید.\n\n"
+            "✅ اکنون فقط امکان پیگیری درخواست وجود دارد."
         )
 
 
-    if status == "OUTSIDE":
+    if status == "HOLIDAY":
 
         return (
-            "⏰ خارج از ساعت کاری هستیم.\n\n"
-            f"🕖 ساعات کاری:\n"
-            f"{get_working_hours_text()}"
+            "📅 امروز تعطیل رسمی است.\n\n"
+            "ساعات پاسخگویی:\n"
+            f"{get_working_hours_text()}\n\n"
+            "لطفاً در ساعات اداری دوباره تلاش کنید.\n\n"
+            "✅ اکنون فقط امکان پیگیری درخواست وجود دارد."
         )
 
 
