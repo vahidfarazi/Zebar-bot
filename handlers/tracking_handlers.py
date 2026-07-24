@@ -25,6 +25,10 @@ from user_state import (
     clear_state,
 )
 
+from validators import (
+    normalize_digits,
+)
+
 
 # ----------------------------------
 # Start Tracking
@@ -56,13 +60,18 @@ def handle_tracking(
     tracking_code: str,
 ) -> dict:
 
-    tracking_code = tracking_code.strip()
+    # Normalize Persian/Arabic digits
+    tracking_code = normalize_digits(
+        tracking_code.strip()
+    )
 
     clear_state(chat_id)
+
 
     request = get_request_by_tracking(
         tracking_code,
     )
+
 
     if request is None:
 
@@ -88,19 +97,24 @@ def handle_tracking(
         tracking_code,
     )
 
+
     history = get_history(
         tracking_code,
     )
+
 
     last_message = get_last_message(
         tracking_code,
     )
 
+
     message_count = count_messages(
         tracking_code,
     )
 
+
     sla = None
+
 
     if request.get("closed_at"):
 
