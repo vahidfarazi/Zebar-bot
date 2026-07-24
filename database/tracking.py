@@ -12,14 +12,17 @@ def get_next_tracking_number() -> int:
     """
 
     row = fetch_one(
-        """
-        SELECT
-            MAX(
-                CAST(RIGHT(tracking_code, 7) AS INTEGER)
-            ) AS max_number
-        FROM requests
-        WHERE tracking_code LIKE '140511%'
-        """
+    """
+    SELECT
+        MAX(
+            CAST(RIGHT(tracking_code, 7) AS INTEGER)
+        ) AS max_number
+    FROM requests
+    WHERE tracking_code LIKE %s
+    """,
+    (
+        "140511%",
+    ),
     )
 
     if row is None:
