@@ -51,12 +51,17 @@ def get_work_end() -> str:
 
 def get_working_days() -> list[int]:
 
+    # Saturday to Thursday
+    # Friday is holiday
     value = (
         get_setting("WORKING_DAYS")
         or "5,6,0,1,2,3"
     )
 
-    return [int(x) for x in value.split(",")]
+    return [
+        int(x)
+        for x in value.split(",")
+    ]
 
 
 def system_enabled() -> bool:
@@ -113,8 +118,30 @@ def is_working_time() -> bool:
 # ----------------------------------
 
 def get_work_status() -> str:
-    # ===== TEST MODE =====
-    # فقط برای تست ثبت درخواست
+    """
+    Determine current system status.
+    """
+
+    if not system_enabled():
+
+        return "DISABLED"
+
+
+    if is_holiday():
+
+        return "HOLIDAY"
+
+
+    if not is_working_day():
+
+        return "WEEKEND"
+
+
+    if not is_working_time():
+
+        return "OUTSIDE"
+
+
     return "WORKING"
 
 
@@ -124,15 +151,10 @@ def get_work_status() -> str:
 
 def can_create_request() -> bool:
 
-    # ===== TEST MODE =====
-    # برای تست موقت ثبت درخواست
-    # بعد از پایان تست مقدار را False کن.
-    TEST_MODE = True
-
-    if TEST_MODE:
-        return True
-
-    return get_work_status() == "WORKING"
+    return (
+        get_work_status()
+        == "WORKING"
+    )
 
 
 def can_track_request() -> bool:
@@ -166,7 +188,10 @@ def get_system_work_status() -> dict:
 
         "status": status,
 
-        "title": titles.get(status, status),
+        "title": titles.get(
+            status,
+            status,
+        ),
 
         "start": get_work_start(),
 
@@ -202,11 +227,13 @@ def availability_message() -> str:
 
     status = get_work_status()
 
+
     if status == "DISABLED":
 
         return (
             "⛔ سامانه موقتاً غیرفعال است."
         )
+
 
     if status == "HOLIDAY":
 
@@ -215,12 +242,14 @@ def availability_message() -> str:
             "فقط امکان پیگیری درخواست وجود دارد."
         )
 
+
     if status == "WEEKEND":
 
         return (
             "📅 امروز روز کاری نیست.\n\n"
             "فقط امکان پیگیری درخواست وجود دارد."
         )
+
 
     if status == "OUTSIDE":
 
@@ -230,7 +259,10 @@ def availability_message() -> str:
             f"{get_working_hours_text()}"
         )
 
-    return "🟢 سامانه آماده ثبت درخواست است."
+
+    return (
+        "🟢 سامانه آماده ثبت درخواست است."
+    )
 
 
 # ----------------------------------
@@ -243,5 +275,8 @@ def calculate_sla(
 ) -> int:
 
     return int(
-        (end_time - start_time).total_seconds() // 60
+        (
+            end_time - start_time
+        ).total_seconds()
+        // 60
     )
