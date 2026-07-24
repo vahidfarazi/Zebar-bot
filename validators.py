@@ -8,12 +8,44 @@ import re
 
 
 # -----------------------------
+# Normalize Digits
+# -----------------------------
+def normalize_digits(value: str) -> str:
+    """
+    Convert Persian and Arabic digits to English digits.
+
+    Example:
+        ۱۴۰۵۱۱۰۰۰۰۰۱۳
+        ->
+        1405110000013
+    """
+
+    if not value:
+        return value
+
+    persian = "۰۱۲۳۴۵۶۷۸۹"
+    arabic = "٠١٢٣٤٥٦٧٨٩"
+    english = "0123456789"
+
+    translation = str.maketrans(
+        persian + arabic,
+        english + english,
+    )
+
+    return value.translate(
+        translation
+    )
+
+
+# -----------------------------
 # Request Number
 # -----------------------------
 def validate_request_number(value: str) -> bool:
     """
     11 digits.
     """
+
+    value = normalize_digits(value)
 
     return bool(
         re.fullmatch(
@@ -30,6 +62,8 @@ def validate_computer_code(value: str) -> bool:
     """
     7 digits.
     """
+
+    value = normalize_digits(value)
 
     return bool(
         re.fullmatch(
@@ -48,6 +82,8 @@ def validate_mobile(value: str) -> bool:
     Starts with 9.
     """
 
+    value = normalize_digits(value)
+
     return bool(
         re.fullmatch(
             r"9\d{9}",
@@ -65,6 +101,8 @@ def validate_bill_id(value: str) -> bool:
     Starts with 1.
     """
 
+    value = normalize_digits(value)
+
     return bool(
         re.fullmatch(
             r"1\d{12}",
@@ -80,6 +118,8 @@ def validate_subscription(value: str) -> bool:
     """
     5 digits.
     """
+
+    value = normalize_digits(value)
 
     return bool(
         re.fullmatch(
@@ -97,6 +137,8 @@ def validate_meter_serial(value: str) -> bool:
     Up to 20 digits.
     """
 
+    value = normalize_digits(value)
+
     return bool(
         re.fullmatch(
             r"\d{1,20}",
@@ -112,6 +154,8 @@ def validate_national_code(value: str) -> bool:
     """
     Validate Iranian national code.
     """
+
+    value = normalize_digits(value)
 
     if not re.fullmatch(r"\d{10}", value):
         return False
@@ -145,6 +189,8 @@ def detect_identifier(
     """
     Detect identifier type.
     """
+
+    value = normalize_digits(value)
 
     if validate_mobile(value):
         return "mobile"
