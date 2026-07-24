@@ -9,7 +9,6 @@ from database import (
     add_message,
     add_history,
     get_next_tracking_number,
-    get_request_by_tracking,
 )
 
 from ticket_formatter import (
@@ -24,6 +23,7 @@ from notification_service import (
 
 from working_hours import (
     can_create_request,
+    availability_message,
 )
 
 from logger import (
@@ -61,6 +61,7 @@ def generate_tracking_code(service: str) -> str:
 
     try:
         sequence = int(sequence)
+
     except Exception:
         sequence = 1
 
@@ -75,41 +76,71 @@ def generate_tracking_code(service: str) -> str:
 # Create Request
 # =================================================
 
-def create_request(chat_id: int, data: dict) -> dict:
+def create_request(
+    chat_id: int,
+    data: dict,
+) -> dict:
 
     try:
 
+        # -----------------------------------------
         # Check working hours
+        # -----------------------------------------
+
         if not can_create_request():
+
             return {
                 "success": False,
-                "user_message": "⏰ در حال حاضر امکان ثبت درخواست وجود ندارد.",
+                "user_message": availability_message(),
             }
 
 
-        service = data.get("service")
+        # -----------------------------------------
+        # Validate service
+        # -----------------------------------------
+
+        service = data.get(
+            "service"
+        )
 
         if not service:
+
             return {
                 "success": False,
                 "user_message": "❌ نوع خدمت مشخص نشده است.",
             }
 
 
-        tracking = generate_tracking_code(service)
+        # -----------------------------------------
+        # Generate tracking
+        # -----------------------------------------
+
+        tracking = generate_tracking_code(
+            service
+        )
 
 
+        # -----------------------------------------
         # Save request
+        # -----------------------------------------
+
         insert_request(
             tracking_code=tracking,
             chat_id=chat_id,
             service=service,
-            sub_service=data.get("sub_service"),
+            sub_service=data.get(
+                "sub_service"
+            ),
         )
 
 
+        # -----------------------------------------
         # Save user message
-        request_text = format_request(data)
+        # -----------------------------------------
+
+        request_text = format_request(
+            data
+        )
 
         add_message(
             tracking_code=tracking,
@@ -120,7 +151,10 @@ def create_request(chat_id: int, data: dict) -> dict:
         )
 
 
+        # -----------------------------------------
         # History
+        # -----------------------------------------
+
         add_history(
             tracking_code=tracking,
             event_type="REQUEST_CREATED",
@@ -130,7 +164,10 @@ def create_request(chat_id: int, data: dict) -> dict:
         )
 
 
+        # -----------------------------------------
         # Notify experts
+        # -----------------------------------------
+
         expert_message = format_expert(
             tracking,
             chat_id,
@@ -153,7 +190,9 @@ def create_request(chat_id: int, data: dict) -> dict:
         return {
             "success": True,
             "tracking": tracking,
-            "user_message": format_success(tracking),
+            "user_message": format_success(
+                tracking
+            ),
         }
 
 
