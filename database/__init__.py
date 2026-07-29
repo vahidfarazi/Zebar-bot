@@ -213,12 +213,20 @@ from .dashboard import (
 
 from .reports import (
     normalize_statistics,
+
     get_daily_statistics,
+    get_daily_statistics_by_date,
+
     get_weekly_statistics,
+    get_weekly_statistics_by_range,
+
     get_monthly_statistics,
+    get_monthly_statistics_by_month,
+
     get_dashboard_report,
     get_reports,
 )
+
 
 # =================================================
 # Public API
@@ -367,10 +375,17 @@ __all__ = [
     "get_sla_dashboard",
 
     # reports
+
     "normalize_statistics",
+
     "get_daily_statistics",
+    "get_daily_statistics_by_date",
+
     "get_weekly_statistics",
+    "get_weekly_statistics_by_range",
+
     "get_monthly_statistics",
+    "get_monthly_statistics_by_month",
+
     "get_dashboard_report",
     "get_reports",
-]
