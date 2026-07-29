@@ -10,6 +10,7 @@ from .crud import (
 )
 
 
+
 # =================================================
 # Normalize
 # =================================================
@@ -160,6 +161,63 @@ def get_daily_statistics() -> dict:
 
 
 # =================================================
+# Daily By Date (NEW)
+# =================================================
+
+def get_daily_statistics_by_date(
+    report_date: str,
+) -> dict:
+
+    row = fetch_one(
+        """
+        SELECT
+
+            COUNT(*) AS total,
+
+            COUNT(
+                CASE
+                    WHEN status='OPEN'
+                    THEN 1
+                END
+            ) AS open,
+
+            COUNT(
+                CASE
+                    WHEN status='CLOSED'
+                    THEN 1
+                END
+            ) AS closed,
+
+            COUNT(
+                CASE
+                    WHEN status='PENDING'
+                    THEN 1
+                END
+            ) AS pending,
+
+            COUNT(
+                CASE
+                    WHEN expert_id IS NOT NULL
+                    THEN 1
+                END
+            ) AS transferred
+
+        FROM requests
+
+        WHERE DATE(created_at)=%s
+        """,
+        (
+            report_date,
+        ),
+    )
+
+    return normalize_statistics(
+        row
+    )
+
+
+
+# =================================================
 # Weekly
 # =================================================
 
@@ -172,6 +230,66 @@ def get_weekly_statistics() -> dict:
 
 
 # =================================================
+# Weekly By Range (NEW)
+# =================================================
+
+def get_weekly_statistics_by_range(
+    start_date: str,
+    end_date: str,
+) -> dict:
+
+    row = fetch_one(
+        """
+        SELECT
+
+            COUNT(*) AS total,
+
+            COUNT(
+                CASE
+                    WHEN status='OPEN'
+                    THEN 1
+                END
+            ) AS open,
+
+            COUNT(
+                CASE
+                    WHEN status='CLOSED'
+                    THEN 1
+                END
+            ) AS closed,
+
+            COUNT(
+                CASE
+                    WHEN status='PENDING'
+                    THEN 1
+                END
+            ) AS pending,
+
+            COUNT(
+                CASE
+                    WHEN expert_id IS NOT NULL
+                    THEN 1
+                END
+            ) AS transferred
+
+        FROM requests
+
+        WHERE DATE(created_at)
+        BETWEEN %s AND %s
+        """,
+        (
+            start_date,
+            end_date,
+        ),
+    )
+
+    return normalize_statistics(
+        row
+    )
+
+
+
+# =================================================
 # Monthly
 # =================================================
 
@@ -179,6 +297,72 @@ def get_monthly_statistics() -> dict:
 
     return _get_period_statistics(
         30
+    )
+
+
+
+# =================================================
+# Monthly By Month (NEW)
+# =================================================
+
+def get_monthly_statistics_by_month(
+    year: str,
+    month: str,
+) -> dict:
+
+    month_value = (
+        f"{year}-{month.zfill(2)}"
+    )
+
+
+    row = fetch_one(
+        """
+        SELECT
+
+            COUNT(*) AS total,
+
+            COUNT(
+                CASE
+                    WHEN status='OPEN'
+                    THEN 1
+                END
+            ) AS open,
+
+            COUNT(
+                CASE
+                    WHEN status='CLOSED'
+                    THEN 1
+                END
+            ) AS closed,
+
+            COUNT(
+                CASE
+                    WHEN status='PENDING'
+                    THEN 1
+                END
+            ) AS pending,
+
+            COUNT(
+                CASE
+                    WHEN expert_id IS NOT NULL
+                    THEN 1
+                END
+            ) AS transferred
+
+        FROM requests
+
+        WHERE TO_CHAR(
+            created_at,
+            'YYYY-MM'
+        )=%s
+        """,
+        (
+            month_value,
+        ),
+    )
+
+    return normalize_statistics(
+        row
     )
 
 
