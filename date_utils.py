@@ -4,9 +4,13 @@ date_utils.py
 Persian date utilities.
 """
 
-from datetime import datetime
+from datetime import (
+    datetime,
+    timedelta,
+)
 
 import jdatetime
+
 
 
 # ==========================================
@@ -35,6 +39,7 @@ def jalali_to_gregorian(
     )
 
 
+
 # ==========================================
 # Gregorian -> Jalali
 # ==========================================
@@ -61,6 +66,7 @@ def gregorian_to_jalali(
     )
 
 
+
 # ==========================================
 # Now Jalali
 # ==========================================
@@ -70,6 +76,8 @@ def today_jalali() -> str:
     return jdatetime.date.today().strftime(
         "%Y/%m/%d",
     )
+
+
 
 # ==========================================
 # Next Jalali Month
@@ -91,6 +99,30 @@ def next_jalali_month(
         year,
         month + 1,
     )
+
+
+
+# ==========================================
+# Previous Jalali Month
+# ==========================================
+
+def previous_jalali_month(
+    year: int,
+    month: int,
+) -> tuple[int, int]:
+
+    if month == 1:
+
+        return (
+            year - 1,
+            12,
+        )
+
+    return (
+        year,
+        month - 1,
+    )
+
 
 
 # ==========================================
@@ -120,6 +152,8 @@ def jalali_month_range(
         end,
     )
 
+
+
 # ==========================================
 # Previous Jalali Day
 # ==========================================
@@ -133,20 +167,22 @@ def previous_day(
         date_str.replace("-", "/").split("/"),
     )
 
-    d = jdatetime.date(
+    g_date = jdatetime.date(
         year,
         month,
         day,
+    ).togregorian()
+
+    result = g_date - timedelta(
+        days=1,
     )
 
-    d = d.fromgregorian(
-        date=d.togregorian()
-        - datetime.timedelta(days=1)
-    )
-
-    return d.strftime(
+    return jdatetime.date.fromgregorian(
+        date=result,
+    ).strftime(
         "%Y/%m/%d",
     )
+
 
 
 # ==========================================
@@ -162,42 +198,22 @@ def next_day(
         date_str.replace("-", "/").split("/"),
     )
 
-    d = jdatetime.date(
+    g_date = jdatetime.date(
         year,
         month,
         day,
+    ).togregorian()
+
+    result = g_date + timedelta(
+        days=1,
     )
 
-    d = d.fromgregorian(
-        date=d.togregorian()
-        + datetime.timedelta(days=1)
-    )
-
-    return d.strftime(
+    return jdatetime.date.fromgregorian(
+        date=result,
+    ).strftime(
         "%Y/%m/%d",
     )
 
-
-# ==========================================
-# Previous Month
-# ==========================================
-
-def previous_jalali_month(
-    year: int,
-    month: int,
-) -> tuple[int, int]:
-
-    if month == 1:
-
-        return (
-            year - 1,
-            12,
-        )
-
-    return (
-        year,
-        month - 1,
-    )
 
 
 # ==========================================
@@ -213,20 +229,22 @@ def previous_week(
         date_str.replace("-", "/").split("/"),
     )
 
-    d = jdatetime.date(
+    g_date = jdatetime.date(
         year,
         month,
         day,
+    ).togregorian()
+
+    result = g_date - timedelta(
+        days=7,
     )
 
-    d = d.fromgregorian(
-        date=d.togregorian()
-        - datetime.timedelta(days=7)
-    )
-
-    return d.strftime(
+    return jdatetime.date.fromgregorian(
+        date=result,
+    ).strftime(
         "%Y/%m/%d",
     )
+
 
 
 # ==========================================
@@ -242,17 +260,18 @@ def next_week(
         date_str.replace("-", "/").split("/"),
     )
 
-    d = jdatetime.date(
+    g_date = jdatetime.date(
         year,
         month,
         day,
+    ).togregorian()
+
+    result = g_date + timedelta(
+        days=7,
     )
 
-    d = d.fromgregorian(
-        date=d.togregorian()
-        + datetime.timedelta(days=7)
-    )
-
-    return d.strftime(
+    return jdatetime.date.fromgregorian(
+        date=result,
+    ).strftime(
         "%Y/%m/%d",
     )
