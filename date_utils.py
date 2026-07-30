@@ -119,3 +119,140 @@ def jalali_month_range(
         start,
         end,
     )
+
+# ==========================================
+# Previous Jalali Day
+# ==========================================
+
+def previous_day(
+    date_str: str,
+) -> str:
+
+    year, month, day = map(
+        int,
+        date_str.replace("-", "/").split("/"),
+    )
+
+    d = jdatetime.date(
+        year,
+        month,
+        day,
+    )
+
+    d = d.fromgregorian(
+        date=d.togregorian()
+        - datetime.timedelta(days=1)
+    )
+
+    return d.strftime(
+        "%Y/%m/%d",
+    )
+
+
+# ==========================================
+# Next Jalali Day
+# ==========================================
+
+def next_day(
+    date_str: str,
+) -> str:
+
+    year, month, day = map(
+        int,
+        date_str.replace("-", "/").split("/"),
+    )
+
+    d = jdatetime.date(
+        year,
+        month,
+        day,
+    )
+
+    d = d.fromgregorian(
+        date=d.togregorian()
+        + datetime.timedelta(days=1)
+    )
+
+    return d.strftime(
+        "%Y/%m/%d",
+    )
+
+
+# ==========================================
+# Previous Month
+# ==========================================
+
+def previous_jalali_month(
+    year: int,
+    month: int,
+) -> tuple[int, int]:
+
+    if month == 1:
+
+        return (
+            year - 1,
+            12,
+        )
+
+    return (
+        year,
+        month - 1,
+    )
+
+
+# ==========================================
+# Previous Week
+# ==========================================
+
+def previous_week(
+    date_str: str,
+) -> str:
+
+    year, month, day = map(
+        int,
+        date_str.replace("-", "/").split("/"),
+    )
+
+    d = jdatetime.date(
+        year,
+        month,
+        day,
+    )
+
+    d = d.fromgregorian(
+        date=d.togregorian()
+        - datetime.timedelta(days=7)
+    )
+
+    return d.strftime(
+        "%Y/%m/%d",
+    )
+
+
+# ==========================================
+# Next Week
+# ==========================================
+
+def next_week(
+    date_str: str,
+) -> str:
+
+    year, month, day = map(
+        int,
+        date_str.replace("-", "/").split("/"),
+    )
+
+    d = jdatetime.date(
+        year,
+        month,
+        day,
+    )
+
+    d = d.fromgregorian(
+        date=d.togregorian()
+        + datetime.timedelta(days=7)
+    )
+
+    return d.strftime(
+        "%Y/%m/%d",
+    )
