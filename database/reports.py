@@ -8,7 +8,9 @@ from .crud import (
     fetch_one,
     fetch_all,
 )
-
+from date_utils import (
+    jalali_to_gregorian,
+)
 
 
 # =================================================
@@ -161,12 +163,17 @@ def get_daily_statistics() -> dict:
 
 
 # =================================================
-# Daily By Date (NEW)
+# Daily By Jalali Date
 # =================================================
 
 def get_daily_statistics_by_date(
     report_date: str,
 ) -> dict:
+
+    gregorian_date = jalali_to_gregorian(
+        report_date
+    )
+
 
     row = fetch_one(
         """
@@ -207,15 +214,14 @@ def get_daily_statistics_by_date(
         WHERE DATE(created_at)=%s
         """,
         (
-            report_date,
+            gregorian_date,
         ),
     )
+
 
     return normalize_statistics(
         row
     )
-
-
 
 # =================================================
 # Weekly
