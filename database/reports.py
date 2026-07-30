@@ -163,15 +163,15 @@ def get_daily_statistics() -> dict:
 
 
 # =================================================
-# Daily By Jalali Date
+# Daily By Jalali Date (NEW)
 # =================================================
 
 def get_daily_statistics_by_date(
     report_date: str,
 ) -> dict:
 
-    gregorian_date = jalali_to_gregorian(
-        report_date
+    report_date = jalali_to_gregorian(
+        report_date,
     )
 
 
@@ -214,7 +214,7 @@ def get_daily_statistics_by_date(
         WHERE DATE(created_at)=%s
         """,
         (
-            gregorian_date,
+            report_date,
         ),
     )
 
