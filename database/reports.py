@@ -236,13 +236,22 @@ def get_weekly_statistics() -> dict:
 
 
 # =================================================
-# Weekly By Range (NEW)
+# Weekly By Jalali Range (NEW)
 # =================================================
 
 def get_weekly_statistics_by_range(
     start_date: str,
     end_date: str,
 ) -> dict:
+
+    start_date = jalali_to_gregorian(
+        start_date,
+    )
+
+    end_date = jalali_to_gregorian(
+        end_date,
+    )
+
 
     row = fetch_one(
         """
@@ -289,10 +298,10 @@ def get_weekly_statistics_by_range(
         ),
     )
 
-    return normalize_statistics(
-        row
-    )
 
+    return normalize_statistics(
+        row,
+    )
 
 
 # =================================================
@@ -308,7 +317,7 @@ def get_monthly_statistics() -> dict:
 
 
 # =================================================
-# Monthly By Month (NEW)
+# Monthly By Jalali Month (NEW)
 # =================================================
 
 def get_monthly_statistics_by_month(
@@ -316,9 +325,21 @@ def get_monthly_statistics_by_month(
     month: str,
 ) -> dict:
 
-    month_value = (
-        f"{year}-{month.zfill(2)}"
+    start_date = jalali_to_gregorian(
+        f"{year}-{month.zfill(2)}-01",
     )
+
+    if int(month) == 12:
+
+        end_date = jalali_to_gregorian(
+            f"{int(year)+1}-01-01",
+        )
+
+    else:
+
+        end_date = jalali_to_gregorian(
+            f"{year}-{str(int(month)+1).zfill(2)}-01",
+        )
 
 
     row = fetch_one(
@@ -357,18 +378,17 @@ def get_monthly_statistics_by_month(
 
         FROM requests
 
-        WHERE TO_CHAR(
-            created_at,
-            'YYYY-MM'
-        )=%s
+        WHERE created_at >= %s
+        AND created_at < %s
         """,
         (
-            month_value,
+            start_date,
+            end_date,
         ),
     )
 
     return normalize_statistics(
-        row
+        row,
     )
 
 
