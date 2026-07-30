@@ -70,3 +70,52 @@ def today_jalali() -> str:
     return jdatetime.date.today().strftime(
         "%Y/%m/%d",
     )
+
+# ==========================================
+# Next Jalali Month
+# ==========================================
+
+def next_jalali_month(
+    year: int,
+    month: int,
+) -> tuple[int, int]:
+
+    if month == 12:
+
+        return (
+            year + 1,
+            1,
+        )
+
+    return (
+        year,
+        month + 1,
+    )
+
+
+# ==========================================
+# Jalali Month Range
+# ==========================================
+
+def jalali_month_range(
+    year: int,
+    month: int,
+) -> tuple[str, str]:
+
+    start = jalali_to_gregorian(
+        f"{year}-{str(month).zfill(2)}-01",
+    )
+
+    next_year, next_month = next_jalali_month(
+        year,
+        month,
+    )
+
+    end = jalali_to_gregorian(
+        f"{next_year}-{str(next_month).zfill(2)}-01",
+    )
+
+    return (
+        start,
+        end,
+    )
