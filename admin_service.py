@@ -38,10 +38,13 @@ from database import (
     # Reports
 
     get_daily_statistics,
+    get_daily_statistics_by_date,
 
     get_weekly_statistics,
+    get_weekly_statistics_by_range,
 
     get_monthly_statistics,
+    get_monthly_statistics_by_month,
 
 
     add_transfer_history,
@@ -806,42 +809,149 @@ def get_recent_activity(
 # Reports
 # =================================================
 
-def get_daily_report():
+def get_daily_report(
+    date: str | None = None,
+):
 
-    return {
+    try:
 
-        "success": True,
+        if date:
 
-        "report":
+            report = get_daily_statistics_by_date(
+                date,
+            )
 
-            get_daily_statistics(),
+        else:
 
-    }
+            report = get_daily_statistics()
+
+        return {
+
+            "success": True,
+
+            "report": report,
+
+        }
+
+    except Exception as e:
+
+        log_error(
+
+            "admin_service",
+
+            "daily_report",
+
+            str(e),
+
+        )
+
+        return {
+
+            "success": False,
+
+            "message":
+                "خطا در تهیه گزارش روزانه",
+
+        }
 
 
+def get_weekly_report(
+    start_date: str | None = None,
+    end_date: str | None = None,
+):
 
-def get_weekly_report():
+    try:
 
-    return {
+        if start_date and end_date:
 
-        "success": True,
+            report = get_weekly_statistics_by_range(
 
-        "report":
+                start_date,
 
-            get_weekly_statistics(),
+                end_date,
 
-    }
+            )
+
+        else:
+
+            report = get_weekly_statistics()
+
+        return {
+
+            "success": True,
+
+            "report": report,
+
+        }
+
+    except Exception as e:
+
+        log_error(
+
+            "admin_service",
+
+            "weekly_report",
+
+            str(e),
+
+        )
+
+        return {
+
+            "success": False,
+
+            "message":
+                "خطا در تهیه گزارش هفتگی",
+
+        }
 
 
+def get_monthly_report(
+    year: int | None = None,
+    month: int | None = None,
+):
 
-def get_monthly_report():
+    try:
 
-    return {
+        if year and month:
 
-        "success": True,
+            report = get_monthly_statistics_by_month(
 
-        "report":
+                year,
 
-            get_monthly_statistics(),
+                month,
+
+            )
+
+        else:
+
+            report = get_monthly_statistics()
+
+        return {
+
+            "success": True,
+
+            "report": report,
+
+        }
+
+    except Exception as e:
+
+        log_error(
+
+            "admin_service",
+
+            "monthly_report",
+
+            str(e),
+
+        )
+
+        return {
+
+            "success": False,
+
+            "message":
+                "خطا در تهیه گزارش ماهانه",
 
         }
