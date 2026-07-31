@@ -4,12 +4,15 @@ handlers/admin_handlers.py
 Advanced admin panel handler.
 """
 
+
 from database import is_admin
+
 
 from menus import (
     ADMIN_MENU,
     MAIN_MENU,
 )
+
 
 from admin_service import (
 
@@ -57,10 +60,18 @@ from date_utils import (
 )
 
 
+from calendar_utils import (
+
+    open_calendar,
+
+)
+
+
 
 # =================================================
 # Main Admin Handler
 # =================================================
+
 
 def handle_admin_message(
     chat_id: int,
@@ -131,10 +142,12 @@ def handle_admin_message(
     # Dashboard
     # =================================================
 
+
     if cmd == "dashboard" or message == "📊 داشبورد":
 
 
         result = dashboard()
+
 
 
         if not result["success"]:
@@ -194,6 +207,7 @@ def handle_admin_message(
     # Statistics
     # =================================================
 
+
     if cmd == "stats" or message == "📈 آمار":
 
 
@@ -250,6 +264,7 @@ def handle_admin_message(
     # Reports
     # =================================================
 
+
     if message == "📅 امروز":
 
         return format_report(
@@ -274,11 +289,7 @@ def handle_admin_message(
 
             f"📅 {date}",
 
-            get_daily_report(
-
-                date,
-
-            ),
+            get_daily_report(date),
 
         )
 
@@ -296,11 +307,7 @@ def handle_admin_message(
 
             f"📅 {date}",
 
-            get_daily_report(
-
-                date,
-
-            ),
+            get_daily_report(date),
 
         )
 
@@ -323,6 +330,8 @@ def handle_admin_message(
             ),
 
         )
+
+
 
     if message == "⬅️ هفته قبل":
 
@@ -366,25 +375,14 @@ def handle_admin_message(
 
     if message == "📅 انتخاب تاریخ":
 
-        return {
-
-            "text":
-
-                "📅 تاریخ مورد نظر را ارسال کنید:\n\nمثال:\n1405/05/10",
-
-            "keyboard":
-
-                ADMIN_MENU,
-
-        }
-
-
+        return open_calendar()
 
     if message == "🗓 این ماه":
 
         today = today_jalali()
 
         year, month, _ = today.split("/")
+
 
         return format_report(
 
@@ -467,8 +465,9 @@ def handle_admin_message(
 
 
     # =================================================
-    # Report By Selected Jalali Date
+    # Selected Date From Calendar / Manual
     # =================================================
+
 
     if (
         "/" in message
@@ -478,16 +477,24 @@ def handle_admin_message(
         try:
 
             year, month, day = map(
+
                 int,
+
                 message.split("/"),
+
             )
 
 
             if (
+
                 1300 <= year <= 1500
+
                 and 1 <= month <= 12
+
                 and 1 <= day <= 31
+
             ):
+
 
                 return format_report(
 
@@ -506,10 +513,12 @@ def handle_admin_message(
 
             pass
 
-    
+
+
     # =================================================
     # Recent Requests
     # =================================================
+
 
     if message == "📋 درخواست‌های اخیر":
 
@@ -556,9 +565,11 @@ def handle_admin_message(
         return {
 
             "text":
+
                 text,
 
             "keyboard":
+
                 ADMIN_MENU,
 
         }
@@ -568,6 +579,7 @@ def handle_admin_message(
     # =================================================
     # Create Expert
     # =================================================
+
 
     if cmd == "create_expert":
 
@@ -597,21 +609,24 @@ def handle_admin_message(
 
 
     # =================================================
-    # Activate / Deactivate
+    # Activate Expert
     # =================================================
 
+
     if cmd == "activate_expert":
+
 
         if len(parts) < 2:
 
             return invalid_command()
 
 
+
         return action_result(
 
             activate_expert(
 
-                int(parts[1])
+                int(parts[1]),
 
             )
 
@@ -619,18 +634,25 @@ def handle_admin_message(
 
 
 
+    # =================================================
+    # Deactivate Expert
+    # =================================================
+
+
     if cmd == "deactivate_expert":
+
 
         if len(parts) < 2:
 
             return invalid_command()
 
 
+
         return action_result(
 
             deactivate_expert(
 
-                int(parts[1])
+                int(parts[1]),
 
             )
 
@@ -642,11 +664,14 @@ def handle_admin_message(
     # Transfer
     # =================================================
 
+
     if cmd == "transfer":
+
 
         if len(parts) < 3:
 
             return invalid_command()
+
 
 
         return action_result(
@@ -669,18 +694,21 @@ def handle_admin_message(
     # Holidays
     # =================================================
 
+
     if cmd == "add_holiday":
+
 
         if len(parts) < 2:
 
             return invalid_command()
 
 
+
         return action_result(
 
             add_system_holiday(
 
-                parts[1]
+                parts[1],
 
             )
 
@@ -690,16 +718,18 @@ def handle_admin_message(
 
     if cmd == "remove_holiday":
 
+
         if len(parts) < 2:
 
             return invalid_command()
+
 
 
         return action_result(
 
             delete_system_holiday(
 
-                parts[1]
+                parts[1],
 
             )
 
@@ -711,11 +741,14 @@ def handle_admin_message(
     # Working Time
     # =================================================
 
+
     if cmd == "worktime":
+
 
         if len(parts) < 3:
 
             return invalid_command()
+
 
 
         return action_result(
@@ -734,16 +767,18 @@ def handle_admin_message(
 
     if cmd == "workdays":
 
+
         if len(parts) < 2:
 
             return invalid_command()
+
 
 
         return action_result(
 
             update_working_days(
 
-                parts[1]
+                parts[1],
 
             )
 
@@ -755,11 +790,14 @@ def handle_admin_message(
     # Settings
     # =================================================
 
+
     if cmd == "set":
+
 
         if len(parts) < 3:
 
             return invalid_command()
+
 
 
         return action_result(
@@ -791,10 +829,10 @@ def handle_admin_message(
 
 
 
-
 # =================================================
 # Helpers
 # =================================================
+
 
 def action_result(
     result: dict,
@@ -825,7 +863,6 @@ def action_result(
 
 
 
-
 def invalid_command():
 
     return {
@@ -840,7 +877,6 @@ def invalid_command():
             ADMIN_MENU,
 
     }
-
 
 
 
