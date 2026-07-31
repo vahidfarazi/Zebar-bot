@@ -467,6 +467,47 @@ def handle_admin_message(
 
 
     # =================================================
+    # Report By Selected Jalali Date
+    # =================================================
+
+    if (
+        "/" in message
+        and len(message.split("/")) == 3
+    ):
+
+        try:
+
+            year, month, day = map(
+                int,
+                message.split("/"),
+            )
+
+
+            if (
+                1300 <= year <= 1500
+                and 1 <= month <= 12
+                and 1 <= day <= 31
+            ):
+
+                return format_report(
+
+                    f"📅 گزارش تاریخ {message}",
+
+                    get_daily_report(
+
+                        message,
+
+                    ),
+
+                )
+
+
+        except Exception:
+
+            pass
+
+    
+    # =================================================
     # Recent Requests
     # =================================================
 
