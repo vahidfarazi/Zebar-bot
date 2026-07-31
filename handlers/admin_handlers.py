@@ -250,34 +250,165 @@ def handle_admin_message(
     # Reports
     # =================================================
 
-    report_map = {
+if message == "📅 امروز":
 
+    return format_report(
 
-        "📅 گزارش روزانه":
-            get_daily_report,
+        "📅 گزارش امروز",
 
+        get_daily_report(),
 
-        "📆 گزارش هفتگی":
-            get_weekly_report,
-
-
-        "🗓 گزارش ماهانه":
-            get_monthly_report,
-
-    }
+    )
 
 
 
-    if message in report_map:
+if message == "⬅️ روز قبل":
+
+    date = previous_day(
+
+        today_jalali(),
+
+    )
+
+    return format_report(
+
+        f"📅 {date}",
+
+        get_daily_report(
+
+            date,
+
+        ),
+
+    )
 
 
-        return format_report(
 
-            message,
+if message == "➡️ روز بعد":
 
-            report_map[message](),
+    date = next_day(
 
-        )
+        today_jalali(),
+
+    )
+
+    return format_report(
+
+        f"📅 {date}",
+
+        get_daily_report(
+
+            date,
+
+        ),
+
+    )
+
+
+
+if message == "📆 این هفته":
+
+    return format_report(
+
+        "📆 گزارش هفتگی",
+
+        get_weekly_report(),
+
+    )
+
+
+
+if message == "🗓 این ماه":
+
+    today = today_jalali()
+
+    year, month, _ = today.split(
+
+        "/",
+
+    )
+
+    return format_report(
+
+        "🗓 گزارش ماه",
+
+        get_monthly_report(
+
+            int(year),
+
+            int(month),
+
+        ),
+
+    )
+
+
+
+if message == "⬅️ ماه قبل":
+
+    today = today_jalali()
+
+    year, month, _ = today.split(
+
+        "/",
+
+    )
+
+    year, month = previous_jalali_month(
+
+        int(year),
+
+        int(month),
+
+    )
+
+    return format_report(
+
+        "🗓 ماه قبل",
+
+        get_monthly_report(
+
+            year,
+
+            month,
+
+        ),
+
+    )
+
+
+
+if message == "➡️ ماه بعد":
+
+    today = today_jalali()
+
+    year, month, _ = today.split(
+
+        "/",
+
+    )
+
+    year, month = next_jalali_month(
+
+        int(year),
+
+        int(month),
+
+    )
+
+    return format_report(
+
+        "🗓 ماه بعد",
+
+        get_monthly_report(
+
+            year,
+
+            month,
+
+        ),
+
+    )
 
 
 
