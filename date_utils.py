@@ -365,3 +365,91 @@ def previous_jalali_month(
         year,
         month - 1,
     )
+
+
+# ==========================================
+# Current Week Range
+# ==========================================
+
+def current_week_range() -> tuple[str, str]:
+
+    today = jdatetime.date.today()
+
+    weekday = today.weekday()
+
+    start = today - timedelta(
+        days=weekday,
+    )
+
+    end = start + timedelta(
+        days=6,
+    )
+
+    return (
+        start.strftime("%Y/%m/%d"),
+        end.strftime("%Y/%m/%d"),
+    )
+
+
+
+# ==========================================
+# Previous Week Range
+# ==========================================
+
+def previous_week_range() -> tuple[str, str]:
+
+    start, end = current_week_range()
+
+
+    start_date = jdatetime.datetime.strptime(
+        start,
+        "%Y/%m/%d",
+    ).date()
+
+
+    previous_start = start_date - timedelta(
+        days=7,
+    )
+
+
+    previous_end = previous_start + timedelta(
+        days=6,
+    )
+
+
+    return (
+        previous_start.strftime("%Y/%m/%d"),
+        previous_end.strftime("%Y/%m/%d"),
+    )
+
+
+
+# ==========================================
+# Next Week Range
+# ==========================================
+
+def next_week_range() -> tuple[str, str]:
+
+    start, end = current_week_range()
+
+
+    start_date = jdatetime.datetime.strptime(
+        start,
+        "%Y/%m/%d",
+    ).date()
+
+
+    next_start = start_date + timedelta(
+        days=7,
+    )
+
+
+    next_end = next_start + timedelta(
+        days=6,
+    )
+
+
+    return (
+        next_start.strftime("%Y/%m/%d"),
+        next_end.strftime("%Y/%m/%d"),
+    )
