@@ -585,3 +585,95 @@ def get_jalali_calendar(
 
 
     return calendar
+
+# ==========================================
+# Current Jalali Month
+# ==========================================
+
+def current_jalali_month() -> tuple[int, int]:
+
+    today = jdatetime.date.today()
+
+    return (
+        today.year,
+        today.month,
+    )
+
+
+
+# ==========================================
+# Jalali Calendar Generator
+# ==========================================
+
+def get_jalali_calendar(
+    year: int,
+    month: int,
+) -> list[list[int | None]]:
+
+
+    first_day = jdatetime.date(
+        year,
+        month,
+        1,
+    )
+
+
+    # شنبه = 0
+    start_weekday = first_day.weekday()
+
+
+
+    days = (
+        31
+        if month <= 6
+        else 30
+    )
+
+
+    if month == 12:
+
+        days = 30
+
+
+
+    calendar = []
+
+
+    week = [
+
+        None
+
+    ] * start_weekday
+
+
+
+    for day in range(
+        1,
+        days + 1,
+    ):
+
+        week.append(day)
+
+
+
+        if len(week) == 7:
+
+            calendar.append(week)
+
+            week = []
+
+
+
+    if week:
+
+        while len(week) < 7:
+
+            week.append(None)
+
+
+        calendar.append(
+            week
+        )
+
+
+    return calendar
