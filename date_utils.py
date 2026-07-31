@@ -453,3 +453,135 @@ def next_week_range() -> tuple[str, str]:
         next_start.strftime("%Y/%m/%d"),
         next_end.strftime("%Y/%m/%d"),
     )
+
+
+# ==========================================
+# Jalali Month Days
+# ==========================================
+
+def jalali_month_days(
+    year: int,
+    month: int,
+) -> int:
+
+    if month <= 6:
+
+        return 31
+
+    if month <= 11:
+
+        return 30
+
+    # اسفند
+
+    if jdatetime.date(
+        year,
+        12,
+        30,
+    ).is_valid():
+
+        return 30
+
+    return 29
+
+
+
+# ==========================================
+# Current Jalali Month
+# ==========================================
+
+def current_jalali_month():
+
+    today = jdatetime.date.today()
+
+    return (
+        today.year,
+        today.month,
+    )
+
+
+
+# ==========================================
+# Month Calendar Data
+# ==========================================
+
+def get_jalali_calendar(
+    year: int,
+    month: int,
+) -> list[list[str]]:
+
+    days = jalali_month_days(
+        year,
+        month,
+    )
+
+
+    first_day = jdatetime.date(
+        year,
+        month,
+        1,
+    )
+
+
+    weekday = first_day.weekday()
+
+
+    calendar = []
+
+    week = [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+    ]
+
+
+    for i in range(
+        weekday
+    ):
+
+        week[i] = ""
+
+
+
+    for day in range(
+        1,
+        days + 1,
+    ):
+
+        index = (
+            weekday + day - 1
+        ) % 7
+
+
+        week[index] = str(day)
+
+
+        if index == 6:
+
+            calendar.append(
+                week
+            )
+
+            week = [
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+            ]
+
+
+    if any(week):
+
+        calendar.append(
+            week
+        )
+
+
+    return calendar
