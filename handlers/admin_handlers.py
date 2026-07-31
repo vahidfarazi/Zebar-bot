@@ -6,10 +6,12 @@ Advanced admin panel handler.
 
 from database import is_admin
 
+
 from menus import (
     ADMIN_MENU,
     MAIN_MENU,
 )
+
 
 from admin_service import (
 
@@ -20,14 +22,6 @@ from admin_service import (
     get_daily_report,
     get_weekly_report,
     get_monthly_report,
-
-from date_utils import (
-    today_jalali,
-    previous_day,
-    next_day,
-    previous_jalali_month,
-    next_jalali_month,
-)
 
     get_recent_activity,
 
@@ -48,6 +42,19 @@ from date_utils import (
 )
 
 
+from date_utils import (
+
+    today_jalali,
+
+    previous_day,
+    next_day,
+
+    previous_jalali_month,
+    next_jalali_month,
+
+)
+
+
 
 # =================================================
 # Main Admin Handler
@@ -64,6 +71,7 @@ def handle_admin_message(
         return {
 
             "text":
+
                 "⛔ شما دسترسی به پنل مدیریت ندارید.",
 
         }
@@ -75,9 +83,11 @@ def handle_admin_message(
         return {
 
             "text":
+
                 "🛠 پنل مدیریت سامانه",
 
             "keyboard":
+
                 ADMIN_MENU,
 
         }
@@ -89,9 +99,11 @@ def handle_admin_message(
         return {
 
             "text":
+
                 "منوی اصلی",
 
             "keyboard":
+
                 MAIN_MENU,
 
         }
@@ -103,9 +115,11 @@ def handle_admin_message(
         return {
 
             "text":
+
                 "پیام نامعتبر است",
 
             "keyboard":
+
                 ADMIN_MENU,
 
         }
@@ -135,9 +149,11 @@ def handle_admin_message(
             return {
 
                 "text":
+
                     result["message"],
 
                 "keyboard":
+
                     ADMIN_MENU,
 
             }
@@ -147,23 +163,23 @@ def handle_admin_message(
         stats = result["statistics"]
 
 
-
         work = result.get(
+
             "working_status",
+
             {},
+
         )
 
 
 
         return {
 
-
             "text":
 
             (
 
                 "📊 داشبورد سامانه\n\n"
-
 
                 f"📥 کل: {stats.get('total',0)}\n"
 
@@ -175,13 +191,12 @@ def handle_admin_message(
 
                 f"✅ بسته: {stats.get('closed',0)}\n\n"
 
-
                 f"⏰ وضعیت کاری: {work.get('message','-')}"
 
             ),
 
-
             "keyboard":
+
                 ADMIN_MENU,
 
         }
@@ -204,9 +219,11 @@ def handle_admin_message(
             return {
 
                 "text":
+
                     result["message"],
 
                 "keyboard":
+
                     ADMIN_MENU,
 
             }
@@ -218,7 +235,6 @@ def handle_admin_message(
 
 
         return {
-
 
             "text":
 
@@ -238,8 +254,8 @@ def handle_admin_message(
 
             ),
 
-
             "keyboard":
+
                 ADMIN_MENU,
 
         }
@@ -250,166 +266,173 @@ def handle_admin_message(
     # Reports
     # =================================================
 
-if message == "📅 امروز":
-
-    return format_report(
-
-        "📅 گزارش امروز",
-
-        get_daily_report(),
-
-    )
+    if message == "📅 گزارش امروز":
 
 
+        return format_report(
 
-if message == "⬅️ روز قبل":
+            "📅 گزارش امروز",
 
-    date = previous_day(
+            get_daily_report(),
 
-        today_jalali(),
-
-    )
-
-    return format_report(
-
-        f"📅 {date}",
-
-        get_daily_report(
-
-            date,
-
-        ),
-
-    )
+        )
 
 
 
-if message == "➡️ روز بعد":
-
-    date = next_day(
-
-        today_jalali(),
-
-    )
-
-    return format_report(
-
-        f"📅 {date}",
-
-        get_daily_report(
-
-            date,
-
-        ),
-
-    )
+    if message == "⬅️ روز قبل":
 
 
+        date = previous_day(
 
-if message == "📆 این هفته":
+            today_jalali(),
 
-    return format_report(
+        )
 
-        "📆 گزارش هفتگی",
 
-        get_weekly_report(),
+        return format_report(
 
-    )
+            f"📅 گزارش {date}",
+
+            get_daily_report(
+
+                date,
+
+            ),
+
+        )
 
 
 
-if message == "🗓 این ماه":
+    if message == "➡️ روز بعد":
 
-    today = today_jalali()
 
-    year, month, _ = today.split(
+        date = next_day(
 
-        "/",
+            today_jalali(),
 
-    )
+        )
 
-    return format_report(
 
-        "🗓 گزارش ماه",
+        return format_report(
 
-        get_monthly_report(
+            f"📅 گزارش {date}",
+
+            get_daily_report(
+
+                date,
+
+            ),
+
+        )
+
+
+
+    if message == "📆 گزارش این هفته":
+
+
+        return format_report(
+
+            "📆 گزارش هفتگی",
+
+            get_weekly_report(),
+
+        )
+
+
+
+    if message == "🗓 گزارش این ماه":
+
+
+        year, month, _ = today_jalali().split(
+
+            "/",
+
+        )
+
+
+        return format_report(
+
+            "🗓 گزارش ماه جاری",
+
+            get_monthly_report(
+
+                int(year),
+
+                int(month),
+
+            ),
+
+        )
+
+
+
+    if message == "⬅️ ماه قبل":
+
+
+        year, month, _ = today_jalali().split(
+
+            "/",
+
+        )
+
+
+        year, month = previous_jalali_month(
 
             int(year),
 
             int(month),
 
-        ),
-
-    )
+        )
 
 
+        return format_report(
 
-if message == "⬅️ ماه قبل":
+            "🗓 گزارش ماه قبل",
 
-    today = today_jalali()
+            get_monthly_report(
 
-    year, month, _ = today.split(
+                year,
 
-        "/",
+                month,
 
-    )
+            ),
 
-    year, month = previous_jalali_month(
-
-        int(year),
-
-        int(month),
-
-    )
-
-    return format_report(
-
-        "🗓 ماه قبل",
-
-        get_monthly_report(
-
-            year,
-
-            month,
-
-        ),
-
-    )
+        )
 
 
 
-if message == "➡️ ماه بعد":
+    if message == "➡️ ماه بعد":
 
-    today = today_jalali()
 
-    year, month, _ = today.split(
+        year, month, _ = today_jalali().split(
 
-        "/",
+            "/",
 
-    )
+        )
 
-    year, month = next_jalali_month(
 
-        int(year),
+        year, month = next_jalali_month(
 
-        int(month),
+            int(year),
 
-    )
+            int(month),
 
-    return format_report(
+        )
 
-        "🗓 ماه بعد",
 
-        get_monthly_report(
+        return format_report(
 
-            year,
+            "🗓 گزارش ماه بعد",
 
-            month,
+            get_monthly_report(
 
-        ),
+                year,
 
-    )
+                month,
 
+            ),
+
+        )
 
 
     # =================================================
@@ -428,9 +451,11 @@ if message == "➡️ ماه بعد":
             return {
 
                 "text":
+
                     result["message"],
 
                 "keyboard":
+
                     ADMIN_MENU,
 
             }
@@ -460,12 +485,12 @@ if message == "➡️ ماه بعد":
 
         return {
 
-
             "text":
+
                 text,
 
-
             "keyboard":
+
                 ADMIN_MENU,
 
         }
@@ -513,7 +538,7 @@ if message == "➡️ ماه بعد":
 
 
     # =================================================
-    # Activate
+    # Activate Expert
     # =================================================
 
     if cmd == "activate_expert":
@@ -538,7 +563,7 @@ if message == "➡️ ماه بعد":
 
 
     # =================================================
-    # Deactivate
+    # Deactivate Expert
     # =================================================
 
     if cmd == "deactivate_expert":
@@ -608,7 +633,7 @@ if message == "➡️ ماه بعد":
 
             add_system_holiday(
 
-                parts[1]
+                parts[1],
 
             )
 
@@ -629,7 +654,7 @@ if message == "➡️ ماه بعد":
 
             delete_system_holiday(
 
-                parts[1]
+                parts[1],
 
             )
 
@@ -677,7 +702,7 @@ if message == "➡️ ماه بعد":
 
             update_working_days(
 
-                parts[1]
+                parts[1],
 
             )
 
@@ -714,7 +739,6 @@ if message == "➡️ ماه بعد":
 
     return {
 
-
         "text":
 
             "❌ دستور نامعتبر است.",
@@ -739,7 +763,6 @@ def action_result(
 
     return {
 
-
         "text":
 
             "✅ انجام شد"
@@ -747,8 +770,11 @@ def action_result(
             if result.get("success")
 
             else result.get(
+
                 "message",
+
                 "خطا",
+
             ),
 
 
@@ -766,9 +792,12 @@ def invalid_command():
     return {
 
         "text":
+
             "❌ پارامترهای دستور ناقص است.",
 
+
         "keyboard":
+
             ADMIN_MENU,
 
     }
@@ -787,12 +816,18 @@ def format_report(
         return {
 
             "text":
+
                 result.get(
+
                     "message",
+
                     "خطا",
+
                 ),
 
+
             "keyboard":
+
                 ADMIN_MENU,
 
         }
@@ -804,7 +839,6 @@ def format_report(
 
 
     return {
-
 
         "text":
 
