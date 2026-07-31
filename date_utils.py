@@ -275,3 +275,93 @@ def next_week(
     ).strftime(
         "%Y/%m/%d",
     )
+
+
+# ==========================================
+# Previous Jalali Day
+# ==========================================
+
+def previous_day(
+    date_str: str,
+) -> str:
+
+    date_str = date_str.replace("-", "/")
+
+    y, m, d = map(
+        int,
+        date_str.split("/"),
+    )
+
+    j = jdatetime.date(
+        y,
+        m,
+        d,
+    )
+
+    j = j.fromgregorian(
+        date=j.togregorian()
+    )
+
+    g = j.togregorian()
+
+    from datetime import timedelta
+
+    g = g - timedelta(days=1)
+
+    return jdatetime.date.fromgregorian(
+        date=g,
+    ).strftime("%Y/%m/%d")
+
+
+# ==========================================
+# Next Jalali Day
+# ==========================================
+
+def next_day(
+    date_str: str,
+) -> str:
+
+    date_str = date_str.replace("-", "/")
+
+    y, m, d = map(
+        int,
+        date_str.split("/"),
+    )
+
+    j = jdatetime.date(
+        y,
+        m,
+        d,
+    )
+
+    g = j.togregorian()
+
+    from datetime import timedelta
+
+    g = g + timedelta(days=1)
+
+    return jdatetime.date.fromgregorian(
+        date=g,
+    ).strftime("%Y/%m/%d")
+
+
+# ==========================================
+# Previous Jalali Month
+# ==========================================
+
+def previous_jalali_month(
+    year: int,
+    month: int,
+):
+
+    if month == 1:
+
+        return (
+            year - 1,
+            12,
+        )
+
+    return (
+        year,
+        month - 1,
+    )
